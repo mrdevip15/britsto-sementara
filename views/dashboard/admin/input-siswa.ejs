@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title><%= siswa ? 'Edit' : 'Tambah' %> Siswa - Admin Dashboard</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="nav-fixed">
+    <%- include('partials/topNav') %>
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="user"></i></div>
+                                        <%= siswa ? 'Edit' : 'Tambah' %> Siswa
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <%= siswa ? 'Edit Siswa' : 'Tambah Siswa Baru' %>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert-container" style="display: none;">
+                                        <%- include('./partials/alert') %>
+                                    </div>
+                                    <form action="<%= siswa ? `/admin/siswa/edit/${siswa.id}` : '/admin/siswa/tambah' %>" method="POST">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="small mb-1" for="nama">Nama Panggilan</label>
+                                                    <input class="form-control" id="nama" name="nama" type="text" 
+                                                           value="<%= siswa ? siswa.nama : '' %>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="small mb-1" for="namaLengkap">Nama Lengkap</label>
+                                                    <input class="form-control" id="namaLengkap" name="namaLengkap" type="text" 
+                                                           value="<%= siswa ? siswa.namaLengkap : '' %>" placeholder="Nama Lengkap Sesuai Dokumen Resmi">
+                                                
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="small mb-1" for="noHp">No. HP Siswa</label>
+                                                    <input class="form-control" id="noHp" name="noHp" type="text" 
+                                                           value="<%= siswa ? siswa.noHp : '' %>">
+                                                </div>
+                                             
+                                                <div class="mb-3">
+                                                    <label class="small mb-1" for="alamat">Alamat</label>
+                                                    <input class="form-control" id="alamat" name="alamat" type="text" 
+                                                           value="<%= siswa ? siswa.alamat : '' %>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="small mb-1" for="paymentType">Jenis Pembayaran</label>
+                                                    <select class="form-select" id="paymentType" name="paymentType" required>
+                                                        <option value="">Pilih Jenis Pembayaran</option>
+                                                        <option value="pre_paid" <%= siswa && siswa.paymentType === 'pre_paid' ? 'selected' : '' %>>Bayar di muka</option>
+                                                        <option value="post_paid" <%= siswa && siswa.paymentType === 'post_paid' ? 'selected' : '' %>>Bayar di akhir</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="small mb-1" for="asalSekolah">Asal Sekolah</label>
+                                                    <input class="form-control" id="asalSekolah" name="asalSekolah" type="text" 
+                                                           value="<%= siswa ? siswa.asalSekolah : '' %>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="small mb-1" for="kelas">Kelas</label>
+                                                    <input class="form-control" id="kelas" name="kelas" type="text" 
+                                                           value="<%= siswa ? siswa.kelas : '' %>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="small mb-1" for="noHpOrtu">No. HP Orang Tua</label>
+                                                    <input class="form-control" id="noHpOrtu" name="noHpOrtu" type="text" 
+                                                           value="<%= siswa ? siswa.noHpOrtu : '' %>">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="small mb-1" for="sisaKuotaBelajar">Jumlah Pertemuan</label>
+                                                    <input class="form-control" id="sisaKuotaBelajar" name="sisaKuotaBelajar" type="number" 
+                                                           value="<%= siswa ? siswa.sisaKuotaBelajar : '0' %>" readonly
+                                                           <%= !siswa ? 'required' : '' %>>
+                                                    <small class="text-muted">Sisa pertemuan hanya dapat diubah melalui riwayat pembayaran</small>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="small mb-1" for="fee">Biaya Per Pertemuan</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">Rp</span>
+                                                        <input class="form-control" id="fee" name="fee" type="number" 
+                                                               value="<%= siswa ? siswa.fee : '50000' %>" required>
+                                                    </div>
+                                                </div>
+        
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="tingkat">Tingkat</label>
+                                                    <select class="form-select" id="tingkat" name="tingkat" required>
+                                                        <option value="" disabled selected>Pilih Tingkat</option>
+                                                        <option value="SD" <%= siswa && siswa.tingkat === 'SD' ? 'selected' : '' %>>SD</option>
+                                                        <option value="SMP" <%= siswa && siswa.tingkat === 'SMP' ? 'selected' : '' %>>SMP</option>
+                                                        <option value="SMA" <%= siswa && siswa.tingkat === 'SMA' ? 'selected' : '' %>>SMA</option>
+                                                        <option value="Alumni" <%= siswa && siswa.tingkat === 'Alumni' ? 'selected' : '' %>>Alumni</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label" for="kurikulum">Kurikulum</label>
+                                                    <select class="form-select" id="kurikulum" name="kurikulum" required>
+                                                        <option value="" disabled selected>Pilih Kurikulum</option>
+                                                        <option value="K13" <%= siswa && siswa.kurikulum === 'K13' ? 'selected' : '' %>>K13</option>
+                                                        <option value="Merdeka" <%= siswa && siswa.kurikulum === 'Merdeka' ? 'selected' : '' %>>Merdeka</option>
+                                                        <option value="Cambridge" <%= siswa && siswa.kurikulum === 'Cambridge' ? 'selected' : '' %>>Cambridge</option>
+                                                        <option value="Pearson" <%= siswa && siswa.kurikulum === 'Pearson' ? 'selected' : '' %>>Pearson</option>
+                                                        <option value="SNBT" <%= siswa && siswa.kurikulum === 'SNBT' ? 'selected' : '' %>>SNBT</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="mb-3">
+                                                <label class="form-label" for="mataPelajaran">Mata Pelajaran</label>
+                                                <select class="form-select" id="mataPelajaran" name="mataPelajaran" multiple required>
+                                                    <option value="MTK" <%= siswa && siswa.mataPelajaran?.includes('MTK') ? 'selected' : '' %>>Matematika</option>
+                                                    <option value="IPA" <%= siswa && siswa.mataPelajaran?.includes('IPA') ? 'selected' : '' %>>IPA</option>
+                                                    <option value="IPAS" <%= siswa && siswa.mataPelajaran?.includes('IPAS') ? 'selected' : '' %>>IPAS</option>
+                                                    <option value="KIMIA" <%= siswa && siswa.mataPelajaran?.includes('KIMIA') ? 'selected' : '' %>>Kimia</option>
+                                                    <option value="FISIKA" <%= siswa && siswa.mataPelajaran?.includes('FISIKA') ? 'selected' : '' %>>Fisika</option>
+                                                    <option value="BIOLOGI" <%= siswa && siswa.mataPelajaran?.includes('BIOLOGI') ? 'selected' : '' %>>Biologi</option>
+                                                    <option value="BINDO" <%= siswa && siswa.mataPelajaran?.includes('BINDO') ? 'selected' : '' %>>Bahasa Indonesia</option>
+                                                    <option value="BING" <%= siswa && siswa.mataPelajaran?.includes('BING') ? 'selected' : '' %>>Bahasa Inggris</option>
+                                                    <option value="IPS" <%= siswa && siswa.mataPelajaran?.includes('IPS') ? 'selected' : '' %>>IPS</option>
+                                                    <option value="PPKN" <%= siswa && siswa.mataPelajaran?.includes('PPKN') ? 'selected' : '' %>>PPKN</option>
+                                                    <option value="PAI" <%= siswa && siswa.mataPelajaran?.includes('PAI') ? 'selected' : '' %>>PAI</option>
+                                                    <option value="PBM" <%= siswa && siswa.mataPelajaran?.includes('PBM') ? 'selected' : '' %>>PBM</option>
+                                                    <option value="PPU" <%= siswa && siswa.mataPelajaran?.includes('PPU') ? 'selected' : '' %>>PPU</option>
+                                                    <option value="PU" <%= siswa && siswa.mataPelajaran?.includes('PU') ? 'selected' : '' %>>PU</option>
+                                                    <option value="PK" <%= siswa && siswa.mataPelajaran?.includes('PK') ? 'selected' : '' %>>PK</option>
+                                                    <option value="LBI" <%= siswa && siswa.mataPelajaran?.includes('LBI') ? 'selected' : '' %>>LBI</option>
+                                                    <option value="LBE" <%= siswa && siswa.mataPelajaran?.includes('LBE') ? 'selected' : '' %>>LBE</option>
+                                                    <option value="PM" <%= siswa && siswa.mataPelajaran?.includes('PM') ? 'selected' : '' %>>PM</option>
+                                                    <option value="English" <%= siswa && siswa.mataPelajaran?.includes('English') ? 'selected' : '' %>>English</option>
+                                                    <option value="Sosiologi" <%= siswa && siswa.mataPelajaran?.includes('Sosiologi') ? 'selected' : '' %>>Sosiologi</option>
+                                                    <option value="Ekonomi" <%= siswa && siswa.mataPelajaran?.includes('Ekonomi') ? 'selected' : '' %>>Ekonomi</option>
+                                                    <option value="Geografi" <%= siswa && siswa.mataPelajaran?.includes('Geografi') ? 'selected' : '' %>>Geografi</option>
+                                                    <option value="Sejarah" <%= siswa && siswa.mataPelajaran?.includes('Sejarah') ? 'selected' : '' %>>Sejarah</option>
+                                                    <option value="TIU" <%= siswa && siswa.mataPelajaran?.includes('TIU') ? 'selected' : '' %>>TIU</option>
+                                                    <option value="TWK" <%= siswa && siswa.mataPelajaran?.includes('TWK') ? 'selected' : '' %>>TWK</option>
+                                                    <option value="TKP" <%= siswa && siswa.mataPelajaran?.includes('TKP') ? 'selected' : '' %>>TKP</option>
+                                                    <option value="TIK" <%= siswa && siswa.mataPelajaran?.includes('TIK') ? 'selected' : '' %>>TIK</option>
+                                                </select>
+                                                <small class="text-muted">Tekan Ctrl (Windows) atau Command (Mac) untuk memilih beberapa mata pelajaran</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="small mb-1" for="paymentPeriod">Periode Pembayaran</label>
+                                            <select class="form-select" id="paymentPeriod" name="paymentPeriod" required>
+                                                <option value="">Pilih Periode Pembayaran</option>
+                                                <option value="1_month" <%= siswa && siswa.paymentPeriod === '1_month' ? 'selected' : '' %>>1 Bulan</option>
+                                                <option value="3_months" <%= siswa && siswa.paymentPeriod === '3_months' ? 'selected' : '' %>>3 Bulan</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="small mb-1" for="isActive">Status</label>
+                                            <select class="form-select" id="isActive" name="isActive">
+                                                <option value="true" <%= siswa && siswa.isActive ? 'selected' : '' %>>Aktif</option>
+                                                <option value="false" <%= siswa && !siswa.isActive ? 'selected' : '' %>>Tidak Aktif</option>
+                                            </select>
+                                        </div>
+
+                                        <button class="btn btn-primary" type="submit">
+                                            <%= siswa ? 'Update Siswa' : 'Tambah Siswa' %>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const error = urlParams.get('error');
+            const alertContainer = document.querySelector('.alert-container');
+
+            if (message || error) {
+                alertContainer.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize select2 for multiple select
+            $('#mataPelajaran').select2({
+                placeholder: 'Pilih Mata Pelajaran',
+                allowClear: true
+            });
+        });
+    </script>
+    
+    <!-- Load essential scripts for layout functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.feather) {
+                feather.replace();
+            }
+        });
+    </script>
+</body>
+</html> 

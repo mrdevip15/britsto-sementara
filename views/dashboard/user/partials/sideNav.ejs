@@ -1,0 +1,89 @@
+<div id="layoutSidenav_nav">
+    <nav class="sidenav shadow-right sidenav-dark">
+        <div class="sidenav-menu">
+            <div class="nav accordion" id="accordionSidenav">
+                <% navAdmin.forEach(function(section, sectionIndex) { %>
+                    <!-- Render Section Heading -->
+                    <div class="sidenav-menu-heading"><%= section.heading %></div>
+
+                    <!-- Render Links -->
+                    <% if (section.links) { %>
+                        <% section.links.forEach(function(link) { %>
+                            <a class="nav-link <%= link.class || '' %>" href="<%= link.href %>">
+                                <div class="nav-link-icon"><i data-feather="<%= link.icon || '' %>"></i></div>
+                                <%= link.title %>
+                                <% if (link.badge) { %>
+                                    <span class="badge bg-<%= link.badge.type %> text-<%= link.badge.type.replace('-soft', '') %> ms-auto"><%= link.badge.text %></span>
+                                <% } %>
+                            </a>
+                        <% }); %>
+                    <% } %>
+
+                    <!-- Render Children -->
+                    <% if (section.children) { %>
+                        <% section.children.forEach(function(child, childIndex) { %>
+                            <!-- If collapsible -->
+                            <% if (child.links) { %>
+                                <a class="nav-link collapsed <%= child.class || '' %>" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#<%= child.id %>" aria-expanded="false" aria-controls="<%= child.id %>">
+                                    <div class="nav-link-icon"><i data-feather="<%= child.icon %>"></i></div>
+                                    <%= child.title %>
+                                    <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                </a>
+                                <div class="collapse" id="<%= child.id %>" data-bs-parent="#parent-<%= sectionIndex %>">
+                                    <nav class="sidenav-menu-nested nav accordion">
+                                        <% child.links.forEach(function(link) { %>
+                                            <a class="nav-link" href="<%= link.href %>">
+                                                <%= link.text %>
+                                                <% if (link.badge) { %>
+                                                    <span class="badge bg-<%= link.badge.type %> text-<%= link.badge.type.replace('-soft', '') %> ms-auto"><%= link.badge.text %></span>
+                                                <% } %>
+                                            </a>
+                                        <% }); %>
+                                    </nav>
+                                </div>
+                            <% } else if (child.subChildren) { %>
+                                <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#<%= child.id %>" aria-expanded="false" aria-controls="<%= child.id %>">
+                                    <div class="nav-link-icon"><i data-feather="<%= child.icon %>"></i></div>
+                                    <%= child.title %>
+                                    <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                </a>
+                                <div class="collapse" id="<%= child.id %>" data-bs-parent="#parent-<%= sectionIndex %>-<%= childIndex %>">
+                                    <nav class="sidenav-menu-nested nav accordion">
+                                        <% child.subChildren.forEach(function(subChild, subChildIndex) { %>
+                                            <a class="nav-link collapsed" href="javascript:void(0);" data-bs-toggle="collapse" data-bs-target="#<%= subChild.id %>" aria-expanded="false" aria-controls="<%= subChild.id %>">
+                                                <%= subChild.title %>
+                                                <div class="sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                            </a>
+                                            <div class="collapse" id="<%= subChild.id %>" data-bs-parent="#parent-<%= sectionIndex %>-<%= childIndex %>-<%= subChildIndex %>">
+                                                <nav class="sidenav-menu-nested nav">
+                                                    <% subChild.links.forEach(function(link) { %>
+                                                        <a class="nav-link" href="<%= link.href %>"><%= link.text %></a>
+                                                    <% }); %>
+                                                </nav>
+                                            </div>
+                                        <% }); %>
+                                    </nav>
+                                </div>
+                            <% } else { %>
+                                <a class="nav-link <%= child.class || '' %>" href="<%= child.href %>">
+                                    <div class="nav-link-icon"><i data-feather="<%= child.icon %>"></i></div>
+                                    <%= child.title %>
+                                    <% if (child.badge) { %>
+                                        <span class="badge bg-<%= child.badge.type %> text-<%= child.badge.type.replace('-soft', '') %> ms-auto"><%= child.badge.text %></span>
+                                    <% } %>
+                                </a>
+                            <% } %>
+                        <% }); %>
+                    <% } %>
+                <% }); %>
+            </div>
+        </div>
+        <!-- Sidenav Footer -->
+        <div class="sidenav-footer" style="color: var(--bs-primary);">
+            <div class="sidenav-footer-content">
+                <div class="sidenav-footer-subtitle" style="color: white;">Masuk sebagai:</div>
+                <div class="sidenav-footer-title" style="color: white;"><%= user.nama.slice(0,30) %></div>
+            </div>
+        </div>
+    </nav>
+</div>

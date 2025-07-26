@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Soal - <%= mapel.mapel %></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body { color: #000000; font-size: 12px; }
+        @media print {
+            .no-print { display: none !important; }
+            .page-break { page-break-before: always; }
+            body { color: #000000 !important; }
+            .quiz-table thead tr {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            @page { 
+                margin: 0.5cm; 
+                size: A4;
+            }
+        }
+
+        .print-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .btn-print {
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .btn-print:hover { background-color: #0056b3; }
+
+        .toggle-section {
+            margin-bottom: 10px;
+        }
+
+        .soal-soal {
+            font-family: Arial, Helvetica, sans-serif !important;
+            padding: 10px;
+        }
+        .soal-soal p { margin: 0; }
+
+        .soal-container {
+            margin-bottom: 15px;
+            break-inside: avoid;
+            display: flex;
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: justify;
+        }
+
+        .question-column {
+            width: 70%;
+            padding-right: 15px;
+            border-right: 1px dashed #ddd;
+        }
+
+        .answer-column {
+            width: 30%;
+            padding-left: 15px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        table td, table th {
+            border: 1px solid #ddd;
+            padding: 6px;
+            vertical-align: middle;
+        }
+
+        .quiz-table {
+            max-width: 100%;
+            margin: 8px 0;
+        }
+
+        .quiz-table th, .quiz-table td {
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        .quiz-table thead tr {
+            background-color: #6C5CE7;
+            color: white;
+        }
+
+        .table-borderless td, .table-borderless th { border: none !important; }
+
+        .header {
+            text-align: left;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .header h5 { margin-bottom: 5px; }
+        .header p { margin-bottom: 3px; }
+
+        .question-number {
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        .option-row td {
+            padding: 4px;
+            vertical-align: top;
+        }
+
+        .option-label {
+            width: 25px;
+            font-weight: bold;
+        }
+
+        /* Handle line breaks in content */
+        .soal-content p, .option-content p {
+            margin: 0;
+            padding: 0;
+        }
+        p { margin: 0 !important; }
+        .soal-content br, .option-content br { display: none; }
+        .soal-content p:empty, .option-content p:empty { display: none; }
+        
+        .correct-answer {
+            color: inherit; /* Reset color to inherit from parent */
+            font-weight: normal; /* Reset font weight */
+            transition: all 0.2s ease; /* Smooth transition for changes */
+        }
+        
+        .correct-answer.show {
+            color: #28a745;
+            font-weight: bold;
+            background-color: #e8f5e9; /* Light green background */
+            border-radius: 3px; /* Rounded corners */
+            padding: 2px 4px; /* Some padding around the text */
+        }
+        
+        .pembahasan {
+            margin-top: 8px;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-left: 3px solid #28a745;
+        }
+        
+        .pembahasan-heading {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        /* Key table styles */
+        .answer-key-table {
+            margin-top: 20px;
+            page-break-before: always;
+        }
+        
+        .answer-key-table table {
+            width: auto;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+        }
+        
+        .answer-key-table td {
+            padding: 6px 10px;
+            text-align: center;
+        }
+        
+        .answer-key-table th {
+            background-color: #f8f9fa;
+            padding: 8px;
+        }
+        
+        .answer-key-section-title {
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        // Set the document title for print filename
+        document.title = '<%= mapel.mapel %> - <%= mapel.owner %>';
+    </script>
+</head>
+<body>
+    <div class="print-controls no-print">
+        <div class="toggle-section">
+            <input type="checkbox" id="showAnswerKey" onclick="toggleDisplay()">
+            <label for="showAnswerKey">Tampilkan Kunci Jawaban</label>
+        </div>
+        <div class="toggle-section">
+            <input type="checkbox" id="showExplanation" onclick="toggleDisplay()">
+            <label for="showExplanation">Tampilkan Pembahasan</label>
+        </div>
+        <div class="toggle-section">
+            <input type="checkbox" id="showAnswerTable" onclick="toggleAnswerTable()">
+            <label for="showAnswerTable">Tampilkan Tabel Kunci</label>
+        </div>
+        <button class="btn-print" onclick="window.print()">Print Soal</button>
+    </div>
+
+    <div class="header" style="margin: 10px;">
+        <h5 style="margin: 0;"><%= mapel.kategori %></h5>
+        <h5 style="margin: 0;"><%= mapel.mapel %></h5>
+        <p style="margin: 0;">Durasi: <%= mapel.durasi %> menit</p>
+        <p style="margin: 0;">Paket: <%= mapel.owner %></p>
+        <p style="margin: 0;">Jumlah soal: <%= soals.length %></p>
+    </div>
+
+    <div class="soal-soal" id="soalContainer">
+        <% soals.forEach((soal, index) => { %>
+            <div class="soal-container">
+                <div class="question-column">
+                    <div class="d-flex" style="gap: 8px;"> 
+                        <div class="question-number"><%- Number(soal.no) < 10 ? '<span style="visibility: hidden;">0</span>' : '' %><%= soal.no %>.</div>
+                        <div class="question-content soal-content">
+                            <%- soal.content.replace(/<p><br><\/p>/g, '').replace(/<p>&nbsp;<\/p>/g, '') %>
+                            <% if (soal.tipeSoal === "pgbiasa") { %>
+                                <table class="table table-borderless" style="max-width: 100%;">
+                                    <tbody>
+                                        <% ['a', 'b', 'c', 'd', 'e'].forEach(option => { %>
+                                            <% if (soal[option] && !['<p><br></p>', '<p>&nbsp;</p>'].includes(soal[option])) { %>
+                                                <tr class="option-row">
+                                                    <td class="option-label <%= soal.answer && soal.answer.toLowerCase() === option ? 'correct-answer answer-key' : '' %>"><%= option.toUpperCase() %>.</td>
+                                                    <td class="option-content <%= soal.answer && soal.answer.toLowerCase() === option ? 'correct-answer answer-key' : '' %>"><%- soal[option].replace(/<p><br><\/p>/g, '').replace(/<p>&nbsp;<\/p>/g, '') %></td>
+                                                </tr>
+                                            <% } %>
+                                        <% }) %>
+                                    </tbody>
+                                </table>
+                            <% } else if (soal.tipeSoal === "pgkompleks1" || soal.tipeSoal === "pgkompleks2") { %>
+                                <table class="quiz-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Pernyataan</th>
+                                            <th><%= soal.tipeSoal === "pgkompleks1" ? "Benar" : "Memperlemah" %></th>
+                                            <th><%= soal.tipeSoal === "pgkompleks1" ? "Salah" : "Tidak Memperlemah" %></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% ['a', 'b', 'c', 'd', 'e'].forEach(option => { %>
+                                            <% if (soal[option] && !['<p><br></p>', '<p>&nbsp;</p>'].includes(soal[option])) { %>
+                                                <tr>
+                                                    <td style="text-align: left;" class="option-content"><%- soal[option].replace(/<p><br><\/p>/g, '').replace(/<p>&nbsp;<\/p>/g, '') %></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                            <% } %>
+                                        <% }) %>
+                                    </tbody>
+                                </table>
+                            <% } %>
+                            
+                            <% if (soal.pembahasan && soal.pembahasan.trim() !== '') { %>
+                                <div class="pembahasan explanation-section">
+                                    <div class="pembahasan-heading">Pembahasan:</div>
+                                    <%- soal.pembahasan.replace(/<p><br><\/p>/g, '').replace(/<p>&nbsp;<\/p>/g, '') %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="answer-column">
+                    <!-- Empty space for student answers -->
+                </div>
+            </div>
+
+            <% if ((index + 1) % 10 === 0 && index !== soals.length - 1) { %>
+                <div class="page-break"></div>
+            <% } %>
+        <% }) %>
+    </div>
+    
+    <!-- Answer key table on separate page -->
+    <div id="answerKeyTable" class="answer-key-table" style="display: none;">
+        <div class="page-break"></div>
+        <div class="answer-key-section-title">
+            KUNCI JAWABAN <%= mapel.mapel.toUpperCase() %>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="10">KUNCI JAWABAN</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% 
+                // Calculate number of rows needed (10 answers per row)
+                const rows = Math.ceil(soals.length / 10);
+                for (let i = 0; i < rows; i++) { 
+                %>
+                    <tr>
+                        <% for (let j = 0; j < 10; j++) { 
+                            const idx = i * 10 + j;
+                            if (idx < soals.length) {
+                                const soal = soals[idx];
+                        %>
+                            <td>
+                                <span style="font-weight: bold;"><%= soal.no %>.</span> 
+                                <%= soal.answer ? soal.answer.toUpperCase() : '-' %>
+                            </td>
+                        <% } else { %>
+                            <td></td>
+                        <% } } %>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        window.addEventListener('load', function() {
+            if (typeof MathJax !== 'undefined') {
+                MathJax.typesetPromise().catch(function (err) {
+                    console.log('MathJax processing failed:', err);
+                });
+            }
+            
+            // Only hide explanations initially, not answer keys
+            hideElements('.explanation-section');
+            document.getElementById('answerKeyTable').style.display = 'none';
+            
+            // Make sure correct answers are not highlighted initially
+            const correctAnswers = document.querySelectorAll('.correct-answer');
+            correctAnswers.forEach(el => {
+                el.classList.remove('show');
+            });
+        });
+        
+        function hideElements(selector) {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+        
+        function showElements(selector) {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(el => {
+                el.style.display = '';
+            });
+        }
+        
+        function toggleDisplay() {
+            const showAnswerKey = document.getElementById('showAnswerKey').checked;
+            const showExplanation = document.getElementById('showExplanation').checked;
+            
+            // Only toggle the highlighting of correct answers
+            const correctAnswers = document.querySelectorAll('.correct-answer');
+            if (showAnswerKey) {
+                correctAnswers.forEach(el => el.classList.add('show'));
+            } else {
+                correctAnswers.forEach(el => el.classList.remove('show'));
+            }
+            
+            if (showExplanation) {
+                showElements('.explanation-section');
+            } else {
+                hideElements('.explanation-section');
+            }
+        }
+        
+        function toggleAnswerTable() {
+            const showAnswerTable = document.getElementById('showAnswerTable').checked;
+            const answerKeyTable = document.getElementById('answerKeyTable');
+            
+            if (showAnswerTable) {
+                answerKeyTable.style.display = 'block';
+            } else {
+                answerKeyTable.style.display = 'none';
+            }
+        }
+    </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.feather) {
+    feather.replace();
+  }
+});
+</script>
+</body>
+</html> 

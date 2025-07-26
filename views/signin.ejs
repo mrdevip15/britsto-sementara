@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Sign In - BritsEdu</title>
+    <%- include('./partials/head') %>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/styles.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #6C5CE7 0%, #00D4FF 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .auth-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1000px;
+            min-height: 600px;
+            display: flex;
+        }
+        
+        .auth-brand {
+            background: linear-gradient(135deg, #6C5CE7 0%, #00D4FF 100%);
+            flex: 1;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .auth-brand::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/><circle cx="90" cy="90" r="1" fill="white" opacity="0.1"/><circle cx="30" cy="70" r="1" fill="white" opacity="0.1"/><circle cx="70" cy="30" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+            opacity: 0.3;
+        }
+        
+        .brand-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .brand-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+        
+        .brand-tagline {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .brand-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .brand-features li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+        
+        .brand-features i {
+            margin-right: 12px;
+            opacity: 0.8;
+        }
+        
+        .auth-form {
+            flex: 1;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .form-header {
+            margin-bottom: 2rem;
+        }
+        
+        .form-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2D3436;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #6C5CE7 0%, #00D4FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .form-subtitle {
+            color: #74757A;
+            font-size: 1rem;
+            margin-bottom: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #2D3436;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E9ECEF;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #F8F9FA;
+            box-sizing: border-box;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #6C5CE7;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #6C5CE7 0%, #00D4FF 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.3);
+        }
+        
+        .error-message {
+            color: #FF5B5B;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .login-link {
+            text-align: center;
+            color: #74757A;
+            font-size: 0.9rem;
+        }
+        
+        .login-link a {
+            color: #6C5CE7;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Google OAuth Button Styles */
+        .btn-google:hover {
+            border-color: #6C5CE7;
+            background: #f8f9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
+        }
+        
+        .oauth-section {
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+                max-width: 400px;
+                margin: 20px;
+            }
+            
+            .auth-brand {
+                padding: 40px 30px;
+            }
+            
+            .auth-form {
+                padding: 40px 30px;
+            }
+            
+            .brand-logo {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Loading spinner animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Button loading states */
+        #resetPasswordBtn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        #resetPasswordBtn:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        #resetBtnLoader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Disabled input style */
+        #resetEmail:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-brand">
+            <div class="brand-content">
+                <div class="brand-logo">BritsEdu</div>
+                <p class="brand-tagline">Master your exams with our comprehensive practice test platform</p>
+                <ul class="brand-features">
+                    <li>
+                        <i data-lucide="trending-up"></i>
+                        Track your progress with detailed analytics
+                    </li>
+                    <li>
+                        <i data-lucide="clock"></i>
+                        Realistic exam simulations with instant feedback
+                    </li>
+                    <li>
+                        <i data-lucide="target"></i>
+                        AI-powered question selection for personalized learning
+                    </li>
+                    <li>
+                        <i data-lucide="award"></i>
+                        Proven results with thousands of successful students
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="auth-form">
+            <div class="form-header">
+                <h1 class="form-title">Welcome Back</h1>
+                <p class="form-subtitle">Sign in to continue your learning journey</p>
+            </div>
+            
+            <form method="POST" action="/login">
+                <!-- Google OAuth Button -->
+                <div class="oauth-section" style="margin-bottom: 1.5rem;">
+                    <a href="/auth/google" class="btn-google" style="display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px; background: white; border: 2px solid #E9ECEF; border-radius: 12px; color: #2D3436; font-weight: 600; text-decoration: none; transition: all 0.3s ease; margin-bottom: 1rem;">
+                        <img src="assets/img/google-logo.png" alt="Google" style="width: 20px; height: 20px; margin-right: 12px;">
+                        Masuk dengan Google
+                    </a>
+                    
+                    <div class="divider" style="display: flex; align-items: center; margin: 1.5rem 0;">
+                        <div style="flex: 1; height: 1px; background: #E9ECEF;"></div>
+                        <span style="padding: 0 1rem; color: #74757A; font-size: 0.9rem;">atau</span>
+                        <div style="flex: 1; height: 1px; background: #E9ECEF;"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" name="email" class="form-control" placeholder="Enter your email address" required />
+                    <div class="error-message" id="email-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="Enter your password" required />
+                </div>
+                
+                <div class="form-group" style="text-align: right; margin-bottom: 1rem;">
+                    <a href="#" onclick="showForgotPasswordModal()" style="color: #6C5CE7; text-decoration: none; font-size: 0.9rem;">Forgot Password?</a>
+                </div>
+                
+                <button type="submit" class="btn-primary">Sign In</button>
+                
+                <p class="login-link">
+                    Don't have an account? <a href="/daftar">Create one here</a>
+                </p>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 16px; padding: 2rem; width: 90%; max-width: 400px; position: relative;">
+            <button onclick="closeForgotPasswordModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #74757A;">&times;</button>
+            
+            <h3 style="font-family: 'Space Grotesk', sans-serif; color: #2D3436; margin-bottom: 1rem;">Reset Password</h3>
+            <p style="color: #74757A; margin-bottom: 1.5rem; font-size: 0.9rem;">Enter your email address and we'll send you a new password.</p>
+            
+            <form id="forgotPasswordForm">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-weight: 600; color: #2D3436; margin-bottom: 0.5rem; font-size: 0.9rem;">Email Address</label>
+                    <input type="email" id="resetEmail" style="width: 100%; padding: 12px 16px; border: 2px solid #E9ECEF; border-radius: 12px; font-size: 1rem; background: #F8F9FA; box-sizing: border-box;" placeholder="Enter your email address" required>
+                </div>
+                
+                <button type="submit" id="resetPasswordBtn" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #6C5CE7 0%, #00D4FF 100%); border: none; border-radius: 12px; color: white; font-weight: 600; font-size: 1rem; cursor: pointer; margin-bottom: 1rem; position: relative; transition: all 0.3s ease;">
+                    <span id="resetBtnText">Send Reset Email</span>
+                    <span id="resetBtnLoader" style="display: none;">
+                        <svg class="spinner" style="width: 20px; height: 20px; margin-right: 8px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-opacity="0.3"/>
+                            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="4"/>
+                        </svg>
+                        Sending...
+                    </span>
+                </button>
+                
+                <div id="resetMessage" style="display: none; padding: 12px; border-radius: 8px; font-size: 0.9rem; margin-top: 1rem;"></div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Error message display
+        function displayErrorMessage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            
+            if (message) {
+                const errorElement = document.getElementById('email-error');
+                errorElement.textContent = decodeURIComponent(message);
+                errorElement.style.display = 'block';
+            }
+        }
+        
+        window.onload = displayErrorMessage;
+        
+        // Forgot Password Modal Functions
+        function showForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'flex';
+        }
+        
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').style.display = 'none';
+            document.getElementById('resetMessage').style.display = 'none';
+            document.getElementById('forgotPasswordForm').reset();
+        }
+        
+        // Handle forgot password form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('forgotPasswordForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('resetEmail').value;
+                const messageDiv = document.getElementById('resetMessage');
+                const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+                const resetBtnText = document.getElementById('resetBtnText');
+                const resetBtnLoader = document.getElementById('resetBtnLoader');
+                const resetEmailInput = document.getElementById('resetEmail');
+                
+                if (!email) {
+                    showResetMessage('Please enter your email address', 'error');
+                    return;
+                }
+                
+                try {
+                    // Show loading state
+                    resetPasswordBtn.disabled = true;
+                    resetEmailInput.disabled = true;
+                    resetBtnText.style.display = 'none';
+                    resetBtnLoader.style.display = 'flex';
+                    
+                    // Hide any previous messages
+                    messageDiv.style.display = 'none';
+                    
+                    const response = await fetch('/forgot-password', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email: email })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showResetMessage(data.message, 'success');
+                        setTimeout(() => {
+                            closeForgotPasswordModal();
+                        }, 3000);
+                    } else {
+                        showResetMessage(data.message, 'error');
+                    }
+                } catch (error) {
+                    showResetMessage('An error occurred. Please try again.', 'error');
+                } finally {
+                    resetPasswordBtn.disabled = false;
+                    resetEmailInput.disabled = false;
+                    resetBtnText.style.display = 'flex';
+                    resetBtnLoader.style.display = 'none';
+                }
+            });
+        });
+        
+        function showResetMessage(message, type) {
+            const messageDiv = document.getElementById('resetMessage');
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                messageDiv.style.backgroundColor = '#d4edda';
+                messageDiv.style.color = '#155724';
+                messageDiv.style.border = '1px solid #c3e6cb';
+            } else {
+                messageDiv.style.backgroundColor = '#f8d7da';
+                messageDiv.style.color = '#721c24';
+                messageDiv.style.border = '1px solid #f5c6cb';
+            }
+        }
+    </script>
+</body>
+</html>

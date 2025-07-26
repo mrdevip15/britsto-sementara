@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Sesi - <%= siswa.nama %></title>
+    <style>
+        @media print {
+            @page {
+                size: landscape;
+                margin: 0.5cm;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.4;
+            margin: 0;
+            padding: 10px;
+            background: white;
+            font-size: 14px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #bf592e;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: white;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            font-size: 16px;
+            color: white;
+        }
+
+        .student-info {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .student-info p {
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: #bf592e;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .week-header {
+            background-color: #bf592e;
+            color: white;
+            font-weight: bold;
+            width: 100px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: bold;
+            color: white;
+            background-color: #bf592e;
+        }
+
+        .row-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+            border-right: 2px solid #dee2e6;
+        }
+
+        .canceled {
+            text-decoration: line-through;
+            color: #dc3545;
+        }
+
+        .session-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .date-time {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .no-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .print-btn {
+            padding: 10px 20px;
+            background-color: #bf592e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .print-btn:hover {
+            background-color: #993a11;
+        }
+
+        @media screen {
+            body {
+                background: #f0f2f5;
+            }
+            
+            .container {
+                max-width: 1200px;
+                margin: 40px auto;
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+        }
+
+        .tentor-name {
+            font-size: 14px;
+            font-style: italic;
+            color: #000000;
+            margin-top: 2px;
+            font-weight: bold !important;
+        }
+
+
+
+        .canceled {
+            text-decoration: line-through;
+            color: #dc3545;
+        }
+
+        td {
+            position: relative;
+            min-height: 120px;
+            vertical-align: top;
+            padding: 5px 7px;
+        }
+
+        .badge.bg-danger {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 11px;
+            padding: 3px 6px;
+            background-color: #e25361;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="print-btn" onclick="window.print()">Print Jadwal</button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Jadwal Sesi Belajar</h1>
+            <p><%= month %> <%= year %></p>
+        </div>
+
+        <div class="student-info">
+            <p><strong>Nama:</strong> <%= siswa.nama %></p>
+            <p><strong>Tingkat:</strong> <%= siswa.tingkat || '-' %></p>
+            <p><strong>Sekolah:</strong> <%= siswa.asalSekolah || '-' %></p>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Pekan</th>
+                    <% 
+                    // Get days that have data across all weeks
+                    const daysWithData = new Set();
+                    const defaultDayOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+                    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                    
+                    Object.values(weeks).forEach(weekDays => {
+                        Object.keys(weekDays).forEach(day => daysWithData.add(day));
+                    });
+                    
+                    // Get the first session's day to determine the order
+                    let firstSessionDay = null;
+                    let reorderedDayOrder = [...defaultDayOrder];
+                    
+                    for (const weekDays of Object.values(weeks)) {
+                        for (const day of Object.keys(weekDays)) {
+                            firstSessionDay = day;
+                            break;
+                        }
+                        if (firstSessionDay) break;
+                    }
+                    
+                    if (firstSessionDay) {
+                        const startIndex = defaultDayOrder.indexOf(firstSessionDay);
+                        if (startIndex !== -1) {
+                            reorderedDayOrder = [
+                                ...defaultDayOrder.slice(startIndex),
+                                ...defaultDayOrder.slice(0, startIndex)
+                            ];
+                        }
+                    }
+                    
+                    // Filter day order to only include days with data
+                    const filteredDayOrder = reorderedDayOrder.filter(day => daysWithData.has(day));
+                    
+                    // Display days in the specified order
+                    filteredDayOrder.forEach(day => { %>
+                        <th><%= day %></th>
+                    <% }); %>
+                </tr>
+            </thead>
+            <tbody>
+                <% Object.entries(weeks).forEach(([weekName, weekDays]) => { %>
+                    <% if (Object.keys(weekDays).length > 0) { %>
+                        <tr>
+                            <td class="row-header"><%= weekName %></td>
+                            <% filteredDayOrder.forEach(day => { %>
+                                <td>
+                                    <% if (weekDays[day]) { %>
+                                        <% const session = weekDays[day]; %>
+                                        <% const isCanceled = session.status === 'canceled'; %>
+                                        <div class="session-info">
+                                       
+                                            <div class="date-time <%= isCanceled ? 'canceled' : '' %>">
+                                                <div><%= session.date %></div>
+                                                <div><%= session.timeStart %> - <%= session.timeEnd %></div>
+                                            </div>
+                                            <div class="badge bg-primary text-white mb-1">
+                                                <%= session.mataPelajaran %>
+                                            </div>
+                                            <div class="tentor-name">
+                                                <%= session.tentor %>
+                                            </div>
+                                        </div>
+                                    <% } %>
+                                </td>
+                            <% }); %>
+                        </tr>
+                    <% } %>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html> 

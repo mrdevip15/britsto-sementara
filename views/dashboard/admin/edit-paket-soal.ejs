@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Dashboard GG</title>
+        <%- include('../../partials/head') %>
+        <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+        <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+    
+        <style>
+            #layoutSidenav_content > main > div > div:nth-child(1) > div.card-body > div {
+                overflow-x:auto;
+            }
+        </style>
+    </head>
+    <%
+    function formatDate(date) {
+        // Days of the week in Bahasa Indonesia
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    
+        // Get day, month, year
+        const dayName = days[date.getDay()]; // Get the day name
+        const day = String(date.getDate()).padStart(2, '0'); // Format day as 2 digits
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Format month as 2 digits (months are 0-based)
+        const year = String(date.getFullYear()).slice(-2); // Get last 2 digits of the year
+    
+        return `${dayName}, ${day}-${month}-${year}`;
+    }
+    %>
+    <body class="nav-fixed">
+       <%- include('partials/topNav') %> 
+        <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="alert-circle"></i></div>
+                                        Welcome, Master!
+                                    </h1>
+                                    <div class="page-header-subtitle">Brits Edu Center, <span style="font-style: italic;">Teman belajarmu</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <!-- Main page content-->
+                <div class="container-xl px-4">
+                    <div class="card mt-n10">
+                        <div class="card-header">Tambah paket soal</div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <form method="POST" action="/admin/manajemen-soal/edit-paket-soal/<%= data.kodekategori %>">
+                                        <div></div>
+                                      
+                                        <label class="form-label">Kategori : </label>
+                                        <select name="kategori" class="form-select" required>
+                                            <option value="TPS" <%= data.kategori === 'TPS' ? 'selected' : '' %>>TPS (Tes Potensi Skolastik)</option>
+                                            <option value="Literasi" <%= data.kategori === 'Literasi' ? 'selected' : '' %>>Literasi</option>
+                                            <option value="TKA Wajib" <%= data.kategori === 'TKA Wajib' ? 'selected' : '' %>>TKA Wajib</option>
+                                            <option value="TKA Pilihan" <%= data.kategori === 'TKA Pilihan' ? 'selected' : '' %>>TKA Pilihan</option>
+                                        </select>
+                                        <label class="form-label">Nama Subtest</label>
+                                        <input class="form-control" type="text" name="mapel" value="<%= data.mapel %>" required>
+                                        <label class="form-label">Nama paket : (misal : paket-1)</label> 
+                                        <input class="form-control" type="text" name="owner" value="<%= data.owner %>" required>
+                                        <label class="form-label">Tanggal Mulai : </label>
+                                        <input name="tanggalMulai" class="form-control" type="date" 
+                                               value="<%= data.tanggalMulai.toISOString().split('T')[0] %>" required />
+                                        <label class="form-label">Tanggal berakhir : </label>
+                                        <input name="tanggalBerakhir" class="form-control" type="date" 
+                                               value="<%= data.tanggalBerakhir.toISOString().split('T')[0] %>" required />
+                                        <label class="form-label">Durasi :</label>
+                                        <input step=".1" name="durasi" class="form-control" required type="number" 
+                                               value="<%= data.durasi %>"
+                                               data-bs-toggle="tooltip" data-bs-placement="right" 
+                                               placeholder="Menit" title="Isi dalam satuan menit, bilangan desimal menggunakan tanda titik &quot;.&quot; Contoh : 2.5 11.3 dst" />
+                                        <button class="btn btn-primary" type="submit" style="margin-top: 10px;">Simpan</button>
+                                    
+                                    </form>
+                                </div>
+                            </div>
+                      
+                        </div>
+                    </div>                   
+                </div>
+
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>     
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
+    </body>
+</html>

@@ -1,0 +1,321 @@
+/*custom font*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+/*basic reset*/
+* {margin: 0; padding: 0;}
+
+html {
+	height: 100%;
+	/*Image only BG fallback*/
+	
+	/*background = gradient + image pattern combo*/
+	background: 
+		linear-gradient(135deg, rgba(108, 92, 231, 0.8), rgba(0, 212, 255, 0.8));
+}
+
+body {
+	font-family: 'Inter', montserrat, arial, verdana;
+}
+/*form styles*/
+/* Desktop view */
+#msform {
+	width: 600px; /* Larger width for desktops */
+	margin: 50px auto;
+	text-align: center;
+	position: relative;
+}
+
+#msform fieldset {
+	width: 90%; /* Adjusts to fit within the new form width */
+	margin: 0 5%;
+	background: white;
+	border: 0 none;
+	border-radius: 16px;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+	padding: 20px 30px;
+	box-sizing: border-box;
+	position: relative;
+}
+
+/* Android (mobile) view */
+@media only screen and (max-width: 600px) {
+    #msform {
+        width: 90%; /* Smaller width for mobile */
+        margin: 20px auto; /* Reduced margin for smaller screens */
+    }
+    
+    #msform fieldset {
+        width: 100%; /* Full width within the mobile container */
+        margin: 0; /* No extra margin on mobile */
+        padding: 15px 20px; /* Adjusted padding to fit smaller screen */
+    }
+    
+    /* Adjust font sizes for better readability on mobile */
+    .fs-title {
+        font-size: 14px;
+    }
+    
+    .fs-subtitle {
+        font-size: 12px;
+    }
+    
+    #progressbar li {
+        font-size: 8px;
+    }
+    
+    /* Adjust button sizes for touch screens */
+    #msform .action-button {
+        width: 80px;
+        padding: 8px;
+        font-size: 12px;
+    }
+}
+
+/*Hide all except first fieldset*/
+#msform fieldset:not(:first-of-type) {
+	display: none;
+}
+/*inputs*/
+#msform input, #msform textarea {
+	padding: 15px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	margin-bottom: 10px;
+	width: 100%;
+	box-sizing: border-box;
+	font-family: montserrat;
+	color: #2C3E50;
+	font-size: 13px;
+}
+/*buttons*/
+#msform .action-button {
+	width: 120px;
+	background: var(--bs-primary, #6C5CE7);
+	font-weight: bold;
+	color: white;
+	border: 0 none;
+	border-radius: 1px;
+	cursor: pointer;
+	padding: 10px;
+	margin: 10px 5px;
+  text-decoration: none;
+  font-size: 14px;
+}
+#msform .action-button:hover, #msform .action-button:focus {
+	box-shadow: 0 0 0 2px white, 0 0 0 3px var(--bs-primary, #6C5CE7);
+}
+#msform #google-login:hover, #msform #google-login:focus {
+	box-shadow: 0 0 0 2px white, 0 0 0 3px var(--bs-secondary, #00D4FF);
+}
+/*headings*/
+.fs-title {
+	font-size: 15px;
+	text-transform: uppercase;
+	color: #2C3E50;
+	margin-bottom: 10px;
+	font-family: 'Space Grotesk', sans-serif;
+	font-weight: 600;
+}
+
+.text-gradient {
+	background: linear-gradient(135deg, #6C5CE7 0%, #00D4FF 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	color: transparent;
+}
+.fs-subtitle {
+	font-weight: normal;
+	font-size: 13px;
+	color: #666;
+	margin-bottom: 20px;
+}
+/*progressbar*/
+#progressbar {
+	margin-bottom: 30px;
+	overflow: hidden;
+	/*CSS counters to number the steps*/
+	counter-reset: step;
+}
+#progressbar li {
+	list-style-type: none;
+	color: white;
+	text-transform: uppercase;
+	font-size: 9px;
+	width: 33.33%;
+	float: left;
+	position: relative;
+}
+#progressbar li:before {
+	content: counter(step);
+	counter-increment: step;
+	width: 20px;
+	line-height: 20px;
+	display: block;
+	font-size: 10px;
+	color: #333;
+	background: white;
+	border-radius: 3px;
+	margin: 0 auto 5px auto;
+}
+/*progressbar connectors*/
+#progressbar li:after {
+	content: '';
+	width: 100%;
+	height: 2px;
+	background: white;
+	position: absolute;
+	left: -50%;
+	top: 9px;
+	z-index: -1; /*put it behind the numbers*/
+}
+#progressbar li:first-child:after {
+	/*connector not needed before the first step*/
+	content: none; 
+}
+/*marking active/completed steps green*/
+/*The number of the step and the connector before it = green*/
+#progressbar li.active:before,  #progressbar li.active:after{
+	background: var(--bs-secondary, #00D4FF);
+	color: white;
+}
+
+
+
+/* Container for the entire form step */
+.form-container {
+    padding: 20px;
+}
+
+/* Form group for each label and input set */
+/* Container for rows with multiple fields */
+.form-row {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+/* Form group styling to make each column uniform */
+.form-group {
+    flex: 1; /* Ensures equal width for each column */
+}
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column; /* Stack items vertically */
+		gap: 0;
+    }
+    
+    .form-group {
+        width: 100%; /* Take full width */
+        flex: none; /* Reset flex to prevent shrinking */
+    }
+}
+/* Form control styling for a consistent appearance */
+.form-control {
+    width: 100%; /* Takes full width of the .form-group container */
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-family: montserrat, arial, verdana;
+    color: #333;
+    font-size: 14px;
+    box-shadow: none;
+    margin-bottom: 15px;
+}
+
+
+/* Style for form labels */
+.form-label {
+    text-align: left;
+    font-weight: bold;
+    color: #2C3E50;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Button styling */
+.btn-submit {
+    width: 100%;
+    background-color: var(--bs-primary, #6C5CE7);
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+}
+
+.btn-submit:hover {
+    background-color: var(--bs-primary, #6C5CE7);
+}
+
+.text-muted {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #666;
+}
+.error-message {
+    color: red;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none; /* Hide by default */
+}
+input[readonly] {
+	background-color: #e9ecef; /* Light gray background */
+	color: #6c757d; /* Gray text color */
+	cursor: not-allowed;
+}
+.footer {
+	position: absolute; bottom: 20px; left: 20px; color: white; font-weight: bold;
+}
+
+/* Form sections styling for single-page signup */
+.form-section {
+	margin-bottom: 30px;
+	padding: 20px;
+	border: 1px solid #e9ecef;
+	border-radius: 12px;
+	background: #f8f9fa;
+}
+
+.section-title {
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--bs-primary, #6C5CE7);
+	margin-bottom: 15px;
+	font-family: 'Space Grotesk', sans-serif;
+	border-bottom: 2px solid var(--bs-primary, #6C5CE7);
+	padding-bottom: 8px;
+}
+
+.form-actions {
+	text-align: center;
+	margin-top: 30px;
+}
+
+.login-link {
+	margin-top: 15px;
+	font-size: 14px;
+	color: #666;
+}
+
+/* Increase form width for single page */
+#msform {
+	width: 800px !important;
+	max-width: 90vw;
+}
+
+@media only screen and (max-width: 900px) {
+	#msform {
+		width: 95% !important;
+	}
+	
+	.form-section {
+		padding: 15px;
+		margin-bottom: 20px;
+	}
+}

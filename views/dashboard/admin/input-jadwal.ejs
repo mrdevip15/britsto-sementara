@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Input Jadwal - Admin Dashboard</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.9/dist/flatpickr.min.css" rel="stylesheet" />
+    <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="nav-fixed">
+    <%- include('partials/topNav') %>
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="calendar"></i></div>
+                                        Input Jadwal Baru
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <% if (typeof error !== 'undefined') { %>
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <%= error %>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            <% } %>
+                            <% if (typeof message !== 'undefined') { %>
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <%= message %>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            <% } %>
+                            <form action="/admin/jadwal/tambah" method="POST" id="inputJadwalForm">
+                                <div class="row gx-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="small mb-1">Jenis Jadwal</label>
+                                        <select class="form-select" id="type" name="type" 
+                                                <%= jadwal ? 'disabled' : 'required' %>>
+                                            <option value="individual" <%= jadwal && jadwal.type === 'individual' ? 'selected' : '' %>>Individual</option>
+                                            <option value="class" <%= jadwal && jadwal.type === 'class' ? 'selected' : '' %>>Kelas</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div id="individualFields" class="mb-0" style="display: <%= (!jadwal || jadwal.type === 'individual') ? 'block' : 'none' %>">
+                                            <label class="small mb-1" for="siswaId">Siswa</label>
+                                            <select class="form-select select2" id="siswaId" name="siswaId" 
+                                                    <%= jadwal && jadwal.type === 'individual' ? 'disabled' : '' %>>
+                                                <option value="">Pilih Siswa</option>
+                                                <% siswas.forEach(siswa => { %>
+                                                    <option value="<%= siswa.id %>" 
+                                                            data-mapel="<%= JSON.stringify(siswa.mataPelajaran || []) %>"
+                                                            <%= jadwal && jadwal.siswaId === siswa.id ? 'selected' : '' %>
+                                                            <%= siswa.sisaKuotaBelajar <= 0 ? 'disabled' : '' %>>
+                                                        <%= siswa.nama %> (Sisa: <%= siswa.sisaKuotaBelajar %> pertemuan)
+                                                    </option>
+                                                <% }); %>
+                                            </select>
+                                            <% if (jadwal && jadwal.type === 'individual') { %>
+                                                <input type="hidden" name="siswaId" value="<%= jadwal.siswaId %>">
+                                            <% } %>
+                                        </div>
+                                        <div id="classFields" class="mb-0" style="display: <%= jadwal && jadwal.type === 'class' ? 'block' : 'none' %>">
+                                            <label class="small mb-1" for="classId">Kelas</label>
+                                            <select class="form-select select2" id="classId" name="classId"
+                                                    <%= jadwal && jadwal.type === 'class' ? 'disabled' : '' %>>
+                                                <option value="">Pilih Kelas</option>
+                                                <% classes.forEach(kelas => { %>
+                                                    <% 
+                                                        const hasInsufficientSessions = kelas.Siswas && kelas.Siswas.some(siswa => siswa.sisaKuotaBelajar <= 0);
+                                                        const insufficientStudents = kelas.Siswas ? kelas.Siswas.filter(siswa => siswa.sisaKuotaBelajar <= 0).map(s => s.nama).join(', ') : '';
+                                                    %>
+                                                    <option value="<%= kelas.id %>" 
+                                                            data-mapel="<%= JSON.stringify(kelas.mataPelajaran || []) %>"
+                                                            <%= jadwal && jadwal.classId === kelas.id ? 'selected' : '' %>
+                                                            <%= hasInsufficientSessions ? 'disabled' : '' %>>
+                                                        <%= kelas.name %> 
+                                                        <%= hasInsufficientSessions ? `(Siswa tanpa sesi: ${insufficientStudents})` : '' %>
+                                                    </option>
+                                                <% }); %>
+                                            </select>
+                                            <% if (jadwal && jadwal.type === 'class') { %>
+                                                <input type="hidden" name="classId" value="<%= jadwal.classId %>">
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                                <% if (jadwal) { %>
+                                    <input type="hidden" name="type" value="<%= jadwal.type %>">
+                                <% } %>
+                                
+                                <div class="row gx-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label for="mataPelajaran" class="small mb-1">Mata Pelajaran</label>
+                                        <select class="form-select" id="mataPelajaran" name="mataPelajaran" required>
+                                            <option value="">Pilih Mata Pelajaran</option>
+                                            <option value="MTK">Matematika</option>
+                                            <option value="IPA">IPA</option>
+                                            <option value="IPAS">IPAS</option>
+                                            <option value="KIMIA">Kimia</option>
+                                            <option value="FISIKA">Fisika</option>
+                                            <option value="BIOLOGI">Biologi</option>
+                                            <option value="BINDO">Bahasa Indonesia</option>
+                                            <option value="BING">Bahasa Inggris</option>
+                                            <option value="IPS">IPS</option>
+                                            <option value="PPKN">PPKN</option>
+                                            <option value="PAI">PAI</option>
+                                            <option value="PBM">PBM</option>
+                                            <option value="PPU">PPU</option>
+                                            <option value="PU">PU</option>
+                                            <option value="PK">PK</option>
+                                            <option value="LBI">LBI</option>
+                                            <option value="LBE">LBE</option>
+                                            <option value="PM">PM</option>
+                                            <option value="English">English</option>
+                                            <option value="Sosiologi">Sosiologi</option>
+                                            <option value="Ekonomi">Ekonomi</option>
+                                            <option value="Geografi">Geografi</option>
+                                            <option value="Sejarah">Sejarah</option>
+                                            <option value="TIU">TIU</option>
+                                            <option value="TWK">TWK</option>
+                                            <option value="TKP">TKP</option>
+                                            <option value="TIK">TIK</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small mb-1" for="tentorId">Tentor</label>
+                                        <select class="form-select select2" id="tentorId" name="tentorId" required>
+                                            <option value="">Pilih Tentor</option>
+                                            <% tentors.forEach(tentor => { %>
+                                                <option value="<%= tentor.id %>" 
+                                                       data-mapel="<%= JSON.stringify(tentor.mataPelajaran || []) %>">
+                                                    <%= tentor.nama %>
+                                                </option>
+                                            <% }); %>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row gx-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label class="small mb-1" for="date">Tanggal</label>
+                                        <input class="form-control" id="date" name="date" type="date" required />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="small mb-1" for="timeStart">Waktu Mulai</label>
+                                        <input class="form-control" id="timeStart" name="timeStart" type="time" required />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="small mb-1" for="timeEnd">Waktu Selesai</label>
+                                        <input class="form-control" id="timeEnd" name="timeEnd" type="time" required />
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-primary" type="submit">Simpan Jadwal</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script>
+        // Set time inputs to the closest 30-minute increment
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            const minutes = now.getMinutes();
+            const roundedMinutes = Math.round(minutes / 30) * 30;
+            const closestTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), roundedMinutes);
+
+            const timeStartInput = document.getElementById('timeStart');
+            const timeEndInput = document.getElementById('timeEnd');
+            const dateInput = document.getElementById('date');
+
+            // Set default date to today
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${year}-${month}-${day}`;
+
+            timeStartInput.value = closestTime.toTimeString().slice(0, 5);
+            timeEndInput.value = closestTime.toTimeString().slice(0, 5);
+        });
+
+        // Set Waktu Selesai to 90 minutes after Waktu Mulai
+        document.getElementById('timeStart').addEventListener('change', function() {
+            const startTime = this.value;
+            if (startTime) {
+                const [hours, minutes] = startTime.split(':').map(Number);
+                const endTime = new Date();
+                endTime.setHours(hours);
+                endTime.setMinutes(minutes + 90); // Add 90 minutes
+
+                const formattedEndTime = endTime.toTimeString().slice(0, 5);
+                document.getElementById('timeEnd').value = formattedEndTime;
+            }
+        });
+
+        $(document).ready(function() {
+            // Initialize Select2 for all select elements with class 'select2'
+            $('.select2').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Pilih...',
+                allowClear: true
+            });
+
+            // Create a reference to all tentors for filtering
+            const allTentors = $('#tentorId option').clone();
+
+            // Handle siswaId change to filter mata pelajaran
+            $('#siswaId').on('change', function() {
+                const selectedOption = $(this).find('option:selected');
+                let mapelArray = [];
+                
+                try {
+                    // Parse the data-mapel attribute to get the student's subjects
+                    const mapelJSON = selectedOption.data('mapel');
+                    if (typeof mapelJSON === 'string') {
+                        mapelArray = JSON.parse(mapelJSON);
+                    } else if (Array.isArray(mapelJSON)) {
+                        mapelArray = mapelJSON;
+                    }
+                } catch (e) {
+                    console.error('Error parsing mata pelajaran:', e);
+                }
+                
+                // Filter the mataPelajaran dropdown
+                updateMapelOptions(mapelArray);
+                
+                // Reset the tentor dropdown (will be filled when mata pelajaran is selected)
+                $('#tentorId').empty().append('<option value="">Pilih Tentor</option>').trigger('change');
+            });
+            
+            // Handle classId change (similar to siswaId but for classes)
+            $('#classId').on('change', function() {
+                const selectedOption = $(this).find('option:selected');
+                let mapelArray = [];
+                
+                try {
+                    // Parse the data-mapel attribute to get the class's subjects
+                    const mapelJSON = selectedOption.data('mapel');
+                    if (typeof mapelJSON === 'string') {
+                        mapelArray = JSON.parse(mapelJSON);
+                    } else if (Array.isArray(mapelJSON)) {
+                        mapelArray = mapelJSON;
+                    }
+                } catch (e) {
+                    console.error('Error parsing mata pelajaran for class:', e);
+                }
+                
+                // Filter the mataPelajaran dropdown based on class subjects
+                updateMapelOptions(mapelArray);
+                
+                // Reset the tentor dropdown
+                $('#tentorId').empty().append('<option value="">Pilih Tentor</option>').trigger('change');
+            });
+            
+            // Handle type change
+            $('#type').on('change', function() {
+                const type = $(this).val();
+                
+                if (type === 'individual') {
+                    $('#individualFields').show();
+                    $('#classFields').hide();
+                    
+                    // Reset the mataPelajaran and tentor dropdowns
+                    updateMapelOptions([]);
+                    $('#tentorId').empty().append('<option value="">Pilih Tentor</option>').trigger('change');
+                } else {
+                    $('#individualFields').hide();
+                    $('#classFields').show();
+                    
+                    // Reset the mataPelajaran and tentor dropdowns
+                    updateMapelOptions([]);
+                    $('#tentorId').empty().append('<option value="">Pilih Tentor</option>').trigger('change');
+                }
+            });
+            
+            // Function to update mataPelajaran options based on student's subjects
+            function updateMapelOptions(studentMapel) {
+                const $mataPelajaran = $('#mataPelajaran');
+                
+                // Keep only the placeholder
+                $mataPelajaran.find('option:not(:first)').remove();
+                
+                // If no specific student mapel, show all options
+                if (!studentMapel || !studentMapel.length) {
+                    $mataPelajaran.append(`
+                        <option value="MTK">Matematika</option>
+                        <option value="IPA">IPA</option>
+                        <option value="IPAS">IPAS</option>
+                        <option value="KIMIA">Kimia</option>
+                        <option value="FISIKA">Fisika</option>
+                        <option value="BIOLOGI">Biologi</option>
+                        <option value="BINDO">Bahasa Indonesia</option>
+                        <option value="BING">Bahasa Inggris</option>
+                        <option value="IPS">IPS</option>
+                        <option value="PPKN">PPKN</option>
+                        <option value="PAI">PAI</option>
+                        <option value="PBM">PBM</option>
+                        <option value="PPU">PPU</option>
+                        <option value="PU">PU</option>
+                        <option value="PK">PK</option>
+                        <option value="LBI">LBI</option>
+                        <option value="LBE">LBE</option>
+                        <option value="PM">PM</option>
+                        <option value="English">English</option>
+                        <option value="Sosiologi">Sosiologi</option>
+                        <option value="Ekonomi">Ekonomi</option>
+                        <option value="Geografi">Geografi</option>
+                        <option value="Sejarah">Sejarah</option>
+                        <option value="TIU">TIU</option>
+                        <option value="TWK">TWK</option>
+                        <option value="TKP">TKP</option>
+                        <option value="TIK">TIK</option>
+                    `);
+                } else {
+                    // Add options based on student mapel
+                    const mapelNames = {
+                        'MTK': 'Matematika',
+                        'IPA': 'IPA',
+                        'IPAS': 'IPAS',
+                        'KIMIA': 'Kimia',
+                        'FISIKA': 'Fisika',
+                        'BIOLOGI': 'Biologi',
+                        'BINDO': 'Bahasa Indonesia',
+                        'BING': 'Bahasa Inggris',
+                        'IPS': 'IPS',
+                        'PPKN': 'PPKN',
+                        'PAI': 'PAI',
+                        'PBM': 'PBM',
+                        'PPU': 'PPU',
+                        'PU': 'PU',
+                        'PK': 'PK',
+                        'LBI': 'LBI',
+                        'LBE': 'LBE',
+                        'PM': 'PM',
+                        'English': 'English',
+                        'Sosiologi': 'Sosiologi',
+                        'Ekonomi': 'Ekonomi',
+                        'Geografi': 'Geografi',
+                        'Sejarah': 'Sejarah',
+                        'TIU': 'TIU',
+                        'TWK': 'TWK',
+                        'TKP': 'TKP',
+                        'TIK': 'TIK'
+                    };
+                    
+                    studentMapel.forEach(mapel => {
+                        if (mapelNames[mapel]) {
+                            $mataPelajaran.append(`<option value="${mapel}">${mapelNames[mapel]}</option>`);
+                        }
+                    });
+                }
+                
+                // Reset selection
+                $mataPelajaran.val('').trigger('change');
+            }
+            
+            // Handle mataPelajaran change to filter tentors
+            $('#mataPelajaran').on('change', function() {
+                const selectedMapel = $(this).val();
+                const $tentorSelect = $('#tentorId');
+                
+                // Reset tentor dropdown
+                $tentorSelect.empty().append('<option value="">Pilih Tentor</option>');
+                
+                if (selectedMapel) {
+                    // Filter tentors that can teach the selected subject
+                    allTentors.each(function() {
+                        const $option = $(this);
+                        if ($option.val() === '') return true; // Skip placeholder
+                        
+                        try {
+                            let tentorMapel = $option.data('mapel');
+                            if (typeof tentorMapel === 'string') {
+                                tentorMapel = JSON.parse(tentorMapel);
+                            }
+                            
+                            // Add tentor if they can teach this subject
+                            if (Array.isArray(tentorMapel) && tentorMapel.includes(selectedMapel)) {
+                                $tentorSelect.append($option.clone());
+                            }
+                        } catch (e) {
+                            console.error('Error parsing tentor subjects:', e);
+                        }
+                    });
+                } else {
+                    // If no mapel selected, show all tentors
+                    $tentorSelect.append(allTentors.clone());
+                }
+                
+                // Refresh Select2
+                $tentorSelect.trigger('change');
+            });
+
+            // Add form submission handler
+            const form = document.getElementById('inputJadwalForm');
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                try {
+                    const formData = new FormData(this);
+                    const response = await fetch('/admin/jadwal/tambah', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(Object.fromEntries(formData))
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        await Swal.fire({
+                            title: 'Berhasil!',
+                            text: result.message || 'Jadwal berhasil ditambahkan',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        });
+                        
+                        // Redirect to master jadwal page
+                        window.location.href = '/admin/jadwal';
+                    } else {
+                        throw new Error(result.error || 'Gagal menambahkan jadwal');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: error.message || 'Gagal menambahkan jadwal',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        });
+
+        // Add event listener for URL changes
+        window.addEventListener('popstate', function() {
+            const url = new URL(window.location.href);
+            if (url.searchParams.has('error')) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: url.searchParams.get('error'),
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                url.searchParams.delete('error');
+                window.history.replaceState({}, document.title, url);
+            }
+        });
+    </script>
+    
+    <!-- Load essential scripts for layout functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+</body>
+</html> 

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>TO Premium</title>
+        <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+        <%- include('../../partials/head') %>
+        <link rel="icon" type="image/x-icon" href="assets/img/5.png" />
+        <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+
+    </head>
+    <body class="nav-fixed">
+       <%- include('partials/topNav') %> 
+        <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="alert-circle"></i></div>
+                                        Halo, Sobat GG
+                                    </h1>
+                                    <div class="page-header-subtitle">Brits Edu Center, <span style="font-style: italic;">Teman belajarmu</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <!-- Main page content-->
+                <div class="container-xl px-4">
+                    <div class="card mt-n10">
+                        <div class="card-header">TO PREMIUM</div>
+                        <div class="card-body">
+                        
+                                <h2><%= token.namaToken %></h2>
+                                <p class="mb-0">Token aktif : <%= token.token %></p>
+                                <p class="mb-0">Sisa kuota subtes : <%= Number(token.maxSubtest) - examTaken.kodekategories.length %></p>
+                                <% const remainingQuota = Number(token.maxSubtest) - examTaken.kodekategories.length; %>
+                          
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm centered-table" style="max-width: 600px;">
+                                        <thead>
+                                            <tr>
+                                                <td>Subtes</td>
+                                                <td>Status</td>
+                                                <td>Nilai</td>
+                                                <td>Aksi</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                     
+                                          <% mapels.forEach((mapel) => { 
+                                            const isTaken = examTaken && examTaken.kodekategories && 
+                                               examTaken.kodekategories.includes(mapel.kodekategori);
+                                            const completedEntry = examCompleted && examCompleted.find(entry => 
+                                              entry.tokenValue === token.token);
+                                            const isCompleted = completedEntry && 
+                                               completedEntry.kodekategories && 
+                                               completedEntry.kodekategories.includes(mapel.kodekategori);
+                                            const isDisqualified = disqualifiedExams.includes(mapel.kodekategori);
+                                            const isQuotaZero = remainingQuota === 0;
+                                            
+                                            let status;
+                                            if (isDisqualified) {
+                                              status = {
+                                                text: 'Diskualifikasi',
+                                                badgeClass: 'danger',
+                                                buttonText: 'Mulai Ujian',
+                                                buttonClass: 'primary',
+                                                buttonDisabled: true
+                                              };
+                                            } else if (isCompleted) {
+                                              status = {
+                                                text: 'Selesai',
+                                                badgeClass: 'success',
+                                                buttonText: 'Selesai',
+                                                buttonClass: 'success',
+                                                buttonDisabled: true
+                                              };
+                                            } else if (isTaken) {
+                                              status = {
+                                                text: 'Sedang Dikerjakan',
+                                                badgeClass: 'warning',
+                                                buttonText: 'Lanjutkan',
+                                                buttonClass: 'primary',
+                                                buttonDisabled: false
+                                              };
+                                            } else if (isQuotaZero) {
+                                              status = {
+                                                text: 'Kuota Habis',
+                                                badgeClass: 'danger',
+                                                buttonText: 'Tidak dapat mengerjakan',
+                                                buttonClass: 'secondary',
+                                                buttonDisabled: true
+                                              };
+                                            } else {
+                                              status = {
+                                                text: 'Belum dimulai',
+                                                badgeClass: 'primary',
+                                                buttonText: 'Mulai Ujian',
+                                                buttonClass: 'primary',
+                                                buttonDisabled: false
+                                              };
+                                            }
+                                            
+                                            const score = isCompleted && completedEntry.scores ? 
+                                                         completedEntry.scores[mapel.kodekategori] || 0 : 0;
+                                        %>
+                                        <tr>
+                                          <td style="text-align: left;">
+                                            <%= mapel.mapel %>
+                                            <small class="d-block text-muted">
+                                              Mulai: <%= new Date(mapel.tanggalMulai).toLocaleString('id-ID') %><br>
+                                              Berakhir: <%= new Date(mapel.tanggalBerakhir).toLocaleString('id-ID') %>
+                                            </small>
+                                          </td>
+                                          <td>
+                                            <% 
+                                            const now = new Date();
+                                            const startDate = new Date(mapel.tanggalMulai);
+                                            const endDate = new Date(mapel.tanggalBerakhir);
+                                            
+                                            if (now < startDate) {
+                                              status = {
+                                                text: 'Belum Dimulai',
+                                                badgeClass: 'secondary',
+                                                buttonText: 'Belum Dimulai',
+                                                buttonClass: 'secondary',
+                                                buttonDisabled: true
+                                              };
+                                            } else if (now > endDate) {
+                                              status = {
+                                                text: 'Sudah Berakhir',
+                                                badgeClass: 'danger',
+                                                buttonText: 'Sudah Berakhir',
+                                                buttonClass: 'danger',
+                                                buttonDisabled: true
+                                              };
+                                            }
+                                            %>
+                                            <span class="badge badge-sm badge-<%= status.badgeClass %>">
+                                              <%= status.text %>
+                                            </span>
+                                          </td>
+                                          <td>
+                                            <span class="badge badge-sm badge-<%= isCompleted ? 'success' : 'danger' %>">
+                                              <%= score %>
+                                            </span>
+                                          </td>
+                                          <td>
+                                            <% 
+                                            // Check if user has answered this subtest
+                                            const hasAnswered = answeredSubtests.includes(mapel.kodekategori);
+                                            %>
+                                            <% if (status.buttonDisabled && hasAnswered) { %>
+                                              <a href="/user/to-premium/<%= token.token %>/<%= mapel.kodekategori %>/pembahasan" 
+                                                   class="btn btn-sm btn-info">
+                                                    Lihat Pembahasan
+                                                </a>
+                                            <% } else if (status.buttonDisabled && !hasAnswered) { %>
+                                              <span class="btn btn-sm btn-secondary disabled">
+                                                Belum Dikerjakan
+                                              </span>
+                                            <% } else { %>
+                                              <a href="/ujian/<%= token.token %>/<%= mapel.kodekategori %>" 
+                                                 class="btn btn-sm btn-<%= status.buttonClass %>" 
+                                                 type="button">
+                                                <%= status.buttonText %>
+                                              </a>
+                                            <% } %>
+                                          </td>
+                                    
+                                        </tr>
+                                        <% }) %>
+                                        
+                                        </tbody>
+                                      </table>
+                                </div>
+                           
+
+                        </div>
+                    </div>
+                    
+                </div>
+            
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>     
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
+    </body>
+</html>

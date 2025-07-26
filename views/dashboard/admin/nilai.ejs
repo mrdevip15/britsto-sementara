@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Nilai Subtest - GG</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+    <script>
+        const filename = `Nilai <%= mapel + " - " + owner %>`;
+        const mapelName = '<%= mapel %>';
+        const ownerName = '<%= owner %>';
+    </script>
+    <script>
+        function exportTableToCSV() {
+            const csv = [];
+            const rows = document.querySelectorAll("table tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = [];
+                const cols = rows[i].querySelectorAll("td, th");
+
+                for (let j = 0; j < cols.length; j++) {
+                    row.push(cols[j].innerText);
+                }
+
+                csv.push(row.join(",")); // Join columns with commas
+            }
+
+            // Create a CSV file and trigger download
+            const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+            const downloadLink = document.createElement("a");
+            downloadLink.href = URL.createObjectURL(csvFile);
+            downloadLink.download = filename;
+            downloadLink.click();
+        }
+
+        function exportStudentToPDF(nama, email, nilai) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Set colors
+            const primaryColor = [108, 92, 231]; // Purple
+            const accentColor = [0, 212, 255];   // Cyan
+            const darkGray = [64, 64, 64];
+            
+            // Add header with gradient effect simulation
+            doc.setFillColor(...primaryColor);
+            doc.rect(0, 0, 210, 45, 'F');
+            
+            // Add logo area (placeholder)
+            doc.setFillColor(255, 255, 255);
+            doc.circle(25, 22, 8, 'F');
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('GG', 21, 26);
+            
+            // Add main title
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text('LAPORAN NILAI SISWA', 40, 25);
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text('Platform Pendidikan Tryout', 40, 35);
+            
+            // Reset text color for content
+            doc.setTextColor(...darkGray);
+            
+            // Add content section
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('INFORMASI MATA PELAJARAN', 20, 65);
+            
+            // Add colored line under section title
+            doc.setDrawColor(...accentColor);
+            doc.setLineWidth(2);
+            doc.line(20, 68, 190, 68);
+            
+            // Subject information in a styled box
+            doc.setFillColor(248, 249, 250);
+            doc.roundedRect(20, 75, 170, 25, 3, 3, 'F');
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Mata Pelajaran: ${mapelName}`, 25, 85);
+            doc.text(`Paket Soal: ${ownerName}`, 25, 95);
+            
+            // Student information section
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('INFORMASI SISWA', 20, 120);
+            
+            // Add colored line
+            doc.setDrawColor(...accentColor);
+            doc.line(20, 123, 190, 123);
+            
+            // Student info in styled box
+            doc.setFillColor(248, 249, 250);
+            doc.roundedRect(20, 130, 170, 35, 3, 3, 'F');
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Nama Lengkap: ${nama}`, 25, 140);
+            doc.text(`Email: ${email}`, 25, 150);
+            
+            // Score highlight box
+            doc.setFillColor(...primaryColor);
+            doc.roundedRect(25, 155, 160, 15, 3, 3, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text(`NILAI AKHIR: ${nilai}`, 30, 165);
+            
+            // Footer section
+            doc.setTextColor(...darkGray);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const now = new Date();
+            doc.text(`Dicetak pada: ${now.toLocaleDateString('id-ID')} pukul ${now.toLocaleTimeString('id-ID')}`, 20, 190);
+            
+            // Add footer line
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.line(20, 200, 190, 200);
+            
+            doc.setFontSize(8);
+            doc.text('Platform Pendidikan GG - Sistem Manajemen Nilai', 20, 205);
+            doc.text('Dokumen ini dibuat secara otomatis oleh sistem', 20, 210);
+            
+            // Save the PDF
+            doc.save(`Nilai_${nama.replace(/\s+/g, '_')}_${mapelName}.pdf`);
+        }
+
+        function exportAllToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(20);
+            doc.text('Daftar Nilai Siswa', 20, 20);
+            
+            // Add subject and owner info
+            doc.setFontSize(14);
+            doc.text(`Mata Pelajaran: ${mapelName}`, 20, 35);
+            doc.text(`Paket: ${ownerName}`, 20, 45);
+            
+            // Prepare table data
+            const tableData = [];
+            const rows = document.querySelectorAll("table tbody tr");
+            
+            rows.forEach(row => {
+                const cols = row.querySelectorAll("td");
+                if (cols.length >= 3) { // Skip action column
+                    tableData.push([
+                        cols[0].innerText, // Nama
+                        cols[1].innerText, // Email
+                        cols[2].innerText  // Nilai
+                    ]);
+                }
+            });
+            
+            // Add table
+            doc.autoTable({
+                head: [['Nama', 'Email', 'Nilai']],
+                body: tableData,
+                startY: 55,
+                margin: { top: 55 },
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 3
+                },
+                headStyles: {
+                    fillColor: [108, 92, 231], // Purple color matching theme
+                    textColor: 255
+                }
+            });
+            
+            // Add date at bottom
+            const now = new Date();
+            const finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(10);
+            doc.text(`Dicetak pada: ${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')}`, 20, finalY);
+            
+            // Save the PDF
+            doc.save(`Daftar_Nilai_${mapelName}_${ownerName}.pdf`);
+        }
+
+        function exportAllToExcel() {
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            
+            // Prepare data array
+            const data = [];
+            
+            // Add header info
+            data.push(['LAPORAN NILAI SISWA']);
+            data.push(['Mata Pelajaran:', mapelName]);
+            data.push(['Paket Soal:', ownerName]);
+            data.push(['Tanggal:', new Date().toLocaleDateString('id-ID')]);
+            data.push([]); // Empty row
+            
+            // Add table headers
+            data.push(['No', 'Nama', 'Email', 'Nilai']);
+            
+            // Add table data
+            const rows = document.querySelectorAll("table tbody tr");
+            let rowIndex = 1;
+            
+            rows.forEach(row => {
+                const cols = row.querySelectorAll("td");
+                if (cols.length >= 3) { // Skip action column
+                    data.push([
+                        rowIndex++,
+                        cols[0].innerText, // Nama
+                        cols[1].innerText, // Email
+                        parseInt(cols[2].innerText) || 0  // Nilai (convert to number)
+                    ]);
+                }
+            });
+            
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            // Set column widths
+            ws['!cols'] = [
+                { width: 5 },   // No
+                { width: 25 },  // Nama
+                { width: 30 },  // Email
+                { width: 10 }   // Nilai
+            ];
+            
+            // Style the header rows
+            const headerStyle = {
+                font: { bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "6C5CE7" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+            
+            // Apply styles to specific cells
+            if (ws['A1']) ws['A1'].s = { font: { bold: true, size: 16 }, alignment: { horizontal: "center" } };
+            if (ws['A6']) ws['A6'].s = headerStyle;
+            if (ws['B6']) ws['B6'].s = headerStyle;
+            if (ws['C6']) ws['C6'].s = headerStyle;
+            if (ws['D6']) ws['D6'].s = headerStyle;
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Nilai Siswa');
+            
+            // Save the file
+            XLSX.writeFile(wb, `Nilai_${mapelName}_${ownerName}.xlsx`);
+        }
+    </script>
+</head>
+<body class="nav-fixed">
+    <%- include('partials/topNav') %> 
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="file-text"></i></div>
+                                        Nilai Subtest <%= mapel + " - " + owner %>
+                                    </h1>
+                                   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="card">
+                        <div class="card-header">Daftar Nilai</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <button class="btn btn-sm btn-success" onclick="exportTableToCSV()">
+                                    <i data-feather="share" style="margin-right: 5px;"></i>Export CSV
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="exportAllToPDF()">
+                                    <i data-feather="file-text" style="margin-right: 5px;"></i>Export PDF
+                                </button>
+                                <button class="btn btn-sm btn-primary" onclick="exportAllToExcel()">
+                                    <i data-feather="download" style="margin-right: 5px;"></i>Export Excel
+                                </button>
+                                <a href="/admin/manajemen-soal/nilai-detail/<%= kodekategori %>" 
+                                   class="btn btn-sm btn-primary">
+                                    <i data-feather="list" style="margin-right: 5px;"></i>Detail Jawaban
+                                </a>
+                            </div>
+                            <table class="table" id="datatablesSimple">
+                                <thead>
+                                    <tr>
+                                        <th>Nama</th>
+                                        <th>Email</th>
+                                        <th>Nilai</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% scores.forEach(score => { %>
+                                    <tr>
+                                        <td><%= score.nama %></td>
+                                        <td><%= score.email %></td>
+                                        <td><%= score.score %></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="exportStudentToPDF('<%= score.nama %>', '<%= score.email %>', '<%= score.score %>')">
+                                                <i data-feather="file-text"></i> PDF
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', event => {
+            const datatablesSimple = document.getElementById('datatablesSimple');
+            if (datatablesSimple) {
+                new simpleDatatables.DataTable(datatablesSimple, {
+                    perPage: 10,
+                    searchable: true,
+                    sortable: true
+                });
+            }
+        });
+    </script>
+</body>
+</html>

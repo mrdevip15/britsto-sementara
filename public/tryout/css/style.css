@@ -1,0 +1,514 @@
+.html,
+body {
+    overflow-x: hidden;
+}
+
+.soal-soal {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
+
+.soal-soal p {
+    margin: 0px;
+    padding: 0px;
+}
+
+.soal-soal td {
+    border: 1px solid #000;
+    padding: 5px;
+}
+
+.soal-soal {
+    height: calc(100vh - 213px);
+    overflow: auto;
+} 
+.parent-foto-profil{
+    text-align: center;
+}
+.foto-profil {
+    width: 100%;
+    border: 1px solid #e0e0e0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+@media (max-width:576px) {
+
+    /* smartphones, iPhone, portrait 480x320 phones */
+    .soal-soal {
+        height: calc(100vh - 200px) !important;
+        overflow: auto;
+        
+    }
+
+    .foto-profil {
+        width: 40%;
+        border-radius: 100% !important;
+    }
+}
+
+@media (min-width:481px) {
+    /* portrait e-readers (Nook/Kindle), smaller tablets @ 600 or @ 640 wide. */
+}
+
+@media (min-width:641px) {
+    /* portrait tablets, portrait iPad, landscape e-readers, landscape 800x480 or 854x480 phones */
+}
+
+@media (max-width:641px) {
+
+    /* tablet, landscape iPad, lo-res laptops ands desktops */
+    .mataujian {
+        text-align: left
+    }
+
+    #formContent {
+        padding-left: 10px;
+        padding-right: 10px
+    }
+
+    .row-atas {
+        text-align: center;
+    }
+
+    #isisoal img {
+        width: 100%;
+    }
+   
+}
+
+@media (min-width:641px) {
+
+    /* tablet, landscape iPad, lo-res laptops ands desktops */
+    .container-fluid {
+        padding-left: 5px;
+        padding-right: 5px
+    }
+
+    .mataujian {
+        text-align: right
+    }
+
+    #formContent {
+        padding-left: 25px;
+        padding-right: 25px
+    }
+
+    .btn-navigasi {
+        width: 180px;
+    }
+
+    .cont-btn-informasi {
+        text-align: right
+    }
+
+}
+
+@media (min-width:1025px) {
+    /* big landscape tablets, laptops, and desktops */
+}
+
+@media (min-width:1281px) {
+    /* hi-res laptops and desktops */
+}
+
+/* STRUCTURE */
+.loader {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.wrapper {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    min-height: 100%;
+    padding: 20px;
+    margin-top: -80px;
+}
+
+#formContent {
+    -webkit-border-radius: 10px 10px 10px 10px;
+    border-radius: 10px 10px 10px 10px;
+    background: #fff;
+    position: relative;
+    -webkit-box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+
+
+
+/* TABS */
+
+h2.inactive {
+    color: #cccccc;
+}
+
+h2.active {
+    color: #0d0d0d;
+    border-bottom: 2px solid #5fbae9;
+}
+
+input[type=text] {
+    border: none;
+    color: #0d0d0d;
+    text-decoration: none;
+    border-radius: 0px;
+    border-bottom: 1px solid #eee;
+    background: transparent;
+}
+
+
+/* ANIMATIONS */
+
+/* Simple CSS3 Fade-in-down Animation */
+.fadeInDown {
+    -webkit-animation-name: fadeInDown;
+    animation-name: fadeInDown;
+    -webkit-animation-duration: 1s;
+    animation-duration: 1s;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+}
+
+@-webkit-keyframes fadeInDown {
+    0% {
+        opacity: 0;
+        -webkit-transform: translate3d(0, -100%, 0);
+        transform: translate3d(0, -100%, 0);
+    }
+
+    100% {
+        opacity: 1;
+        -webkit-transform: none;
+        transform: none;
+    }
+}
+
+@keyframes fadeInDown {
+    0% {
+        opacity: 0;
+        -webkit-transform: translate3d(0, -100%, 0);
+        transform: translate3d(0, -100%, 0);
+    }
+
+    100% {
+        opacity: 1;
+        -webkit-transform: none;
+        transform: none;
+    }
+}
+
+/* Simple CSS3 Fade-in Animation */
+@-webkit-keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@-moz-keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.fadeIn {
+    opacity: 0;
+    -webkit-animation: fadeIn ease-in 1;
+    -moz-animation: fadeIn ease-in 1;
+    animation: fadeIn ease-in 1;
+
+    -webkit-animation-fill-mode: forwards;
+    -moz-animation-fill-mode: forwards;
+    animation-fill-mode: forwards;
+
+    -webkit-animation-duration: 1s;
+    -moz-animation-duration: 1s;
+    animation-duration: 1s;
+}
+
+.fadeIn.first {
+    -webkit-animation-delay: 0.4s;
+    -moz-animation-delay: 0.4s;
+    animation-delay: 0.4s;
+}
+
+.fadeIn.second {
+    -webkit-animation-delay: 0.6s;
+    -moz-animation-delay: 0.6s;
+    animation-delay: 0.6s;
+}
+
+.fadeIn.third {
+    -webkit-animation-delay: 0.8s;
+    -moz-animation-delay: 0.8s;
+    animation-delay: 0.8s;
+}
+
+.fadeIn.fourth {
+    -webkit-animation-delay: 1s;
+    -moz-animation-delay: 1s;
+    animation-delay: 1s;
+}
+
+/* Simple CSS3 Fade-in Animation */
+.underlineHover:after {
+    display: block;
+    left: 0;
+    bottom: -10px;
+    width: 0;
+    height: 2px;
+    background-color: #56baed;
+    content: "";
+    transition: width 0.2s;
+}
+
+.underlineHover:hover {
+    color: #0d0d0d;
+}
+
+.underlineHover:hover:after {
+    width: 100%;
+}
+
+.cfont {
+    cursor: pointer;
+}
+
+/* Default styling (visible on larger screens, normal behavior) */
+.top-table {
+    width: auto;
+    margin-top: 0;
+    float: right;
+}
+
+/* Make the table fixed to the top on small screens */
+@media (max-width: 768px) {
+    .top-table {
+        position: sticky;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: white;
+        padding: 10px;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        border-bottom: 1px solid #eee;
+    }
+}
+
+.btn-orange {
+    border-radius: 5px;
+    background-color: #d06334 !important;
+    color: white;
+}
+
+.btn-orange:hover {
+    color: white;
+    background-color: #ad4d24 !important;
+}
+.btn-orange:focus {
+    outline: none; /* Removes the default browser focus outline */
+    box-shadow: 0 0 5px 2px #ff5722; /* Adds a custom box-shadow for focus */
+}
+.kotak-soal {
+    position: relative;
+    width: 40px;
+    /* Adjusted for better visibility */
+    height: 40px;
+    /* Adjusted for better visibility */
+    border-radius: 5px;
+    /* Slightly rounded for a modern look */
+    border: solid 2px black;
+    display: flex;
+    /* Ensures proper alignment of text within the box */
+    align-items: center;
+    /* Vertically centers the text */
+    justify-content: center;
+    /* Horizontally centers the text */
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+    /* Adjust font size for better readability */
+    background-color: white;
+    /* Optional: Add background color */
+    transition: background-color 0.3s, transform 0.2s;
+    /* Smooth hover effect */
+}
+
+.kotak-soal:hover {
+    background-color: #f0f0f0;
+    /* Highlight effect on hover */
+    transform: scale(1.1);
+    /* Slight zoom effect on hover */
+}
+
+.container-soal {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    padding: 20px;
+    /* Adjusted padding for better spacing */
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    /* Ensures equal spacing */
+    grid-gap: 8px;
+    /* Even spacing between boxes */
+    overflow-y: auto;
+    /* Ensure scrolling if content overflows */
+    max-height: 300px;
+    /* Optional: Limit the container's height */
+    border: solid 1px #ddd;
+    /* Optional: Subtle border around the container */
+    border-radius: 5px;
+    /* Rounded corners for the container */
+}
+
+/* Optional: Add styling for active or selected states */
+.kotak-soal.active {
+    background-color: #007bff;
+    /* Active box color */
+    color: white;
+    /* Text color for active state */
+    border-color: #0056b3;
+    /* Border color for active state */
+}
+
+.kotak-soal:focus {
+    outline: none;
+    box-shadow: 0 0 5px #007bff;
+    /* Focus ring effect */
+}
+
+.selected-font {
+    color: #e6b843;
+}
+
+.selected-font::after {
+    content: "";
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #e6b843;
+    border-radius: 100%;
+}
+
+.quiz-table {
+    max-width: 600px;
+    border-collapse: collapse;
+}
+
+.quiz-table th,
+.quiz-table td {
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid black;
+}
+
+.quiz-table thead tr {
+    background-color: #d06334;
+    color: white;
+}
+
+.quiz-table th {
+    border: 1px solid black;
+}
+
+.quiz-table td input[type="checkbox"] {
+    margin: 0;
+}
+
+.table thead th {
+    border-bottom: 1px solid black;
+}
+.watermark-container{
+    position: relative;
+}
+.watermark-container::after {
+    content : "";
+    background-image: url('https://i.ibb.co.com/jTFqHWz/5.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 600px; /* Adjust size */
+    opacity: 0.2; /* Adjust opacity for the watermark effect */
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: -100px;
+    left: -5px;
+    z-index: 1;
+            /* Optional: Set background to cover entire screen */
+    background-attachment: fixed;
+    pointer-events: none;
+}
+@media (max-width: 768px) {
+    .watermark-container::after {
+        background-size: 350px; /* Adjust size */
+    }
+}
+.kotak-soal.soal-selected {
+    border: 2px solid #000000 ; /* Highlight border */
+    background-color: #e67a4b; /* Light background */
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.4);
+    color: #000000;
+}
+.ragu {
+    background-color: #ffc107 !important;
+    color: #000000;
+    border: 2px solid #000000 !important;
+}
+
+.opsi-container {
+    align-items: flex-start;
+}
+.table-borderless td,
+.table-borderless th {
+    border: none !important;
+}
+
+.kotak-soal.answered {
+    background-color: #5dd479; /* Light green */
+    border: 2px solid #000000; /* Green border */
+    color: black;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+td {
+    border: 1px solid #dee2e6;
+    padding: 0.75rem;
+    vertical-align: middle;
+    text-align: justify;
+    height: 50px;
+}

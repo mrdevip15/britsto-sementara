@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Dashboard GG</title>
+        <%- include('../../partials/head') %>
+        <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+        <link rel="icon" type="image/x-icon" href="assets/img/5.png" />
+        <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+
+    </head>
+    <body class="nav-fixed">
+       <%- include('partials/topNav') %> 
+        <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="alert-circle"></i></div>
+                                        Halo, Sobat GG
+                                    </h1>
+                                    <div class="page-header-subtitle">Brits Edu Center, <span style="font-style: italic;">Teman belajarmu</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <!-- Main page content-->
+                <div class="container-xl px-4">
+                    <div class="card mt-n10">
+                        <div class="card-header">Mini Try Out!</div>
+                        <div class="card-body">
+                            <p style="margin-bottom: 0px;">Ikuti instruksi di bawah ini untuk dapatkan Mini TO gratis dari Brits Edu Center!</p>
+                            <p style="margin-bottom: 5px;">Kunjungi Instagram Brits Edu Center, cari postingan di bawah...</p>
+                            <img class="img-fluid"  src="<%= hostname %>assets/img/postingan-1.png" style="width: 600px;" />
+                            <p style="margin-top: 10px;margin-bottom: 5px;">Cari hashtag yang berisi 6 Huruf acak, postingannya jangan lupa di like ya ❤️</p>
+                            <p style="margin-bottom: 5px;">Simpan huruf acak yang sudah kamu dapatkan, lanjut cari postingan ini...</p>
+                            <img class="img-fluid"  src="<%= hostname %>assets/img/postingan-2.png" style="width: 600px;" />
+                            <p style="margin-top: 10px;margin-bottom: 5px;">Cari hashtag yang berisi 4 angka acak, sekali lagi postingannya jangan lupa di like yaaa ❤️</p>
+                            <p style="margin-bottom: 5px;">Token kamu akan terlihat seperti ini : <strong><span style="text-decoration: underline;">VMLPPE8801</span></strong></p>
+                            <img class="img-fluid"  src="<%= hostname %>assets/img/postingan-3.jpg" style="width: 600px;" />
+                            <p style="margin-top: 10px;margin-bottom: 5px;">Kembali ke halaman dashboard, lalu masukkan tokennya pada bagian card input token seperti gambar diatas</p>
+                            <p style="margin-bottom: 5px;">Jika berhasil pada bagian to, akan muncul "Mini TO"</p>
+                            <img class="img-fluid"  src="<%= hostname %>assets/img/postingan-4.jpg" style="width: 600px;" />
+                            <div class="text-center mt-4">
+                                <a href="/user/dashboard" class="btn btn-primary">Kembali ke Dashboard</a>
+                            </div>
+
+                        </div>
+                    </div>     
+                            
+                </div>
+            
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>     
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
+        <script>
+            let errorCount = 0; // Initialize error counter
+            const maxErrors = 15; // Set the maximum number of allowed errors
+        
+            document.getElementById('tokenForm').addEventListener('submit', async function(event) {
+                event.preventDefault(); // Prevent the default form submission
+        
+                // Check if the error count has exceeded the limit
+                if (errorCount >= maxErrors) {
+                    setTimeout(() => {
+                        window.location.href = "/logout"
+                    }, 3000);
+                    alert('Melebihi batas percobaan, akun akan logout...');
+                    
+                    return; // Stop further submissions
+                }
+        
+                const tokenInput = document.getElementById('token').value;
+        
+                try {
+                    const response = await fetch('/user/to-premium/input-token', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ token: tokenInput }),
+                    });
+        
+                    const data = await response.json();
+        
+                    // Create alert element
+                    const alertMessage = document.createElement('div');
+                    alertMessage.className = 'alert alert-dismissible fade show';
+                    alertMessage.role = 'alert';
+        
+                    // Create alert content
+                    const alertContent = document.createElement('div');
+                    alertContent.id = 'alertContent';
+                    alertContent.textContent = response.ok ? data.message : data.message;
+        
+                    // Create close button
+                    const closeButton = document.createElement('button');
+                    closeButton.className = 'btn-close';
+                    closeButton.type = 'button';
+                    closeButton.setAttribute('data-bs-dismiss', 'alert');
+                    closeButton.setAttribute('aria-label', 'Close');
+        
+                    // Append content and button to alert
+                    alertMessage.appendChild(alertContent);
+                    alertMessage.appendChild(closeButton);
+        
+                    // Append alert to the card body
+                    document.querySelector('#tokenCard').appendChild(alertMessage);
+        
+                    // Show the alert
+                    if (response.ok) {
+                        alertMessage.classList.add('alert-success'); // Bootstrap success alert
+                    } else {
+                        alertMessage.classList.add('alert-danger'); // Bootstrap danger alert
+                        errorCount++; // Increment error count on failure
+                    }
+        
+                } catch (error) {
+                    // Create alert for error
+                    const alertMessage = document.createElement('div');
+                    alertMessage.className = 'alert alert-danger alert-dismissible fade show';
+                    alertMessage.role = 'alert';
+        
+                    const alertContent = document.createElement('div');
+                    alertContent.id = 'alertContent';
+                    alertContent.textContent = 'Terlalu banyak percobaan, coba lagi 24 jam kemudian';
+        
+                    const closeButton = document.createElement('button');
+                    closeButton.className = 'btn-close';
+                    closeButton.type = 'button';
+                    closeButton.setAttribute('data-bs-dismiss', 'alert');
+                    closeButton.setAttribute('aria-label', 'Close');
+        
+                    alertMessage.appendChild(alertContent);
+                    alertMessage.appendChild(closeButton);
+                    document.querySelector('#tokenCard').appendChild(alertMessage);
+        
+                    errorCount++; // Increment error count on catch
+                }
+            });
+        </script>
+    </body>
+</html>

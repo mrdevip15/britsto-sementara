@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Sign Up - BritsEdu</title>
+    <%- include('./partials/head') %>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/styles.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #6C5CE7 0%, #00D4FF 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+        
+        .auth-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1200px;
+            min-height: 80vh;
+            display: flex;
+        }
+        
+        .auth-brand {
+            background: linear-gradient(135deg, #6C5CE7 0%, #00D4FF 100%);
+            flex: 1;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .auth-brand::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/><circle cx="90" cy="90" r="1" fill="white" opacity="0.1"/><circle cx="30" cy="70" r="1" fill="white" opacity="0.1"/><circle cx="70" cy="30" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+            opacity: 0.3;
+        }
+        
+        .brand-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .brand-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+        
+        .brand-tagline {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .brand-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .auth-form {
+            flex: 1.2;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+        
+        .auth-form::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .auth-form::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .auth-form::-webkit-scrollbar-thumb {
+            background: #6C5CE7;
+            border-radius: 3px;
+        }
+        
+        .auth-form::-webkit-scrollbar-thumb:hover {
+            background: #5a4fd1;
+        }
+        
+        .form-header {
+            margin-bottom: 1.5rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            padding-bottom: 1rem;
+        }
+        
+        .form-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2D3436;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #6C5CE7 0%, #00D4FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .form-subtitle {
+            color: #74757A;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+        
+        .form-section {
+            margin-bottom: 1rem;
+            padding: 1.2rem;
+            border: 1px solid #E9ECEF;
+            border-radius: 12px;
+            background: #F8F9FA;
+        }
+        
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #6C5CE7;
+            margin-bottom: 1rem;
+            font-family: 'Space Grotesk', sans-serif;
+            border-bottom: 2px solid #6C5CE7;
+            padding-bottom: 0.5rem;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 0.8rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #2D3436;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #E9ECEF;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+            box-sizing: border-box;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #6C5CE7;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #6C5CE7 0%, #00D4FF 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 1.5rem 0;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.3);
+        }
+        
+        .error-message {
+            color: #FF5B5B;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        
+        .login-link {
+            text-align: center;
+            color: #74757A;
+            font-size: 0.9rem;
+        }
+        
+        .login-link a {
+            color: #6C5CE7;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Google OAuth Button Styles */
+        .btn-google:hover {
+            border-color: #6C5CE7;
+            background: #f8f9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
+        }
+        
+        .oauth-section {
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+            
+            .auth-container {
+                flex-direction: column;
+                max-width: 100%;
+                min-height: auto;
+                margin: 10px 0;
+            }
+            
+            .auth-brand {
+                padding: 30px 20px;
+                min-height: auto;
+            }
+            
+            .auth-form {
+                padding: 20px 15px;
+                max-height: none;
+                overflow-y: visible;
+                min-height: auto;
+            }
+            
+            .brand-logo {
+                font-size: 2rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            
+            .form-section {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .brand-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+            
+            .form-header {
+                position: static;
+                padding-bottom: 1rem;
+            }
+            
+            .form-title {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .auth-container {
+                border-radius: 16px;
+                margin: 5px 0;
+            }
+            
+            .auth-form {
+                padding: 15px 10px;
+            }
+            
+            .form-section {
+                padding: 0.8rem;
+            }
+            
+            .form-control {
+                padding: 8px 10px;
+                font-size: 0.85rem;
+            }
+            
+            .brand-stats {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-brand">
+            <div class="brand-content">
+                <div class="brand-logo">BritsEdu</div>
+                <p class="brand-tagline">Bergabunglah dengan ribuan siswa yang menguasai ujian mereka dengan platform tes latihan kami yang terbukti</p>
+                
+                <div class="brand-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">Soal Latihan</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">95%</div>
+                        <div class="stat-label">Tingkat Keberhasilan</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">4</div>
+                        <div class="stat-label">Kategori Ujian</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Akses</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="auth-form">
+            <div class="form-header">
+                <h1 class="form-title">Buat Akun Anda</h1>
+                <p class="form-subtitle">Mulai perjalanan Anda menuju kesuksesan ujian hari ini</p>
+            </div>
+            
+            <form method="POST" action="/signup">
+                <!-- Google OAuth Button - Outside of sections -->
+                <div class="oauth-section" style="margin-bottom: 2rem;">
+                    <a href="/auth/google" class="btn-google" style="display: flex; align-items: center; justify-content: center; width: 100%; padding: 14px; background: white; border: 2px solid #E9ECEF; border-radius: 12px; color: #2D3436; font-weight: 600; text-decoration: none; transition: all 0.3s ease; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <img src="assets/img/google-logo.png" alt="Google" style="width: 20px; height: 20px; margin-right: 12px;">
+                        Daftar dengan Google
+                    </a>
+                    
+                    <div class="divider" style="display: flex; align-items: center; margin: 1.5rem 0;">
+                        <div style="flex: 1; height: 1px; background: #E9ECEF;"></div>
+                        <span style="padding: 0 1rem; color: #74757A; font-size: 0.9rem; background: white; font-weight: 500;">atau daftar manual</span>
+                        <div style="flex: 1; height: 1px; background: #E9ECEF;"></div>
+                    </div>
+                </div>
+
+                <!-- Account Information Section -->
+                <div class="form-section">
+                    <h4 class="section-title">Informasi Akun</h4>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Alamat Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="email.anda@contoh.com" required />
+                        <div class="error-message" id="email-error"></div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Kata Sandi</label>
+                            <input type="password" name="password" class="form-control" placeholder="Buat kata sandi" required />
+                            <div class="error-message" id="pass-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Konfirmasi Kata Sandi</label>
+                            <input type="password" name="cpass" class="form-control" placeholder="Konfirmasi kata sandi" required />
+                            <div class="error-message" id="cpass-error"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Information Section -->
+                <div class="form-section">
+                    <h4 class="section-title">Informasi Pribadi</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nama Lengkap</label>
+                            <input type="text" name="nama" class="form-control" placeholder="Nama lengkap Anda" required />
+                            <div class="error-message" id="nama-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nomor Telepon</label>
+                            <input type="tel" name="phone" class="form-control" placeholder="08xxxxxxxxxx" required />
+                            <div class="error-message" id="phone-error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Sekolah/Institusi</label>
+                        <input type="text" name="asal_sekolah" class="form-control" placeholder="Sekolah atau institusi Anda" required />
+                        <div class="error-message" id="asalSekolah-error"></div>
+                    </div>
+                </div>
+
+                <!-- Program Selection Section -->
+                <div class="form-section">
+                    <h4 class="section-title">Pemilihan Program</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Jenis Paket</label>
+                            <select class="form-control" name="paket" required>
+                                <option value="">Pilih paket</option>
+                                <option value="privat">Kelas Privat</option>
+                                <option value="snbt">SNBT 2026</option>
+                                <option value="tryout" selected>Try Out</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tingkat Pendidikan</label>
+                            <select class="form-control" name="jenjang" required>
+                                <option value="">Pilih tingkat</option>
+                                <option value="sd">SD</option>
+                                <option value="smp">SMP</option>
+                                <option value="sma" selected>SMA</option>
+                                <option value="alumni">Alumni & Gap Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Program</label>
+                        <select class="form-control" name="program" required>
+                            <option value="">Pilih program</option>
+                            <option value="gg-lite" selected>BritsEdu Lite</option>
+                            <option value="gg-pro">BritsEdu Pro</option>
+                            <option value="gg-plus">BritsEdu Plus</option>
+                            <option value="gg-promax">BritsEdu Pro Max</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Parent/Guardian Information Section -->
+                <div class="form-section">
+                    <h4 class="section-title">Informasi Orang Tua/Wali</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nama Orang Tua/Wali</label>
+                            <input type="text" name="nama_ortu" class="form-control" placeholder="Nama lengkap" required />
+                            <div class="error-message" id="namaOrtu-error"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nomor Telepon Orang Tua/Wali</label>
+                            <input type="tel" name="no_hp_ortu" class="form-control" placeholder="08xxxxxxxxxx" required />
+                            <div class="error-message" id="noHpOrtu-error"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Buat Akun</button>
+                
+                <p class="login-link">
+                    Sudah punya akun? <a href="/login">Masuk di sini</a>
+                </p>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const password = document.querySelector('input[name="password"]').value;
+            const confirmPassword = document.querySelector('input[name="cpass"]').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Kata Sandi Tidak Cocok',
+                    text: 'Kata sandi dan konfirmasi kata sandi tidak cocok.',
+                    icon: 'error',
+                    confirmButtonColor: '#6C5CE7'
+                });
+                return;
+            }
+            
+            // Show loading message
+            Swal.fire({
+                title: 'Membuat Akun...',
+                text: 'Mohon tunggu, sedang memproses pendaftaran Anda.',
+                icon: 'info',
+                confirmButtonColor: '#6C5CE7',
+                showConfirmButton: false,
+                allowOutsideClick: false
+            });
+        });
+        
+        // Prevent form submission on enter key in individual fields
+        document.querySelectorAll('input, select').forEach(function(element) {
+            element.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

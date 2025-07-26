@@ -1,0 +1,2011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Preview Jadwal - Admin Dashboard</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <!-- Add SweetAlert2 library -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Add this in the head section -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <!-- Add Tippy.js CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <!-- Add after the existing CSS links -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <style>
+        .fc-event {
+            cursor: pointer;
+        }
+        .calendar-container {
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .modal-lg {
+            max-width: 800px;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            border-bottom: none;
+            padding: 1rem;
+        }
+        .form-control-plaintext {
+            padding: 0.375rem 0;
+            font-size: 1rem;
+        }
+        .form-control, .form-select {
+            border-radius: 0.375rem;
+        }
+        .modal-header {
+            border-bottom: none;
+        }
+        .modal-footer {
+            border-top: none;
+        }
+        .text-muted {
+            color: #6c757d !important;
+        }
+        .fw-bold {
+            font-weight: 500 !important;
+        }
+        /* Calendar event styles */
+        .fc-daygrid-event {
+            padding: 0 !important;
+            margin: 1px 2px !important;
+            background: none !important;
+            border: none !important;
+        }
+        
+        .fc-daygrid-day-frame {
+            min-height: 120px !important;
+        }
+        
+        .fc-daygrid-event-harness {
+            margin: 2px 0 !important;
+        }
+
+        .fc-daygrid-day-events {
+            margin-bottom: 0 !important;
+        }
+
+        /* Remove default event styling */
+        .fc-h-event {
+            background: none !important;
+            border: none !important;
+        }
+    </style>
+</head>
+
+<body class="nav-fixed">
+    <!-- Event Details Modal -->
+    <div class="modal fade" id="eventModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-gradient-primary-to-secondary text-white">
+                    <h5 class="modal-title text-white">
+                        <i class="fas fa-calendar-alt me-2 text-white"></i>Detail Jadwal
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="eventForm">
+                        <input type="hidden" id="eventId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-user me-1"></i>Informasi Pengajar
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                       
+                                        <div class="mb-3">
+                                            <label class="small text-muted">Jenis Jadwal</label>
+                                            <div class="mt-2">
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="jadwalType" id="typeIndividual" value="individual" checked>
+                                                    <label class="form-check-label" for="typeIndividual">Individual</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="jadwalType" id="typeClass" value="class">
+                                                    <label class="form-check-label" for="typeClass">Kelas</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3" id="siswaSection">
+                                            <label class="small text-muted">Siswa</label>
+                                            <select class="form-select" id="eventSiswa" name="siswaId" required>
+                                                <option value="">Pilih Siswa</option>
+                                                <% siswas.forEach(siswa => { %>
+                                                    <option value="<%= siswa.id %>" data-mapel="<%= JSON.stringify(siswa.mataPelajaran || []) %>">
+                                                        <%= siswa.nama %>
+                                                    </option>
+                                                <% }); %>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3" id="classSection" style="display: none;">
+                                            <label class="small text-muted">Kelas</label>
+                                            <select class="form-select" id="eventClass" name="classId" required>
+                                                <option value="">Pilih Kelas</option>
+                                                <% classes.forEach(kelas => { %>
+                                                    <option value="<%= kelas.id %>" data-mapel="<%= JSON.stringify(kelas.mataPelajaran || []) %>">
+                                                        <%= kelas.name %>
+                                                    </option>
+                                                <% }); %>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="small text-muted">Mata Pelajaran</label>
+                                            <select class="form-select" id="eventMataPelajaran" name="mataPelajaran" required>
+                                                <option value="">Pilih Mata Pelajaran</option>
+                                                <option value="MTK">Matematika</option>
+                                                <option value="IPA">IPA</option>
+                                                <option value="IPAS">IPAS</option>
+                                                <option value="KIMIA">Kimia</option>
+                                                <option value="FISIKA">Fisika</option>
+                                                <option value="BIOLOGI">Biologi</option>
+                                                <option value="BINDO">Bahasa Indonesia</option>
+                                                <option value="BING">Bahasa Inggris</option>
+                                                <option value="IPS">IPS</option>
+                                                <option value="PPKN">PPKN</option>
+                                                <option value="PAI">PAI</option>
+                                                <option value="PBM">PBM</option>
+                                                <option value="PPU">PPU</option>
+                                                <option value="PU">PU</option>
+                                                <option value="PK">PK</option>
+                                                <option value="LBI">LBI</option>
+                                                <option value="LBE">LBE</option>
+                                                <option value="PM">PM</option>
+                                                <option value="English">English</option>
+                                                <option value="Sosiologi">Sosiologi</option>
+                                                <option value="Ekonomi">Ekonomi</option>
+                                                <option value="Geografi">Geografi</option>
+                                                <option value="Sejarah">Sejarah</option>
+                                                <option value="TIU">TIU</option>
+                                                <option value="TWK">TWK</option>
+                                                <option value="TKP">TKP</option>
+                                                <option value="TIK">TIK</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="small text-muted">Tentor</label>
+                                            <select class="form-select" id="eventTentor" name="tentorId" required>
+                                                <option value="">Pilih Tentor</option>
+                                                <% tentors.forEach(tentor => { %>
+                                                    <option value="<%= tentor.id %>" data-mapel="<%= JSON.stringify(tentor.mataPelajaran || []) %>">
+                                                        <%= tentor.nama %>
+                                                    </option>
+                                                <% }); %>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <button type="button" class="btn btn-danger w-100" id="deleteEvent">
+                                                <i class="fas fa-trash me-1"></i>Hapus Jadwal
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-clock me-1"></i>Waktu Pertemuan
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label small">Tanggal</label>
+                                            <input type="date" class="form-control" id="eventDate" required>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Waktu Mulai</label>
+                                                    <input type="time" class="form-control" id="eventStart" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Waktu Selesai</label>
+                                                    <input type="time" class="form-control" id="eventEnd" required>
+                                                    <div class="form-check mt-1">
+                                                        <input class="form-check-input" type="checkbox" id="autoEndTime" checked>
+                                                        <label class="form-check-label" for="autoEndTime">
+                                                            <small>Otomatis 90 menit setelah waktu mulai</small>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-info-circle me-1"></i>Status
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <select class="form-select" id="eventStatus" required>
+                                            <option value="scheduled">Terjadwal</option>
+                                     
+                                            <option value="canceled">Dibatalkan</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-primary" id="saveEvent">
+                    Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/topNav') %>
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="calendar"></i></div>
+                                        Preview Jadwal
+                                    </h1>
+                                </div>
+                                <div class="col-12 col-xl-auto mt-4">
+                                    <a class="btn btn-white" href="/admin/jadwal">
+                                        <i class="fas fa-arrow-left me-1"></i>
+                                        Kembali
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="card mb-4 mt-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">Filter Tentor</label>
+                                    <select class="form-select" id="tentorFilter">
+                                        <option value="">Semua Tentor</option>
+                                        <% tentors.forEach(tentor => { %>
+                                            <option value="<%= tentor.id %>"><%= tentor.nama %></option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Filter Siswa/Kelas</label>
+                                    <select class="form-select" id="siswaFilter">
+                                        <option value="">Semua Siswa/Kelas</option>
+                                        <% filterItems.forEach(item => { %>
+                                            <option value="<%= item.id %>"><%= item.nama %></option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Filter Status</label>
+                                    <select class="form-select" id="statusFilter">
+                                        <option value="">Semua Status</option>
+                                        <option value="scheduled">Terjadwal</option>
+                                        <option value="completed">Selesai</option>
+                                        <option value="canceled">Dibatalkan</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div id="calendar"></div>
+                        </div>
+                    </div>
+                   
+                </div>
+
+                <!-- Add this after the calendar div and before the filters -->
+             
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+            
+            // Store all events
+            let allEvents = [];
+            try {
+                allEvents = JSON.parse('<%- JSON.stringify(calendarEvents || []) %>'.replace(/&quot;/g, '"'));
+            } catch (error) {
+                console.error('Error parsing calendar events:', error);
+                // Provide a fallback empty array if parsing fails
+                allEvents = [];
+            }
+            
+            // Log full schedule data
+            console.log('All Events:', allEvents);
+
+            // Filter function
+            function filterEvents() {
+                const tentorId = document.getElementById('tentorFilter').value;
+                const filterItemId = document.getElementById('siswaFilter').value;
+                const status = document.getElementById('statusFilter').value;
+                
+                return allEvents.filter(event => {
+                    if (tentorId && event.extendedProps.tentorId != tentorId) return false;
+                    if (filterItemId && event.extendedProps.filterItemId !== filterItemId) return false;
+                    if (status && event.extendedProps.status !== status) return false;
+                    return true;
+                });
+            }
+
+            // Apply filters
+            function applyFilters() {
+                const tentorId = document.getElementById('tentorFilter').value;
+                const filterItemId = document.getElementById('siswaFilter').value;
+                const status = document.getElementById('statusFilter').value;
+                
+                // Store filter values in localStorage for persistence
+                localStorage.setItem('jadwalFilter_tentor', tentorId);
+                localStorage.setItem('jadwalFilter_siswa', filterItemId);
+                localStorage.setItem('jadwalFilter_status', status);
+                
+                const filteredEvents = filterEvents();
+                window.calendar.removeAllEvents();
+                window.calendar.addEventSource(filteredEvents);
+            }
+
+            // Make calendar globally accessible
+            window.calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                slotMinTime: '09:00:00',
+                slotMaxTime: '23:00:00',
+                allDaySlot: false,
+                editable: true,
+                selectable: true,
+                slotDuration: '00:30:00',
+                selectMirror: true,
+                eventStartEditable: true,
+                eventDurationEditable: true,
+                eventClick: function(info) {
+                    // Remove any existing copy button first
+                    const modalFooter = document.querySelector('#eventModal .modal-footer');
+                    const existingCopyBtn = modalFooter.querySelector('.btn-info');
+                    if (existingCopyBtn) {
+                        existingCopyBtn.remove();
+                    }
+
+                    // Set event ID first so delete button works properly
+                    document.getElementById('eventId').value = info.event.id;
+                    document.getElementById('eventStatus').value = info.event.extendedProps.status || 'scheduled';
+                    
+                    // Always make delete button visible for existing events
+                    const deleteButton = document.getElementById('deleteEvent');
+                    if (deleteButton && info.event.id) {
+                        deleteButton.style.display = 'block';
+                    }
+
+                    if (info.event.extendedProps.status === 'completed') {
+                        // For completed schedules, show a warning but still populate event ID for deletion
+                        Swal.fire({
+                            title: 'Jadwal Sudah Selesai',
+                            text: 'Perubahan data tidak dapat dilakukan, tetapi jadwal masih dapat dihapus dengan konfirmasi password.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Hapus Jadwal',
+                            cancelButtonText: 'Batal',
+                            confirmButtonColor: '#dc3545'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // User wants to delete the completed schedule
+                                const eventId = info.event.id;
+                                
+                                // Show password confirmation
+                                Swal.fire({
+                                    title: 'Hapus Jadwal Selesai',
+                                    html: `
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Perhatian!</strong> Jadwal yang sudah selesai akan:
+                                        </div>
+                                        <ul class="text-start">
+                                            <li>Mengembalikan sesi ke kuota siswa</li>
+                                            <li>Menghapus pendapatan tentor</li>
+                                            <li>Menghapus catatan kehadiran</li>
+                                        </ul>
+                                        <div class="mt-3">
+                                            <label for="adminPassword" class="form-label text-start d-block">Masukkan password admin:</label>
+                                            <input type="password" id="adminPassword" class="form-control" placeholder="Password">
+                                        </div>
+                                    `,
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#d33',
+                                    cancelButtonColor: '#3085d6',
+                                    confirmButtonText: 'Ya, hapus',
+                                    cancelButtonText: 'Batal',
+                                    preConfirm: () => {
+                                        const password = document.getElementById('adminPassword').value;
+                                        if (password !== '486948') {
+                                            Swal.showValidationMessage('Password salah!');
+                                            return false;
+                                        }
+                                        return true;
+                                    }
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        deleteSchedule(eventId, true);
+                                    }
+                                });
+                            }
+                        });
+                        return;
+                    }
+
+                    // Only add copy button if this is an existing event (has an ID)
+                    if (info.event.id) {
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'btn btn-info me-2';
+                        copyBtn.innerHTML = '<i class="fas fa-copy me-1"></i>Salin';
+                        copyBtn.onclick = function() {
+                            copySchedule(info.event);
+                        };
+                        modalFooter.insertBefore(copyBtn, modalFooter.firstChild);
+                    }
+
+                    // Log the event data for debugging
+                    console.log('Event clicked:', info.event);
+                    console.log('Event ID:', info.event.id);
+                    console.log('Event extendedProps:', info.event.extendedProps);
+                    
+                    showEventDetails(info.event);
+                },
+                select: function(info) {
+                    // Remove any existing copy button first
+                    const modalFooter = document.querySelector('#eventModal .modal-footer');
+                    const existingCopyBtn = modalFooter.querySelector('.btn-info');
+                    if (existingCopyBtn) {
+                        existingCopyBtn.remove();
+                    }
+
+                    document.getElementById('eventId').value = '';
+                    document.getElementById('eventDate').value = info.start.toISOString().split('T')[0];
+                    
+                    // Check if we're in month view
+                    const isMonthView = window.calendar.view.type === 'dayGridMonth';
+                    
+                    if (isMonthView) {
+                        // Set default start time to 9 AM (09:00) for month view
+                        document.getElementById('eventStart').value = '09:00';
+                    } else {
+                        // Use the clicked time for other views
+                        document.getElementById('eventStart').value = info.start.toTimeString().slice(0,5);
+                    }
+                    
+                    // Enable auto end time for new events
+                    document.getElementById('autoEndTime').checked = true;
+                    
+                    // Calculate end time automatically (90 minutes after start time)
+                    updateEndTime();
+                    
+                    $('#eventTentor').val('').trigger('change');
+                    
+                    // Default to individual mode for new events
+                    $('#siswaSection').show();
+                    $('#classSection').hide();
+                    // Set required attributes accordingly
+                    $('#eventSiswa').prop('required', true);
+                    $('#eventClass').prop('required', false);
+                    
+                    // Set radio button to individual
+                    document.getElementById('typeIndividual').checked = true;
+                    document.getElementById('typeClass').checked = false;
+                    
+                    $('#eventSiswa').val('').trigger('change');
+                    $('#eventClass').val('').trigger('change');
+                    document.getElementById('eventMataPelajaran').value = '';
+                    document.getElementById('eventStatus').value = 'scheduled';
+                    
+                    // Update the type field for new events
+                    if (document.getElementById('eventType')) {
+                        document.getElementById('eventType').value = 'individual';
+                    }
+
+                    // Hide delete button for new events
+                    const deleteButton = document.getElementById('deleteEvent');
+                    if (deleteButton) {
+                        deleteButton.style.display = 'none';
+                    }
+
+                    const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+                    modal.show();
+                },
+                eventDrop: function(info) {
+                    if (info.event.extendedProps.status === 'completed') {
+                        info.revert();
+                        Swal.fire({
+                            title: 'Jadwal Sudah Selesai',
+                            text: 'Perubahan data tidak dapat dilakukan, tetapi jadwal masih dapat dihapus dengan konfirmasi password.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Hapus Jadwal',
+                            cancelButtonText: 'Batal',
+                            confirmButtonColor: '#dc3545'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // User wants to delete the completed schedule
+                                const eventId = info.event.id;
+                                
+                                // Show password confirmation
+                                Swal.fire({
+                                    title: 'Hapus Jadwal Selesai',
+                                    html: `
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Perhatian!</strong> Jadwal yang sudah selesai akan:
+                                        </div>
+                                        <ul class="text-start">
+                                            <li>Mengembalikan sesi ke kuota siswa</li>
+                                            <li>Menghapus pendapatan tentor</li>
+                                            <li>Menghapus catatan kehadiran</li>
+                                        </ul>
+                                        <div class="mt-3">
+                                            <label for="adminPassword" class="form-label text-start d-block">Masukkan password admin:</label>
+                                            <input type="password" id="adminPassword" class="form-control" placeholder="Password">
+                                        </div>
+                                    `,
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#d33',
+                                    cancelButtonColor: '#3085d6',
+                                    confirmButtonText: 'Ya, hapus',
+                                    cancelButtonText: 'Batal',
+                                    preConfirm: () => {
+                                        const password = document.getElementById('adminPassword').value;
+                                        if (password !== '486948') {
+                                            Swal.showValidationMessage('Password salah!');
+                                            return false;
+                                        }
+                                        return true;
+                                    }
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        deleteSchedule(eventId, true);
+                                    }
+                                });
+                            }
+                        });
+                        return;
+                    }
+                    handleEventChange(info.event);
+                },
+                eventResize: function(info) {
+                    if (info.event.extendedProps.status === 'completed') {
+                        info.revert();
+                        Swal.fire({
+                            title: 'Jadwal Sudah Selesai',
+                            text: 'Perubahan data tidak dapat dilakukan, tetapi jadwal masih dapat dihapus dengan konfirmasi password.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Hapus Jadwal',
+                            cancelButtonText: 'Batal',
+                            confirmButtonColor: '#dc3545'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // User wants to delete the completed schedule
+                                const eventId = info.event.id;
+                                
+                                // Show password confirmation
+                                Swal.fire({
+                                    title: 'Hapus Jadwal Selesai',
+                                    html: `
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Perhatian!</strong> Jadwal yang sudah selesai akan:
+                                        </div>
+                                        <ul class="text-start">
+                                            <li>Mengembalikan sesi ke kuota siswa</li>
+                                            <li>Menghapus pendapatan tentor</li>
+                                            <li>Menghapus catatan kehadiran</li>
+                                        </ul>
+                                        <div class="mt-3">
+                                            <label for="adminPassword" class="form-label text-start d-block">Masukkan password admin:</label>
+                                            <input type="password" id="adminPassword" class="form-control" placeholder="Password">
+                                        </div>
+                                    `,
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#d33',
+                                    cancelButtonColor: '#3085d6',
+                                    confirmButtonText: 'Ya, hapus',
+                                    cancelButtonText: 'Batal',
+                                    preConfirm: () => {
+                                        const password = document.getElementById('adminPassword').value;
+                                        if (password !== '486948') {
+                                            Swal.showValidationMessage('Password salah!');
+                                            return false;
+                                        }
+                                        return true;
+                                    }
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        deleteSchedule(eventId, true);
+                                    }
+                                });
+                            }
+                        });
+                        return;
+                    }
+                    handleEventChange(info.event);
+                },
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                datesSet: function(dateInfo) {
+                    // Reapply filters when view changes
+                    applyFilters();
+                },
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    const events = JSON.parse('<%- JSON.stringify(calendarEvents || []) %>').map(event => {
+                        const isCompleted = event.extendedProps.status === 'completed';
+                        
+                        // Check if the event has a createdAt timestamp, if not, add one
+                        if (!event.extendedProps.createdAt) {
+                            event.extendedProps.createdAt = new Date().toISOString();
+                            event.extendedProps.isNew = false; // Default to false for existing events
+                        }
+                        
+                        // Check if attendance is marked but status is not completed
+                        if (event.extendedProps.isAttendanceMarked === true && event.extendedProps.status !== 'completed') {
+                            // Auto-complete the schedule
+                            fetch(`/admin/jadwal/edit/${event.id}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    ...event.extendedProps,
+                                    status: 'completed',
+                                    date: event.start,
+                                    timeStart: event.start.toTimeString().slice(0,5),
+                                    timeEnd: event.end.toTimeString().slice(0,5)
+                                })
+                            }).then(response => response.json())
+                              .then(data => {
+                                  if (data.success) {
+                                      // Update the event in the calendar
+                                      const calendarEvent = window.calendar.getEventById(event.id);
+                                      if (calendarEvent) {
+                                          calendarEvent.setExtendedProp('status', 'completed');
+                                          window.calendar.refetchEvents();
+                                      }
+                                  }
+                              })
+                              .catch(error => console.error('Error auto-completing schedule:', error));
+                            
+                            // Update the event object for immediate display
+                            event.extendedProps.status = 'completed';
+                        }
+                        return {
+                            ...event,
+                            editable: !isCompleted,
+                            startEditable: !isCompleted,
+                            durationEditable: !isCompleted,
+                            extendedProps: {
+                                ...event.extendedProps,
+                                type: event.extendedProps.type,
+                                siswaId: event.extendedProps.siswaId,
+                                classId: event.extendedProps.classId,
+                                mataPelajaran: event.extendedProps.mataPelajaran,
+                                isNew: event.extendedProps.isNew || false,
+                                createdAt: event.extendedProps.createdAt || new Date().toISOString()
+                            }
+                        };
+                    });
+                    successCallback(events);
+                },
+                eventDidMount: function(info) {
+                    const event = info.event;
+                    const props = event.extendedProps;
+                    
+                    let tooltipContent = `
+                        <strong>Tentor:</strong> ${props.tentorNama}<br>
+                        <strong>${props.type === 'class' ? 'Kelas' : 'Siswa'}:</strong> ${props.studentInfo}<br>
+                        <strong>Mata Pelajaran:</strong> ${props.mataPelajaran}<br>
+                        <strong>Status:</strong> ${props.status}
+                    `;
+
+                    tippy(info.el, {
+                        content: tooltipContent,
+                        allowHTML: true,
+                    });
+                },
+                slotLabelFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                locale: 'id',
+                firstDay: 1,
+                timeZone: 'local',
+                displayEventEnd: true,
+                nextDayThreshold: '00:00:00',
+                views: {
+                    timeGridDay: {
+                        type: 'timeGrid',
+                        duration: { days: 1 }
+                    },
+                    timeGridWeek: {
+                        type: 'timeGrid',
+                        duration: { weeks: 1 }
+                    }
+                },
+                eventContent: function(arg) {
+                    let statusIcon = '';
+                    const isMonthView = arg.view.type === 'dayGridMonth';
+                    const isNewEvent = arg.event.extendedProps.isNew === true;
+                    
+                    switch(arg.event.extendedProps.status) {
+                        case 'completed':
+                            statusIcon = feather.icons['check'].toSvg({ 
+                                class: 'me-1',
+                                width: 12,
+                                height: 12,
+                                stroke: 'white'
+                            });
+                            break;
+                        case 'canceled':
+                            statusIcon = feather.icons['x'].toSvg({ 
+                                class: 'me-1',
+                                width: 12,
+                                height: 12,
+                                stroke: 'white'
+                            });
+                            break;
+                        case 'scheduled':
+                            statusIcon = feather.icons['clock'].toSvg({ 
+                                class: 'me-1',
+                                width: 12,
+                                height: 12,
+                                stroke: 'white'
+                            });
+                            break;
+                    }
+
+                    // Create NEW badge HTML if it's a new event
+                    const newBadge = isNewEvent ? `<span style="
+                        position: absolute;
+                        top: -5px;
+                        right: -5px;
+                        background: #2ea043;
+                        color: white;
+                        font-size: 8px;
+                        font-weight: bold;
+                        padding: 2px 4px;
+                        border-radius: 3px;
+                        box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+                        z-index: 5;
+                    ">BARU</span>` : '';
+
+                    const tempContainer = document.createElement('div');
+                    
+                    if (isMonthView) {
+                        tempContainer.innerHTML = `
+                            <div class="fc-content" style="
+                                font-size: 11px;
+                                background-color: ${arg.event.backgroundColor || '#0d6efd'};
+                                color: white;
+                                padding: 4px;
+                                border-radius: 4px;
+                                line-height: 1.3;
+                                position: relative;
+                            ">
+                                ${newBadge}
+                                <div style="display: flex; align-items: center;">
+                                    ${statusIcon}
+                                    <span style="font-weight: bold;">${arg.timeText}</span>
+                                </div>
+                                <div style="
+                                    margin-top: 2px;
+                                    ${arg.event.extendedProps.status === 'canceled' ? 'text-decoration: line-through;' : ''}
+                                ">
+                               
+                                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${arg.event.title}
+                                    </div>
+
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Week/day view with white text and NEW badge
+                        tempContainer.innerHTML = `
+                            <div class="fc-content" style="position: relative;">
+                                ${newBadge}
+                                ${statusIcon}
+                                <span style="
+                                    color: white;
+                                    font-weight: ${arg.event.extendedProps.status === 'canceled' ? '300' : '500'}; 
+                                    ${arg.event.extendedProps.status === 'canceled' ? 'text-decoration: line-through;' : ''}
+                                ">
+                                    ${arg.event.title}
+                                </span>
+                            </div>
+                        `;
+                    }
+                    
+                    return { html: tempContainer.innerHTML };
+                }
+            });
+
+            // Add this after the calendar initialization but before the showEventDetails function
+            function updateEndTime() {
+                // Check if auto end time is enabled
+                const autoEndTimeEnabled = document.getElementById('autoEndTime').checked;
+                if (!autoEndTimeEnabled) return;
+                
+                const startTime = document.getElementById('eventStart').value;
+                if (startTime) {
+                    // Parse hours and minutes
+                    const [hours, minutes] = startTime.split(':').map(Number);
+                    
+                    // Create a date object and add 90 minutes
+                    const endTime = new Date();
+                    endTime.setHours(hours);
+                    endTime.setMinutes(minutes + 90);
+                    
+                    // Format the end time
+                    const endHours = endTime.getHours().toString().padStart(2, '0');
+                    const endMinutes = endTime.getMinutes().toString().padStart(2, '0');
+                    
+                    // Set the end time input
+                    document.getElementById('eventEnd').value = `${endHours}:${endMinutes}`;
+                }
+            }
+
+            // Add event listener to start time input and auto end time checkbox
+            document.getElementById('eventStart').addEventListener('change', updateEndTime);
+            document.getElementById('eventStart').addEventListener('input', updateEndTime);
+            document.getElementById('autoEndTime').addEventListener('change', updateEndTime);
+
+            // Initialize Select2 with search configuration
+            $('#eventTentor, #eventSiswa, #eventClass').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                dropdownParent: $('#eventModal'), // This ensures the dropdown works in modal
+                language: {
+                    searching: function() {
+                        return "Mencari...";
+                    },
+                    noResults: function() {
+                        return "Tidak ada hasil";
+                    }
+                },
+                allowClear: true,
+                placeholder: 'Pilih...',
+                minimumInputLength: 0,
+                matcher: function(params, data) {
+                    // If there are no search terms, return all of the data
+                    if ($.trim(params.term) === '') {
+                        return data;
+                    }
+
+                    // Do not display the item if there is no 'text' property
+                    if (typeof data.text === 'undefined') {
+                        return null;
+                    }
+
+                    // `params.term` should be the term that is used for searching
+                    // `data.text` is the text that is displayed for the data object
+                    if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
+                        return data;
+                    }
+
+                    // Return `null` if the term should not be displayed
+                    return null;
+                }
+            });
+
+            // Add this to ensure Select2 works properly when modal opens
+            $('#eventModal').on('shown.bs.modal', function () {
+                $('#eventTentor').select2('destroy').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    dropdownParent: $('#eventModal')
+                });
+                $('#eventSiswa').select2('destroy').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    dropdownParent: $('#eventModal')
+                });
+                $('#eventClass').select2('destroy').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    dropdownParent: $('#eventModal')
+                });
+            });
+
+            // Create a reference to all tentors for filtering
+            const allTentors = $('#eventTentor option').clone();
+
+            // Add event listener for student selection
+            $('#eventSiswa').on('change', function() {
+                const selectedOption = $(this).find('option:selected');
+                let mapelArray = [];
+                
+                try {
+                    // Parse the data-mapel attribute to get the student's subjects
+                    const mapelJSON = selectedOption.data('mapel');
+                    if (typeof mapelJSON === 'string') {
+                        mapelArray = JSON.parse(mapelJSON);
+                    } else if (Array.isArray(mapelJSON)) {
+                        mapelArray = mapelJSON;
+                    }
+                } catch (e) {
+                    console.error('Error parsing mata pelajaran:', e);
+                }
+                
+                // Filter the mataPelajaran dropdown
+                updateMapelOptions(mapelArray);
+                
+                // Reset the tentor dropdown
+                resetTentorOptions();
+            });
+            
+            // Handle class selection
+            $('#eventClass').on('change', function() {
+                const selectedOption = $(this).find('option:selected');
+                let mapelArray = [];
+                
+                try {
+                    // Parse the data-mapel attribute to get the class's subjects
+                    const mapelJSON = selectedOption.data('mapel');
+                    if (typeof mapelJSON === 'string') {
+                        mapelArray = JSON.parse(mapelJSON);
+                    } else if (Array.isArray(mapelJSON)) {
+                        mapelArray = mapelJSON;
+                    }
+                } catch (e) {
+                    console.error('Error parsing mata pelajaran for class:', e);
+                }
+                
+                // Filter the mataPelajaran dropdown
+                updateMapelOptions(mapelArray);
+                
+                // Reset the tentor dropdown
+                resetTentorOptions();
+            });
+            
+            // Add event listener to mataPelajaran to filter tentors
+            $('#eventMataPelajaran').on('change', function() {
+                const selectedMapel = $(this).val();
+                filterTentorsByMapel(selectedMapel);
+            });
+            
+            // Function to update mataPelajaran options based on student's subjects
+            function updateMapelOptions(studentMapel) {
+                const $mataPelajaran = $('#eventMataPelajaran');
+                
+                // Keep only the placeholder
+                $mataPelajaran.find('option:not(:first)').remove();
+                
+                // If no specific student mapel, show all options
+                if (!studentMapel || !studentMapel.length) {
+                    $mataPelajaran.append(`
+                        <option value="MTK">Matematika</option>
+                        <option value="IPA">IPA</option>
+                        <option value="IPAS">IPAS</option>
+                        <option value="KIMIA">Kimia</option>
+                        <option value="FISIKA">Fisika</option>
+                        <option value="BIOLOGI">Biologi</option>
+                        <option value="BINDO">Bahasa Indonesia</option>
+                        <option value="BING">Bahasa Inggris</option>
+                        <option value="IPS">IPS</option>
+                        <option value="PPKN">PPKN</option>
+                        <option value="PAI">PAI</option>
+                        <option value="PBM">PBM</option>
+                        <option value="PPU">PPU</option>
+                        <option value="PU">PU</option>
+                        <option value="PK">PK</option>
+                        <option value="LBI">LBI</option>
+                        <option value="LBE">LBE</option>
+                        <option value="PM">PM</option>
+                        <option value="English">English</option>
+                        <option value="Sosiologi">Sosiologi</option>
+                        <option value="Ekonomi">Ekonomi</option>
+                        <option value="Geografi">Geografi</option>
+                        <option value="Sejarah">Sejarah</option>
+                        <option value="TIU">TIU</option>
+                        <option value="TWK">TWK</option>
+                        <option value="TKP">TKP</option>
+                        <option value="TIK">TIK</option>
+                    `);
+                } else {
+                    // Add options based on student mapel
+                    const mapelNames = {
+                        'MTK': 'Matematika',
+                        'IPA': 'IPA',
+                        'IPAS': 'IPAS',
+                        'KIMIA': 'Kimia',
+                        'FISIKA': 'Fisika',
+                        'BIOLOGI': 'Biologi',
+                        'BINDO': 'Bahasa Indonesia',
+                        'BING': 'Bahasa Inggris',
+                        'IPS': 'IPS',
+                        'PPKN': 'PPKN',
+                        'PAI': 'PAI',
+                        'PBM': 'PBM',
+                        'PPU': 'PPU',
+                        'PU': 'PU',
+                        'PK': 'PK',
+                        'LBI': 'LBI',
+                        'LBE': 'LBE',
+                        'PM': 'PM',
+                        'English': 'English'
+                    };
+                    
+                    studentMapel.forEach(mapel => {
+                        if (mapelNames[mapel]) {
+                            $mataPelajaran.append(`<option value="${mapel}">${mapelNames[mapel]}</option>`);
+                        }
+                    });
+                }
+                
+                // Reset selection
+                $mataPelajaran.val('').trigger('change');
+            }
+            
+            // Function to reset mataPelajaran dropdown to show all options
+            function resetMapelOptions() {
+                updateMapelOptions([]);
+            }
+            
+            // Function to reset tentor dropdown
+            function resetTentorOptions() {
+                const $tentorSelect = $('#eventTentor');
+                $tentorSelect.empty().append('<option value="">Pilih Tentor</option>');
+                $tentorSelect.val('').trigger('change');
+            }
+            
+            // Function to filter tentors by selected subject
+            function filterTentorsByMapel(selectedMapel) {
+                const $tentorSelect = $('#eventTentor');
+                
+                // Reset tentor dropdown
+                $tentorSelect.empty().append('<option value="">Pilih Tentor</option>');
+                
+                if (selectedMapel) {
+                    // Filter tentors that can teach the selected subject
+                    allTentors.each(function() {
+                        const $option = $(this);
+                        if ($option.val() === '') return true; // Skip placeholder
+                        
+                        try {
+                            let tentorMapel = $option.data('mapel');
+                            if (typeof tentorMapel === 'string') {
+                                tentorMapel = JSON.parse(tentorMapel);
+                            }
+                            
+                            // Add tentor if they can teach this subject
+                            if (Array.isArray(tentorMapel) && tentorMapel.includes(selectedMapel)) {
+                                $tentorSelect.append($option.clone());
+                            }
+                        } catch (e) {
+                            console.error('Error parsing tentor subjects:', e);
+                        }
+                    });
+                } else {
+                    // If no mapel selected, show all tentors
+                    $tentorSelect.append(allTentors.clone());
+                }
+                
+                // Refresh Select2
+                $tentorSelect.trigger('change');
+            }
+
+            // Handle jadwal type selection
+            document.querySelectorAll('input[name="jadwalType"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const selectedType = this.value;
+                    
+                    // Update the hidden type field
+                    if (document.getElementById('eventType')) {
+                        document.getElementById('eventType').value = selectedType;
+                    }
+                    
+                    // Show/hide appropriate sections and update required attributes
+                    if (selectedType === 'individual') {
+                        $('#siswaSection').show();
+                        $('#classSection').hide();
+                        // Set required attributes accordingly
+                        $('#eventSiswa').prop('required', true);
+                        $('#eventClass').prop('required', false);
+                        
+                        // Reset mataPelajaran and tentor dropdowns
+                        resetMapelOptions();
+                        resetTentorOptions();
+                    } else {
+                        $('#siswaSection').hide();
+                        $('#classSection').show();
+                        // Set required attributes accordingly
+                        $('#eventSiswa').prop('required', false);
+                        $('#eventClass').prop('required', true);
+                        
+                        // Reset mataPelajaran and tentor dropdowns
+                        resetMapelOptions();
+                        resetTentorOptions();
+                    }
+                });
+            });
+            
+            // Add a type selector to toggle between student and class modes
+            // This is needed to ensure that required fields are properly validated
+            function setupTypeToggle() {
+                // Create a hidden field to track the current type
+                const form = document.getElementById('eventForm');
+                let typeInput = document.getElementById('eventType');
+                
+                if (!typeInput) {
+                    typeInput = document.createElement('input');
+                    typeInput.type = 'hidden';
+                    typeInput.id = 'eventType';
+                    typeInput.name = 'type';
+                    typeInput.value = 'individual'; // Default to individual
+                    form.appendChild(typeInput);
+                }
+            }
+            
+            // Call the setup function to ensure we have our tracking field
+            setupTypeToggle();
+            
+            // Add save event handler
+            document.getElementById('saveEvent').addEventListener('click', async function() {
+                try {
+                    // Update type based on which section is visible
+                    const type = $('#classSection').is(':visible') ? 'class' : 'individual';
+                    document.getElementById('eventType').value = type;
+                    
+                    // Set required attributes based on type
+                    if (type === 'individual') {
+                        $('#eventSiswa').prop('required', true);
+                        $('#eventClass').prop('required', false);
+                    } else {
+                        $('#eventSiswa').prop('required', false);
+                        $('#eventClass').prop('required', true);
+                    }
+                    
+                    // Get the form and check validity
+                    const form = document.getElementById('eventForm');
+                    if (!form.checkValidity()) {
+                        form.reportValidity();
+                        return;
+                    }
+                    
+                    const eventId = document.getElementById('eventId').value;
+                    const date = document.getElementById('eventDate').value;
+                    const timeStart = document.getElementById('eventStart').value;
+                    const timeEnd = document.getElementById('eventEnd').value;
+                    const tentorId = $('#eventTentor').val();
+                    const siswaId = type === 'individual' ? $('#eventSiswa').val() : null;
+                    const classId = type === 'class' ? $('#eventClass').val() : null;
+                    const mataPelajaran = document.getElementById('eventMataPelajaran').value;
+                    const status = document.getElementById('eventStatus').value;
+
+                    // Validate required fields
+                    if (!tentorId || !date || !timeStart || !timeEnd || !mataPelajaran || !status) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Semua kolom harus diisi',
+                            confirmButtonColor: '#dc3545'
+                        });
+                        return;
+                    }
+                    
+                    // Validate type-specific fields
+                    if (type === 'individual' && !siswaId) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Silakan pilih siswa',
+                            confirmButtonColor: '#dc3545'
+                        });
+                        return;
+                    } else if (type === 'class' && !classId) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Silakan pilih kelas',
+                            confirmButtonColor: '#dc3545'
+                        });
+                        return;
+                    }
+
+                    // Get the student/class name
+                    let studentName = '';
+                    if (type === 'individual') {
+                        const siswaSelect = document.getElementById('eventSiswa');
+                        studentName = siswaSelect.options[siswaSelect.selectedIndex].text;
+                    } else {
+                        const classSelect = document.getElementById('eventClass');
+                        studentName = classSelect.options[classSelect.selectedIndex].text;
+                    }
+
+                    // Get tentor name
+                    const tentorSelect = document.getElementById('eventTentor');
+                    const tentorName = tentorSelect.options[tentorSelect.selectedIndex].text;
+
+                    // Create title in the format: Tentor Name - Student Name - Subject
+                    const eventTitle = `${tentorName} - ${studentName} - ${mataPelajaran}`;
+
+                    const response = await fetch(eventId ? `/admin/jadwal/edit/${eventId}` : '/admin/jadwal/tambah', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            date,
+                            timeStart,
+                            timeEnd,
+                            tentorId,
+                            type,
+                            siswaId,
+                            classId,
+                            mataPelajaran,
+                            status
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to update event');
+                    }
+
+                    // Check if it's a new event or existing event
+                    if (!eventId) {
+                        // For new event, add to calendar
+                        const newEvent = {
+                            id: data.schedule.id,
+                            title: eventTitle,
+                            start: new Date(date + 'T' + timeStart),
+                            end: new Date(date + 'T' + timeEnd),
+                            backgroundColor: data.schedule.backgroundColor,
+                            borderColor: data.schedule.backgroundColor,
+                            extendedProps: {
+                                tentorId,
+                                tentorNama: tentorName,
+                                type,
+                                siswaId,
+                                classId,
+                                status,
+                                mataPelajaran,
+                                studentInfo: studentName,
+                                isNew: true,
+                                createdAt: new Date().toISOString()
+                            }
+                        };
+                        
+                        // Add the new event to the calendar
+                        window.calendar.addEvent(newEvent);
+                    } else {
+                        // Update existing event in the calendar
+                        const existingEvent = window.calendar.getEventById(eventId);
+                        if (existingEvent) {
+                            const startDateTime = new Date(date + 'T' + timeStart);
+                            const endDateTime = new Date(date + 'T' + timeEnd);
+                            
+                            // Update event properties
+                            existingEvent.setProp('title', eventTitle);
+                            existingEvent.setProp('backgroundColor', data.schedule.backgroundColor);
+                            existingEvent.setProp('borderColor', data.schedule.backgroundColor);
+                            existingEvent.setDates(startDateTime, endDateTime);
+                            
+                            // Update extended properties
+                            existingEvent.setExtendedProp('tentorId', tentorId);
+                            existingEvent.setExtendedProp('tentorNama', tentorName);
+                            existingEvent.setExtendedProp('type', type);
+                            existingEvent.setExtendedProp('siswaId', siswaId);
+                            existingEvent.setExtendedProp('classId', classId);
+                            existingEvent.setExtendedProp('status', status);
+                            existingEvent.setExtendedProp('mataPelajaran', mataPelajaran);
+                            existingEvent.setExtendedProp('studentInfo', studentName);
+                        }
+                    }
+
+                    // Properly close the modal
+                    closeModalCompletely();
+                    
+                    // Show success message only for new jadwal
+                    if (!eventId) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: 'Jadwal berhasil ditambahkan',
+                            confirmButtonColor: '#28a745'
+                        });
+                    } else {
+                        // Log success silently for existing jadwal
+                        console.log('Jadwal berhasil diperbarui');
+                    }
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: error.message || 'Gagal memperbarui jadwal',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            });
+
+            // Handle event changes (drag/drop or resize)
+            async function handleEventChange(event) {
+                try {
+                    const response = await fetch(`/admin/jadwal/edit/${event.id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            date: event.start.toISOString().split('T')[0],
+                            timeStart: event.start.toTimeString().slice(0,5),
+                            timeEnd: event.end.toTimeString().slice(0,5),
+                            tentorId: event.extendedProps.tentorId,
+                            type: event.extendedProps.type,
+                            siswaId: event.extendedProps.siswaId,
+                            classId: event.extendedProps.classId,
+                            status: event.extendedProps.status,
+                            mataPelajaran: event.extendedProps.mataPelajaran
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to update event');
+                    }
+
+                    // Get the existing event from calendar
+                    const existingEvent = window.calendar.getEventById(event.id);
+                    
+                    if (existingEvent) {
+                        existingEvent.setDates(
+                            event.start,
+                            event.end
+                        );
+                        existingEvent.setProp('backgroundColor', data.schedule.backgroundColor);
+                        existingEvent.setProp('borderColor', data.schedule.backgroundColor);
+                        existingEvent.setExtendedProp('tentorId', event.extendedProps.tentorId);
+                        existingEvent.setExtendedProp('type', event.extendedProps.type);
+                        existingEvent.setExtendedProp('siswaId', event.extendedProps.siswaId);
+                        existingEvent.setExtendedProp('classId', event.extendedProps.classId);
+                        existingEvent.setExtendedProp('status', event.extendedProps.status);
+                        existingEvent.setExtendedProp('mataPelajaran', event.extendedProps.mataPelajaran);
+                    }
+
+                    // Close the modal properly
+                    closeModalCompletely();
+
+                    // Log success silently
+                    console.log('Jadwal berhasil diperbarui');
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: error.message || 'Gagal memperbarui jadwal',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            }
+
+            // Add filter change listeners
+            document.getElementById('tentorFilter').addEventListener('change', applyFilters);
+            document.getElementById('siswaFilter').addEventListener('change', applyFilters);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            
+            // Load saved filters on page load
+            function loadSavedFilters() {
+                const savedTentorFilter = localStorage.getItem('jadwalFilter_tentor');
+                const savedSiswaFilter = localStorage.getItem('jadwalFilter_siswa');
+                const savedStatusFilter = localStorage.getItem('jadwalFilter_status');
+                
+                if (savedTentorFilter) {
+                    document.getElementById('tentorFilter').value = savedTentorFilter;
+                }
+                
+                if (savedSiswaFilter) {
+                    document.getElementById('siswaFilter').value = savedSiswaFilter;
+                }
+                
+                if (savedStatusFilter) {
+                    document.getElementById('statusFilter').value = savedStatusFilter;
+                }
+                
+                // Apply filters if any were saved
+                if (savedTentorFilter || savedSiswaFilter || savedStatusFilter) {
+                    applyFilters();
+                }
+            }
+            
+            // Load saved filters when calendar is ready
+            loadSavedFilters();
+
+            // Handle modal close buttons
+            const modalCloseButtons = [
+                document.querySelector('#eventModal .btn-close'), // X button in header
+                document.querySelector('#eventModal .btn-close-white') // X button in header (white version)
+            ];
+
+            modalCloseButtons.forEach(button => {
+                if (button) {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        closeModalCompletely();
+                    });
+                }
+            });
+
+            // Event delegation for modal close button 
+            document.addEventListener('click', function(e) {
+                // Close modal when clicking on backdrop (outside modal content)
+                if (e.target.classList.contains('modal') && e.target.id === 'eventModal') {
+                    closeModalCompletely();
+                }
+            });
+
+            // Handle modal close for copy schedule modal
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('swal2-close') || 
+                    e.target.classList.contains('swal2-cancel') ||
+                    e.target.classList.contains('swal2-popup') ||
+                    e.target.classList.contains('swal2-container')) {
+                    Swal.close();
+                }
+            });
+
+            // Add event listener for delete button
+            document.getElementById('deleteEvent').addEventListener('click', function() {
+                const eventId = document.getElementById('eventId').value;
+                const status = document.getElementById('eventStatus').value;
+                const isCompleted = status === 'completed';
+                
+                if (!eventId) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Tidak dapat menghapus jadwal'
+                    });
+                    return;
+                }
+                
+                if (isCompleted) {
+                    // For completed schedules, ask for password
+                    Swal.fire({
+                        title: 'Hapus Jadwal Selesai',
+                        html: `
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Perhatian!</strong> Jadwal yang sudah selesai akan:
+                            </div>
+                            <ul class="text-start">
+                                <li>Mengembalikan sesi ke kuota siswa</li>
+                                <li>Menghapus pendapatan tentor</li>
+                                <li>Menghapus catatan kehadiran</li>
+                            </ul>
+                            <div class="mt-3">
+                                <label for="adminPassword" class="form-label text-start d-block">Masukkan password admin:</label>
+                                <input type="password" id="adminPassword" class="form-control" placeholder="Password">
+                            </div>
+                        `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Ya, hapus',
+                        cancelButtonText: 'Batal',
+                        preConfirm: () => {
+                            const password = document.getElementById('adminPassword').value;
+                            if (password !== '486948') {
+                                Swal.showValidationMessage('Password salah!');
+                                return false;
+                            }
+                            return true;
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            deleteSchedule(eventId, true);
+                        }
+                    });
+                } else {
+                    // For non-completed schedules, confirm normally
+                    Swal.fire({
+                        title: 'Hapus Jadwal?',
+                        text: 'Jadwal yang sudah dihapus tidak dapat dikembalikan',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Ya, hapus',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            deleteSchedule(eventId, false);
+                        }
+                    });
+                }
+            });
+
+            // Function to delete schedule
+            function deleteSchedule(eventId, isCompleted) {
+                fetch(`/admin/jadwal/delete/${eventId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        isCompletedSchedule: isCompleted,
+                        restoreSession: isCompleted
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the event from the calendar
+                        const event = window.calendar.getEventById(eventId);
+                        if (event) {
+                            event.remove();
+                        }
+                        
+                        // Close the modal if it's open
+                        try {
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+                            if (modal) {
+                                modal.hide();
+                            }
+                        } catch (e) {
+                            console.log('No modal to close');
+                        }
+                        
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: data.message || 'Jadwal berhasil dihapus'
+                        });
+                    } else {
+                        throw new Error(data.message || 'Gagal menghapus jadwal');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'Terjadi kesalahan saat menghapus jadwal'
+                    });
+                });
+            }
+
+            // Add function to properly close the modal and clean up backdrop
+            function closeModalCompletely() {
+                // Get modal instance
+                const modal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                
+                // Reset form fields
+                resetEventForm();
+                
+                // Clean up manually to ensure complete removal
+                const modalElement = document.getElementById('eventModal');
+                if (modalElement) {
+                    modalElement.classList.remove('show');
+                    modalElement.style.display = 'none';
+                    modalElement.setAttribute('aria-hidden', 'true');
+                    modalElement.removeAttribute('aria-modal');
+                    modalElement.removeAttribute('role');
+                }
+                
+                // Remove modal backdrop
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+                
+                // Remove modal-open class from body
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            }
+            
+            // Function to reset the event form
+            function resetEventForm() {
+                // Reset form fields
+                const form = document.getElementById('eventForm');
+                if (form) {
+                    form.reset();
+                }
+                
+                // Reset ID field
+                document.getElementById('eventId').value = '';
+                
+                // Reset Select2 dropdowns if they exist
+                try {
+                    $('#eventTentor').val('').trigger('change');
+                    $('#eventSiswa').val('').trigger('change');
+                    $('#eventClass').val('').trigger('change');
+                    $('#eventMataPelajaran').val('').trigger('change');
+                } catch (e) {
+                    console.error('Error resetting Select2:', e);
+                }
+                
+                // Reset radio buttons to default (individual)
+                document.getElementById('typeIndividual').checked = true;
+                document.getElementById('typeClass').checked = false;
+                
+                // Show/hide appropriate sections
+                $('#siswaSection').show();
+                $('#classSection').hide();
+                
+                // Set default status
+                document.getElementById('eventStatus').value = 'scheduled';
+                
+                // Clear current event reference
+                window.currentEvent = null;
+            }
+            
+            // Make the closeModalCompletely function globally accessible
+            window.closeModalCompletely = closeModalCompletely;
+
+            // Add event listener for modal hidden event to reset form
+            document.getElementById('eventModal').addEventListener('hidden.bs.modal', function() {
+                resetEventForm();
+            });
+
+            // Function to check if an event is still "new" (created in the last 24 hours)
+            function isEventStillNew(event) {
+                if (!event.extendedProps || !event.extendedProps.createdAt) return false;
+                
+                const createdAt = new Date(event.extendedProps.createdAt);
+                const now = new Date();
+                const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
+                
+                // Return true if created less than 24 hours ago
+                return hoursSinceCreation < 24;
+            }
+            
+            // Function to update "new" status on all events
+            function updateNewEventStatus() {
+                const events = window.calendar.getEvents();
+                
+                events.forEach(event => {
+                    if (event.extendedProps.isNew) {
+                        // Check if it's still considered new
+                        if (!isEventStillNew(event)) {
+                            event.setExtendedProp('isNew', false);
+                        }
+                    }
+                });
+                
+                // Refresh the calendar display
+                window.calendar.render();
+            }
+            
+            // Update new event status when calendar is loaded
+            updateNewEventStatus();
+            
+            // Set interval to check for "new" status expiration (every 5 minutes)
+            setInterval(updateNewEventStatus, 5 * 60 * 1000);
+
+            window.calendar.render();
+        });
+
+        function copySchedule(event) {
+            // Use the global calendar instance
+            const calendarInstance = window.calendar;
+            const props = event.extendedProps;
+            
+            // Get the original schedule's end time
+            const originalEnd = new Date(event.end);
+            
+            // Set new start time to original end time
+            const newStart = new Date(originalEnd);
+            
+            // Set new end time to 90 minutes after new start
+            const newEnd = new Date(newStart.getTime() + (90 * 60 * 1000));
+
+            // Format date and times for the API
+            const newDate = newStart.toISOString().split('T')[0];
+            const newStartTime = newStart.toTimeString().slice(0,5);
+            const newEndTime = newEnd.toTimeString().slice(0,5);
+            
+            fetch('/admin/jadwal/tambah', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    date: newDate,
+                    timeStart: newStartTime,
+                    timeEnd: newEndTime,
+                    tentorId: props.tentorId,
+                    type: props.type,
+                    siswaId: props.siswaId,
+                    classId: props.classId,
+                    mataPelajaran: props.mataPelajaran,
+                    status: 'scheduled'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Create a properly structured event object
+                    const newEvent = {
+                        id: data.schedule.id,
+                        title: data.schedule.title || event.title,
+                        start: new Date(newDate + 'T' + newStartTime),
+                        end: new Date(newDate + 'T' + newEndTime),
+                        backgroundColor: data.schedule.backgroundColor,
+                        borderColor: data.schedule.backgroundColor,
+                        extendedProps: {
+                            tentorId: props.tentorId,
+                            tentorNama: props.tentorNama,
+                            type: props.type,
+                            siswaId: props.siswaId,
+                            classId: props.classId,
+                            mataPelajaran: props.mataPelajaran,
+                            status: 'scheduled',
+                            studentInfo: props.studentInfo,
+                            isNew: true,
+                            createdAt: new Date().toISOString()
+                        }
+                    };
+                    
+                    // Check if calendar and addEvent exist
+                    if (calendarInstance && typeof calendarInstance.addEvent === 'function') {
+                        calendarInstance.addEvent(newEvent);
+                    } else {
+                        console.error('Calendar or addEvent method not available', { 
+                            calendar: calendarInstance, 
+                            addEventMethod: calendarInstance ? typeof calendarInstance.addEvent : 'undefined' 
+                        });
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Unable to add event to calendar'
+                        });
+                        return;
+                    }
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Jadwal berhasil disalin ke ' + newStartTime
+                    });
+                    
+                    // Close the modal after successful copy
+                    window.closeModalCompletely();
+                } else {
+                    throw new Error(data.message || 'Failed to copy schedule');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message || 'Gagal menyalin jadwal'
+                });
+            });
+        }
+
+        // Show event details in modal
+        function showEventDetails(event) {
+            const props = event.extendedProps;
+            
+            // Skip editing for completed schedules - they're handled in eventClick
+            if (props.status === 'completed') {
+                return;
+            }
+            
+            // Log the event properties for debugging
+            console.log('Showing details for event:', event);
+            console.log('Event ID:', event.id);
+            console.log('Event props:', props);
+            
+            document.getElementById('eventId').value = event.id;
+            
+            // Update student/class info display and required attributes
+            if (props.type === 'class') {
+                $('#siswaSection').hide();
+                $('#classSection').show();
+                // Make class required and student not required
+                $('#eventClass').prop('required', true);
+                $('#eventSiswa').prop('required', false);
+                // Select the class radio button
+                document.getElementById('typeClass').checked = true;
+                document.getElementById('typeIndividual').checked = false;
+                
+                if (props.classId) {
+                    $('#eventClass').val(props.classId).trigger('change');
+                    
+                    // Allow time for the classId change event to process
+                    setTimeout(() => {
+                        // Set mata pelajaran
+                        if (props.mataPelajaran) {
+                            document.getElementById('eventMataPelajaran').value = props.mataPelajaran;
+                            
+                            // Trigger change to filter tentors by subject
+                            $('#eventMataPelajaran').trigger('change');
+                            
+                            // Set tentor after a short delay to allow filtering
+                            setTimeout(() => {
+                                if (props.tentorId) {
+                                    $('#eventTentor').val(props.tentorId).trigger('change');
+                                }
+                            }, 100);
+                        }
+                    }, 100);
+                }
+            } else {
+                $('#siswaSection').show();
+                $('#classSection').hide();
+                // Make student required and class not required
+                $('#eventSiswa').prop('required', true);
+                $('#eventClass').prop('required', false);
+                // Select the individual radio button
+                document.getElementById('typeIndividual').checked = true;
+                document.getElementById('typeClass').checked = false;
+                
+                if (props.siswaId) {
+                    $('#eventSiswa').val(props.siswaId).trigger('change');
+                    
+                    // Allow time for the siswaId change event to process
+                    setTimeout(() => {
+                        // Set mata pelajaran
+                        if (props.mataPelajaran) {
+                            document.getElementById('eventMataPelajaran').value = props.mataPelajaran;
+                            
+                            // Trigger change to filter tentors by subject
+                            $('#eventMataPelajaran').trigger('change');
+                            
+                            // Set tentor after a short delay to allow filtering
+                            setTimeout(() => {
+                                if (props.tentorId) {
+                                    $('#eventTentor').val(props.tentorId).trigger('change');
+                                }
+                            }, 100);
+                        }
+                    }, 100);
+                }
+            }
+            
+            // Update the type field
+            if (document.getElementById('eventType')) {
+                document.getElementById('eventType').value = props.type || 'individual';
+            }
+            
+            // Format date
+            const eventDate = new Date(event.start);
+            
+            // Use toLocaleDateString to get the correct local date
+            const localDateString = eventDate.toLocaleDateString('en-CA', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).split('/').reverse().join('-');
+            
+            document.getElementById('eventDate').value = localDateString;
+            
+            // Format start time
+            if (event.start) {
+                const startHours = eventDate.getHours().toString().padStart(2, '0');
+                const startMinutes = eventDate.getMinutes().toString().padStart(2, '0');
+                document.getElementById('eventStart').value = `${startHours}:${startMinutes}`;
+            }
+            
+            // Format end time
+            if (event.end) {
+                const endDate = new Date(event.end);
+                const endHours = endDate.getHours().toString().padStart(2, '0');
+                const endMinutes = endDate.getMinutes().toString().padStart(2, '0');
+                document.getElementById('eventEnd').value = `${endHours}:${endMinutes}`;
+                
+                // Calculate duration in minutes
+                const durationInMinutes = (endDate - eventDate) / (1000 * 60);
+                
+                // Check if duration is 90 minutes (with small tolerance for rounding errors)
+                const isDefault90MinDuration = Math.abs(durationInMinutes - 90) < 2;
+                
+                // Set autoEndTime checkbox based on whether it's using the default duration
+                document.getElementById('autoEndTime').checked = isDefault90MinDuration;
+            }
+            
+            // Handle status selection
+            const statusSelect = document.getElementById('eventStatus');
+            statusSelect.value = props.status || 'scheduled';
+            
+            // Disable 'completed' option if attendance is not marked
+            const completedOption = Array.from(statusSelect.options).find(option => option.value === 'completed');
+            if (completedOption) {
+                // Convert isAttendanceMarked to boolean explicitly
+                const isAttendanceMarked = props.isAttendanceMarked === true;
+                completedOption.disabled = !isAttendanceMarked;
+                completedOption.title = isAttendanceMarked ? '' : 'Daftar hadir harus diisi terlebih dahulu';
+            }
+            
+            // Store the current event for later reference
+            window.currentEvent = event;
+            
+            // Show the modal
+            const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+            eventModal.show();
+        }
+
+        // Add event listeners for "Batal" (Cancel) buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all "Batal" buttons in modals
+            const cancelButtons = document.querySelectorAll('.modal-footer .btn-secondary');
+            
+            // Add click handler to each button
+            cancelButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    closeModalCompletely();
+                });
+            });
+            
+            // Add keyboard listener for Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && document.querySelector('.modal.show')) {
+                    closeModalCompletely();
+                }
+            });
+        });
+    </script>
+    <!-- Add before the closing body tag -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+</body>
+</html> 

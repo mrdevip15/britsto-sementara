@@ -1,0 +1,292 @@
+#math-input-modal {
+    display: none;
+    position: fixed;
+    top: 40%;
+    left: 56%;
+    transform: translate(-50%, -50%);
+    background: white;
+    color: black !important;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    z-index: 1000;
+    overflow: auto;
+    max-height: 530px;
+    display: block;
+    width: 616px;
+    transition: width 0.3s ease; /* Smooth width transition */
+}
+
+#math-input-modal textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#math-input-modal button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+#math-input-modal .save {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#math-input-modal .cancel {
+    background-color: #f44336;
+    color: white;
+}
+
+#math-input-modal .preview {
+    margin-top: 10px;
+    background: #f9f9f9;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#latex-buttons button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#latex-buttons button:hover {
+    background-color: #e0e0e0;
+}
+
+#latex-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    row-gap: 0;
+    padding-bottom: 15px;
+}
+
+/* custom css for input soal only */
+
+#layoutSidenav_content>main>div>div:nth-child(1)>div.card-body>div {
+    overflow-x: auto;
+}
+
+#editorSoalContent {
+    height: 300px;
+}
+
+.ql-editor {
+    color: black !important;
+}
+
+/* Enhanced text formatting preservation for copy/paste */
+.ql-editor strong, .ql-editor b {
+    font-weight: bold !important;
+}
+
+.ql-editor em, .ql-editor i {
+    font-style: italic !important;
+}
+
+.ql-editor u {
+    text-decoration: underline !important;
+}
+
+.ql-editor s, .ql-editor strike {
+    text-decoration: line-through !important;
+}
+
+.ql-editor sub {
+    vertical-align: sub !important;
+    font-size: smaller !important;
+}
+
+.ql-editor sup {
+    vertical-align: super !important;
+    font-size: smaller !important;
+}
+
+/* Preserve text formatting when copying from external sources */
+.ql-editor p {
+    margin: 0;
+    padding: 0;
+}
+
+.ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor h4, .ql-editor h5, .ql-editor h6 {
+    font-weight: bold;
+    margin: 0.5em 0;
+}
+
+.ql-editor h1 { font-size: 2em; }
+.ql-editor h2 { font-size: 1.5em; }
+
+.ql-editor ul, .ql-editor ol {
+    padding-left: 1.5em;
+    margin: 0.5em 0;
+}
+
+.ql-editor li {
+    margin: 0.25em 0;
+}
+
+.ql-editor blockquote {
+    border-left: 4px solid #ccc;
+    margin: 1em 0;
+    padding-left: 1em;
+    font-style: italic;
+}
+
+.ql-editor code {
+    background-color: #f4f4f4;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.ql-editor pre {
+    background-color: #f4f4f4;
+    padding: 1em;
+    border-radius: 3px;
+    overflow-x: auto;
+}
+
+/* Ensure table styling is preserved */
+.ql-editor table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+.ql-editor td, .ql-editor th {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.ql-editor th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.ql-size-small {
+    font-size: 10px;
+}
+
+.ql-size-medium {
+    font-size: 16px;
+    /* Default */
+}
+
+.ql-size-large {
+    font-size: 18px;
+}
+
+.ql-size-huge {
+    font-size: 32px;
+}
+
+/* Grid button */
+.symbol-grid-box {
+    flex: 0 0 220px; /* Sidebar width */
+    height: auto; /* Automatically adjust height to fit content */
+    max-height: 400px; /* Restrict maximum height */
+    background-color: #ffffff; /* White background */
+    border: 1px solid #ddd; /* Light border */
+    border-radius: 8px; /* Rounded corners */
+    overflow-y: auto; /* Enable vertical scrolling */
+    display: grid; /* Use CSS grid for layout */
+    grid-template-columns: repeat(4, 1fr); /* 4 columns for symbols */
+    gap: 5px; /* Space between buttons */
+    padding: 10px; /* Inner padding for spacing */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    z-index: 1000; /* Ensure it stays above */
+}
+
+#toggle-symbols {
+    padding: 10px 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+#toggle-symbols:hover {
+    background-color: #e6f7ff;
+}
+
+/* Add these styles */
+#table-input-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    display: none;
+    z-index: 1000;
+}
+
+#table-input-modal > div {
+    width: 300px;
+    padding: 15px;
+    position: absolute;
+    top: 30%;
+    left: 56%;
+    transform: translate(-50%, -50%);
+}
+
+#table-input-modal h4 {
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+#table-input-modal .form-group {
+    margin-bottom: 0.5rem;
+}
+
+#table-input-modal label {
+    font-size: 14px;
+    margin-bottom: 3px;
+}
+
+#table-input-modal input {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    height: 30px;
+}
+
+#table-input-modal button {
+    margin-right: 0.5rem;
+    padding: 4px 12px;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+/* Add styles for table cells in the editor */
+.ql-editor table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.ql-editor td {
+    border: 1px solid #dee2e6;
+    padding: 0.75rem;
+    vertical-align: middle;
+    text-align: justify;
+    height: 50px;
+}

@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Pembahasan <%= mapel.mapel %> - GG</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                ignoreHtmlClass: "ignore-math"
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #6C5CE7;
+            --primary-light: #e9947a;
+            --primary-dark: #a64a26;
+            --card-border: #e3e6ec;
+            --card-header-bg: #f8f9fc;
+            --card-body-bg: white;
+            --correct-bg: #d7f0d7;
+            --correct-color: #2e7d32;
+            --wrong-bg: #ffe8e8;
+            --wrong-color: #c62828;
+            --skipped-bg: #e3e3e3;
+            --skipped-color: #616161;
+            --selected-bg: #fff3e0;
+            --table-border: #e0e0e0;
+        }
+
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        body.nav-fixed .page-header-dark {
+            background: var(--primary-color) !important;
+            background-image: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
+        }
+
+        .pembahasan-card {
+            margin-bottom: 2rem;
+            border: 1px solid var(--card-border);
+            border-radius: 0.5rem;
+            transition: transform 0.2s ease;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .pembahasan-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .pembahasan-header {
+            background-color: var(--card-header-bg);
+            padding: 1rem;
+            border-bottom: 1px solid var(--card-border);
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .pembahasan-body {
+            padding: 1.5rem;
+            background-color: var(--card-body-bg);
+        }
+
+        .pembahasan-footer {
+            background-color: var(--card-header-bg);
+            padding: 1rem;
+            border-top: 1px solid var(--card-border);
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+
+        .answer-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-weight: bold;
+        }
+
+        .answer-correct {
+            background-color: var(--correct-bg);
+            color: var(--correct-color);
+        }
+
+        .answer-wrong {
+            background-color: var(--wrong-bg);
+            color: var(--wrong-color);
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+        }
+
+        .option-label {
+            flex: 0 0 30px;
+            font-weight: bold;
+        }
+
+        .option-content {
+            flex: 1;
+        }
+
+        .selected-option {
+            background-color: var(--selected-bg);
+        }
+
+        .correct-option {
+            background-color: var(--correct-bg);
+        }
+
+        table td, table th {
+            border: 1px solid var(--table-border);
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .sticky-progress {
+            position: sticky;
+            top: 56px;
+            z-index: 900;
+            background-color: var(--card-body-bg);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            margin-bottom: 25px;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+
+        .progress-container {
+            margin-bottom: 15px;
+        }
+
+        .question-nav {
+            display: flex;
+            overflow-x: auto;
+            padding: 15px 0;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .question-nav-item {
+            flex: 0 0 auto;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            margin: 0 3px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: none;
+            font-size: 16px;
+        }
+
+        .question-correct {
+            background-color: var(--correct-bg);
+            color: var(--correct-color);
+        }
+
+        .question-wrong {
+            background-color: var(--wrong-bg);
+            color: var(--wrong-color);
+        }
+
+        .question-nav-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        .stats-card {
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 0.5rem;
+            background-color: var(--card-body-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .stats-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 0.5rem;
+            margin-bottom: 10px;
+        }
+
+        .stats-correct {
+            background-color: var(--correct-bg);
+        }
+
+        .stats-wrong {
+            background-color: var(--wrong-bg);
+        }
+
+        .stats-skipped {
+            background-color: var(--skipped-bg);
+        }
+
+        .stats-icon {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stats-count {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .stats-label {
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .question-nav-item {
+                width: 40px;
+                height: 40px;
+                font-size: 0.9rem;
+                margin: 0 2px;
+            }
+            
+            .pembahasan-body {
+                padding: 1rem;
+            }
+            
+            .option-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .option-label {
+                margin-bottom: 5px;
+            }
+
+            .stats-section {
+                flex-direction: column;
+                text-align: center;
+                padding: 10px;
+            }
+        }
+
+        .question-card {
+            display: none;
+        }
+
+        .question-active {
+            display: block;
+        }
+
+        .soal-pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+            gap: 15px;
+        }
+
+        .pagination-btn {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .pagination-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .pagination-btn:disabled {
+            background-color: var(--primary-light);
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .soal-counter {
+            font-size: 18px;
+            font-weight: 500;
+            color: #495057;
+            margin: 0 15px;
+            align-self: center;
+            background-color: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress {
+            height: 12px;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="nav-fixed">
+    <%- include('partials/topNav') %> 
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="book-open"></i></div>
+                                        Pembahasan <%= mapel.mapel + " - " + mapel.owner %>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <% 
+                        // Calculate score statistics
+                        const totalQuestions = soalData.length;
+                        let correctAnswers = 0;
+                        let skippedAnswers = 0;
+                        
+                        soalData.forEach((soal, index) => {
+                            const userAns = userData.jawaban[index]?.toUpperCase() || '-';
+                            const correctAnswer = soal.answer.toUpperCase();
+                            let isCorrect = false;
+                            
+                            if (soal.tipeSoal === 'pgkompleks1' || soal.tipeSoal === 'pgkompleks2') {
+                                const correctParts = correctAnswer.match(/[A-E][1-2]/g) || [];
+                                const userParts = userAns.match(/[A-E][1-2]/g) || [];
+                                
+                                if (userAns === '-') {
+                                    skippedAnswers++;
+                                } else {
+                                    const matchingCount = correctParts.filter(part => userParts.includes(part)).length;
+                                    isCorrect = matchingCount === correctParts.length;
+                                    if (isCorrect) correctAnswers++;
+                                }
+                            } else {
+                                if (userAns === '-') {
+                                    skippedAnswers++;
+                                } else {
+                                    isCorrect = userAns === correctAnswer;
+                                    if (isCorrect) correctAnswers++;
+                                }
+                            }
+                        });
+                        
+                        const wrongAnswers = totalQuestions - correctAnswers - skippedAnswers;
+                        const scorePercentage = Math.round((correctAnswers / totalQuestions) * 100);
+                    %>
+                    
+                    <!-- Score Statistics Card -->
+                    <div class="stats-card mb-4">
+                        <h4 class="mb-3">Ringkasan Hasil</h4>
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="progress-container mb-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div class="h5 mb-0">Skor Anda: <span class="text-primary"><%= scorePercentage * 10 %></span></div>
+                                        <div class="h5 mb-0"><span class="text-primary"><%= correctAnswers %></span> dari <%= totalQuestions %> benar</div>
+                                    </div>
+                                    <div class="progress mb-3">
+                                        <div class="progress-bar" role="progressbar" 
+                                            style="width: <%= (correctAnswers/totalQuestions)*100 %>%; background-color: var(--primary-color);" 
+                                            aria-valuenow="<%= correctAnswers %>" aria-valuemin="0" aria-valuemax="<%= totalQuestions %>"></div>
+                                        <div class="progress-bar" role="progressbar" 
+                                            style="width: <%= (wrongAnswers/totalQuestions)*100 %>%; background-color: var(--wrong-bg);" 
+                                            aria-valuenow="<%= wrongAnswers %>" aria-valuemin="0" aria-valuemax="<%= totalQuestions %>"></div>
+                                        <div class="progress-bar" role="progressbar" 
+                                            style="width: <%= (skippedAnswers/totalQuestions)*100 %>%; background-color: var(--skipped-bg);" 
+                                            aria-valuenow="<%= skippedAnswers %>" aria-valuemin="0" aria-valuemax="<%= totalQuestions %>"></div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <div class="stats-section stats-correct">
+                                            <div class="stats-icon text-success">
+                                                <i data-feather="check-circle"></i>
+                                            </div>
+                                            <div>
+                                                <div class="stats-count text-success"><%= correctAnswers %></div>
+                                                <div class="stats-label">Benar</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="stats-section stats-wrong">
+                                            <div class="stats-icon text-danger">
+                                                <i data-feather="x-circle"></i>
+                                            </div>
+                                            <div>
+                                                <div class="stats-count text-danger"><%= wrongAnswers %></div>
+                                                <div class="stats-label">Salah</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="stats-section stats-skipped">
+                                            <div class="stats-icon text-secondary">
+                                                <i data-feather="minus-circle"></i>
+                                            </div>
+                                            <div>
+                                                <div class="stats-count text-secondary"><%= skippedAnswers %></div>
+                                                <div class="stats-label">Kosong</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div style="height: 100%; display: flex; justify-content: center; align-items: center;">
+                                    <div style="text-align: center;">
+                                        <div class="score-display mb-2"><%= scorePercentage * 10 %></div>
+                                        <div class="h5">Skor Akhir (Dari 1000)</div>
+                                        <div class="text-muted mt-2">
+                                            <%= 
+                                                scorePercentage >= 80 ? 'Sangat Bagus! Pertahankan!' :
+                                                scorePercentage >= 60 ? 'Bagus! Terus tingkatkan!' :
+                                                scorePercentage >= 40 ? 'Cukup Baik! Masih perlu latihan.' :
+                                                'Masih banyak yang perlu dipelajari.'
+                                            %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sticky Navigation -->
+                    <div id="sticky-progress" class="sticky-progress">
+                        <div class="question-nav" id="question-nav">
+                            <% for (let index = 0; index < soalData.length; index++) { 
+                                const soal = soalData[index];
+                                const userAns = userData.jawaban[index]?.toUpperCase() || '-';
+                                const correctAnswer = soal.answer.toUpperCase();
+                                let isCorrect = false;
+                                
+                                if (soal.tipeSoal === 'pgkompleks1' || soal.tipeSoal === 'pgkompleks2') {
+                                    const correctParts = correctAnswer.match(/[A-E][1-2]/g) || [];
+                                    const userParts = userAns.match(/[A-E][1-2]/g) || [];
+                                    
+                                    if (userAns === '-') {
+                                        isCorrect = false;
+                                    } else {
+                                        const matchingCount = correctParts.filter(part => userParts.includes(part)).length;
+                                        isCorrect = matchingCount === correctParts.length;
+                                    }
+                                } else {
+                                    isCorrect = userAns === correctAnswer && userAns !== '-';
+                                }
+                                
+                                const btnClass = isCorrect ? 'question-correct' : (userAns === '-' ? 'bg-secondary text-white' : 'question-wrong');
+                            %>
+                                <button type="button" onclick="showQuestion(<%=index%>)" class="question-nav-item <%=btnClass%>">
+                                    <%= soal.no %>
+                                </button>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div id="soal-container">
+                        <% soalData.forEach((soal, index) => { 
+                            const userAns = userData.jawaban[index]?.toUpperCase() || '-';
+                            const correctAnswer = soal.answer.toUpperCase();
+                            let isCorrect = false;
+                            
+                            if (soal.tipeSoal === 'pgkompleks1' || soal.tipeSoal === 'pgkompleks2') {
+                                const correctParts = correctAnswer.match(/[A-E][1-2]/g) || [];
+                                const userParts = userAns.match(/[A-E][1-2]/g) || [];
+                                
+                                // Check if the user's answer is '-'
+                                if (userAns === '-') {
+                                    isCorrect = false; // Flag as wrong
+                                } else {
+                                    const matchingCount = correctParts.filter(part => userParts.includes(part)).length;
+                                    isCorrect = matchingCount === correctParts.length;
+                                }
+                            } else {
+                                isCorrect = userAns === correctAnswer && userAns !== '-'; // Ensure '-' is treated as wrong
+                            }
+                        %>
+                            <div id="soal-<%= index %>" class="pembahasan-card question-card <%= index === 0 ? 'question-active' : '' %>">
+                                <div class="pembahasan-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">Soal <%= soal.no %></h5>
+                                        <span class="answer-status <%= isCorrect ? 'answer-correct' : 'answer-wrong' %>">
+                                            <%= isCorrect ? '✔️ Benar' : (userAns === '-' ? '⚠️ Tidak Dijawab' : '❌ Salah') %>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="pembahasan-body">
+                                    <div class="soal-content mb-4">
+                                        <%- soal.content %>
+                                    </div>
+                                    
+                                    <div class="options mb-4">
+                                        <% if (soal.tipeSoal === 'pgkompleks1' || soal.tipeSoal === 'pgkompleks2') { %>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Pernyataan</th>
+                                                            <th><%= soal.tipeSoal === 'pgkompleks1' ? 'Benar' : 'Memperlemah' %></th>
+                                                            <th><%= soal.tipeSoal === 'pgkompleks1' ? 'Salah' : 'Tidak Memperlemah' %></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% ['a', 'b', 'c', 'd', 'e'].forEach(letter => { 
+                                                            if (soal[letter] && soal[letter] !== '<p><br></p>') {
+                                                                const correctParts = correctAnswer.match(/[A-E][1-2]/g) || [];
+                                                                const userParts = userAns.match(/[A-E][1-2]/g) || [];
+                                                        %>
+                                                            <tr>
+                                                                <td><%- soal[letter] %></td>
+                                                                <td class="<%= userAns.includes(letter.toUpperCase() + '1') ? 
+                                                                    (correctAnswer.includes(letter.toUpperCase() + '1') ? 'table-success' : 'table-danger') : 
+                                                                    (correctAnswer.includes(letter.toUpperCase() + '1') ? 'table-success border border-success' : '') %>">
+                                                                    <%= userAns.includes(letter.toUpperCase() + '1') ? '✔️' : 
+                                                                        (correctAnswer.includes(letter.toUpperCase() + '1') ? '✓' : '') %>
+                                                                </td>
+                                                                <td class="<%= userAns.includes(letter.toUpperCase() + '2') ? 
+                                                                    (correctAnswer.includes(letter.toUpperCase() + '2') ? 'table-success' : 'table-danger') : 
+                                                                    (correctAnswer.includes(letter.toUpperCase() + '2') ? 'table-success border border-success' : '') %>">
+                                                                    <%= userAns.includes(letter.toUpperCase() + '2') ? '✔️' : 
+                                                                        (correctAnswer.includes(letter.toUpperCase() + '2') ? '✓' : '') %>
+                                                                </td>
+                                                            </tr>
+                                                        <% }}) %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        <% } else { %>
+                                            <% ['a', 'b', 'c', 'd', 'e'].forEach(letter => { 
+                                                if (soal[letter] && soal[letter] !== '<p><br></p>') {
+                                                    const isSelected = userAns === letter.toUpperCase();
+                                                    const isCorrectOption = correctAnswer === letter.toUpperCase();
+                                            %>
+                                                <div class="option-row <%= isSelected ? (isCorrectOption ? 'correct-option' : 'selected-option') : 
+                                                                        isCorrectOption ? 'correct-option' : '' %>">
+                                                    <div class="option-label"><%= letter.toUpperCase() %>.</div>
+                                                    <div class="option-content"><%- soal[letter] %></div>
+                                                    <% if (isSelected) { %>
+                                                        <div class="ms-2">
+                                                            <%= isCorrectOption ? '✔️' : '❌' %>
+                                                        </div>
+                                                    <% } else if (isCorrectOption) { %>
+                                                        <div class="ms-2">✓</div>
+                                                    <% } %>
+                                                </div>
+                                            <% }}) %>
+                                        <% } %>
+                                    </div>
+
+                                    <% 
+                                    // Check all possible empty pembahasan conditions
+                                    const pembahasan = soal.pembahasan || '';
+                                    // Strip HTML tags to check if there's actual content
+                                    const textContent = pembahasan.replace(/<[^>]*>/g, '').trim();
+                                    
+                                    const isPembahasanEmpty = !pembahasan || 
+                                                             pembahasan === '' || 
+                                                             pembahasan === null || 
+                                                             pembahasan === '<p><br></p>' ||
+                                                             pembahasan === '<p></p>' ||
+                                                             textContent === '';
+                                    %>
+                                    
+                                    <% if (!isPembahasanEmpty) { %>
+                                        <div class="pembahasan-content">
+                                            <h6 class="mb-2">Pembahasan:</h6>
+                                            <%- soal.pembahasan %>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="alert alert-warning">
+                                            <i data-feather="alert-circle" class="me-2"></i> Pembahasan belum tersedia
+                                        </div>
+                                    <% } %>
+                                </div>
+                                <div class="pembahasan-footer">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>Jawaban Anda:</strong> <span class="<%= isCorrect ? 'text-success' : (userAns === '-' ? 'text-secondary' : 'text-danger') %>"><%= userAns %></span>
+                                            <strong class="ms-3">Kunci:</strong> <span class="text-success"><%= correctAnswer %></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+
+                        <div class="soal-pagination">
+                            <button id="prev-btn" class="pagination-btn" onclick="prevQuestion()" disabled>
+                                <i data-feather="arrow-left"></i> Sebelumnya
+                            </button>
+                            <span id="soal-counter" class="soal-counter">Soal 1 dari <%= soalData.length %></span>
+                            <button id="next-btn" class="pagination-btn" onclick="nextQuestion()">
+                                Berikutnya <i data-feather="arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 mt-4">
+                        <a href="/user/to-premium/<%= token %>" class="btn" style="background-color: var(--primary-color); color: white;">
+                            <i data-feather="arrow-left" class="me-1"></i> Kembali ke Daftar Subtes
+                        </a>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.feather) {
+                feather.replace();
+            }
+            
+            // Render MathJax content
+            if (window.MathJax) {
+                MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
+            }
+            
+            // Initialize question navigation
+            window.currentQuestionIndex = 0;
+            window.totalQuestions = parseInt('<%= soalData.length %>');
+            updatePaginationButtons();
+            
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#soal-"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        // Account for the sticky header height
+                        const stickyHeight = document.getElementById('sticky-progress').offsetHeight;
+                        const topNavHeight = 56; // Adjust this value based on your actual top nav height
+                        
+                        const elementPosition = targetElement.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - 
+                                              (stickyHeight + topNavHeight + 10);
+                        
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+        
+        // Global variables for question navigation
+        window.currentQuestionIndex = 0;
+        window.totalQuestions = 0; // This will be set in DOMContentLoaded
+        
+        // Navigate to specific question
+        function showQuestion(index) {
+            // Hide all question cards
+            document.querySelectorAll('.question-card').forEach(card => {
+                card.classList.remove('question-active');
+            });
+            
+            // Show the selected question
+            document.getElementById('soal-' + index).classList.add('question-active');
+            
+            // Update current index
+            window.currentQuestionIndex = index;
+            
+            // Update pagination buttons
+            updatePaginationButtons();
+            
+            // Scroll to top of question container
+            const container = document.getElementById('soal-container');
+            const stickyHeight = document.getElementById('sticky-progress').offsetHeight;
+            const topNavHeight = 56;
+            
+            window.scrollTo({
+                top: container.offsetTop - (stickyHeight + topNavHeight),
+                behavior: 'smooth'
+            });
+            
+            // Re-render MathJax if needed
+            if (window.MathJax) {
+                MathJax.typesetPromise().catch((err) => console.log('MathJax error:', err));
+            }
+            
+            // Reinitialize Feather icons
+            if (window.feather) {
+                feather.replace();
+            }
+        }
+        
+        // Navigate to next question
+        function nextQuestion() {
+            if (window.currentQuestionIndex < window.totalQuestions - 1) {
+                showQuestion(window.currentQuestionIndex + 1);
+            }
+        }
+        
+        // Navigate to previous question
+        function prevQuestion() {
+            if (window.currentQuestionIndex > 0) {
+                showQuestion(window.currentQuestionIndex - 1);
+            }
+        }
+        
+        // Update pagination button states and counter text
+        function updatePaginationButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const counter = document.getElementById('soal-counter');
+            
+            // Update counter text
+            counter.textContent = `Soal ${window.currentQuestionIndex + 1} dari ${window.totalQuestions}`;
+            
+            // Update button states
+            prevBtn.disabled = window.currentQuestionIndex === 0;
+            nextBtn.disabled = window.currentQuestionIndex === window.totalQuestions - 1;
+        }
+    </script>
+</body>
+</html> 

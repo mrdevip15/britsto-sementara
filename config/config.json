@@ -1,0 +1,26 @@
+{
+    "development": {
+      "username": "postgres",
+      "password": "topsecret",
+      "database": "BritsEdu_development",
+      "host": "127.0.0.1",
+      "dialect": "postgres",
+      "port" : "5432"
+    },
+    "test": {
+      "username": "postgres",
+      "password": "topsecret",
+      "database": "BritsEdu_test",
+      "host": "127.0.0.1",
+      "dialect": "postgres",
+      "port" : "5432"
+    },
+    "production": {
+      "username": "tyogfxma_muhhidayat",
+      "password": ";pK@dwg}PMDN",
+      "database": "tyogfxma_ggweb",
+      "host": "127.0.0.1",
+      "dialect": "postgres",
+      "port" : "5432"
+    }
+  }

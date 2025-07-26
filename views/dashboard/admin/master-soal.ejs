@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Dashboard GG</title>
+        <%- include('../../partials/head') %>
+        <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+        <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+    
+        <style>
+            #layoutSidenav_content > main > div > div:nth-child(1) > div.card-body > div {
+                overflow-x:auto;
+            }
+
+            /* Style for the owner filter select */
+            #ownerFilter {
+                border-radius: 0.25rem; /* Rounded corners */
+                padding: 0.75rem 1rem; /* Padding for better touch targets */
+                width: 218px;
+                background-color: #f8f9fa; /* Light background color */
+                transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; /* Transition effects */
+                margin-right: 11px;
+            }
+
+            #ownerFilter:focus {
+                border: solid 1px #222121;
+                box-shadow: none
+            }
+
+            /* Optional: Style for the label */
+            .form-label {
+                font-weight: bold; /* Make the label bold */
+                margin-bottom: 0.5rem; /* Space below the label */
+            }
+        </style>
+        <!-- Add SweetAlert2 CDN -->
+        <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+        <style>
+            /* Clean icon styling */
+            [data-feather] {
+                width: 20px;
+                height: 20px;
+                stroke-width: 2;
+            }
+            
+            /* Action button icon containers */
+            .icon-container {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                transition: all 0.2s ease;
+                text-decoration: none;
+            }
+            
+            .icon-container:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                text-decoration: none;
+            }
+            
+            /* Color variants for action icons */
+            .icon-success {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            
+            .icon-success:hover {
+                background: #c3e6cb;
+                color: #155724;
+            }
+            
+            .icon-danger {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            
+            .icon-danger:hover {
+                background: #f5c6cb;
+                color: #721c24;
+            }
+            
+            .icon-warning {
+                background: #fff3cd;
+                color: #856404;
+                border: 1px solid #ffeaa7;
+            }
+            
+            .icon-warning:hover {
+                background: #ffeaa7;
+                color: #856404;
+            }
+            
+            .icon-info {
+                background: #d1ecf1;
+                color: #0c5460;
+                border: 1px solid #bee5eb;
+            }
+            
+            .icon-info:hover {
+                background: #bee5eb;
+                color: #0c5460;
+            }
+            
+            .icon-primary {
+                background: #cce7ff;
+                color: #004085;
+                border: 1px solid #b3d7ff;
+            }
+            
+            .icon-primary:hover {
+                background: #b3d7ff;
+                color: #004085;
+            }
+            
+            /* Button icons - keep them simple */
+            .btn [data-feather] {
+                width: 18px;
+                height: 18px;
+                margin-right: 8px;
+            }
+            
+            /* Header icons */
+            .page-header-icon [data-feather] {
+                width: 32px;
+                height: 32px;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
+                color: white;
+            }
+        </style>
+    </head>
+    <%
+    function formatDate(date) {
+        // Days of the week in Bahasa Indonesia
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    
+        // Get day, month, year
+        const dayName = days[date.getDay()]; // Get the day name
+        const day = String(date.getDate()).padStart(2, '0'); // Format day as 2 digits
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Format month as 2 digits (months are 0-based)
+        const year = String(date.getFullYear()).slice(-2); // Get last 2 digits of the year
+    
+        return `${day}-${month}-${year}`;
+    }
+    %>
+    <body class="nav-fixed">
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Confirm Delete</h5>
+                        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Yakin hapus subtest "<span id="subtestName"></span> - <span id="owner"></span>"? Aksi ini tidak dapat dibatalkan.
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                        <a href="#" id="confirmDelete" class="btn btn-danger">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+       <%- include('partials/topNav') %> 
+        <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+               
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                   
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="alert-circle"></i></div>
+                                        Welcome, Master!
+                                    </h1>
+                                    <div class="page-header-subtitle">Brits Edu Center, <span style="font-style: italic;">Teman belajarmu</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <!-- Main page content-->
+                <div class="container-xl px-4">
+                    <div class="card mt-n10">
+                        <div class="card-header">Daftar Soal</div>
+                        <div class="card-body">
+                   
+ 
+                            <div class="row">
+                                <div class="col-md-6 text-nowrap">
+                                    <form action="/importSoal" method="post" enctype="multipart/form-data">
+                                        <!-- ... existing import form ... -->
+                                    </form>
+                                </div>
+                                <div class="col-md-6">
+                                    <!-- Add owner filter -->
+                                    <div class="mb-3 text-md-end">
+                                        <label for="ownerFilter" class="form-label">Filter by Paket:</label>
+                                        <select id="ownerFilter" class="form-select d-inline-block">
+                                            <option value="">All</option>
+                                            <% 
+                                            // Get unique owners
+                                            const uniqueOwners = [...new Set(datas.map(data => data.owner))];
+                                            uniqueOwners.forEach(owner => { 
+                                            %>
+                                                <option value="<%= owner %>"><%= owner %></option>
+                                            <% }); %>
+                                        </select>
+                                    </div>
+                                    <div class="text-md-end dataTables_filter" id="dataTable_filter">
+                                        <!-- ... existing buttons ... -->
+                                    </div>
+                                </div>
+                            </div>
+                            <table class="table my-0" id="datatablesSimple">
+                                <thead>
+                                    <tr>
+                                        <th>Aksi</th>
+                                        <th>Kategori</th>
+                                        <th>Subtest</th>
+                                        <th>Jumlah Soal</th>
+                                        <th>Kode Soal</th>
+                                         <th>Paket Soal</th>
+                                      
+                                        <th>Edit Soal</th>
+                                        <th>Durasi (menit)</th>
+                                        <th>Export soal</th>
+                                        <th>Nilai</th>
+                                        <th>Jadwal</th>
+                                        <th>Preview</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% 
+                                    // Sort datas array by owner
+                                    datas.sort((a, b) => {
+                                        // Handle null/undefined owners by placing them at the end
+                                        if (!a.owner) return 1;
+                                        if (!b.owner) return -1;
+                                        return a.owner.localeCompare(b.owner);
+                                    });
+                                    
+                                    datas.forEach(data => { 
+                                    %>
+                                    <tr>
+                                        <td>
+                                            <a href="#"
+                                                class="btn btn-danger btn-sm delete-btn" 
+                                                type="button" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#exampleModal"
+                                                data-kodekategori="<%= data.kodekategori %>"
+                                                data-subtest="<%= data.mapel %>"
+                                                data-owner="<%= data.owner %>">
+                                                
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                            <a href="/admin/manajemen-soal/edit-paket-soal/<%= data.kodekategori %>" 
+                                               class="btn btn-sm btn-primary mt-2">
+                                                <i class="fa fa-pencil"></i>
+                                            </a>
+                                        </td>
+                                        <td><%= data.kategori %></td>
+                                        <td><%= data.mapel %></td>
+                                        <td><%= data.soals.length %></td>
+                                        <td><%= data.kodekategori %></td>          
+                                        <td>
+                                     <%= data.owner %>
+                                            
+                                        </td>               
+                                        <td>
+                                            <a href="/admin/manajemen-soal/mapel/<%= data.kodekategori %>"><i class="text-primary fa fa-edit"></i></a>
+                                           
+
+                                        </td>
+                                        <td> <%= data.durasi %> </td>
+                                        <td>  <a href="/admin/exportsoal/<%= data.kodekategori %>"><i class="text-primary fa fa-book"></i></a></td>
+                                        <td>
+                                            <a href="/admin/manajemen-soal/nilai/<%= data.kodekategori %>" 
+                                               class="btn btn-sm btn-info">
+                                                <i class="fa fa-chart-bar"></i> Nilai subtest
+                                            </a>
+                                            <a class="btn btn-sm btn-success mt-2" href="/admin/manajemen-soal/nilai-by-owner/<%= data.owner %>">
+                                                <i class="fa fa-chart-bar"></i>  Nilai Kolektif
+                                            
+                                        </td>  
+                                        </td>
+
+                                        <% if(data.tanggalMulai && data.tanggalBerakhir){%>
+                                        <td> <%= formatDate(data.tanggalMulai) + " hingga " + formatDate(data.tanggalBerakhir) %> 
+                                          
+                                        </td>
+                                        <%}else{%>
+                                        <td>Tidak ada jadwal</td>
+                                        <%}%>
+
+                                        <td>
+                                            <a href="/admin/manajemen-soal/preview/<%= data.kodekategori %>" 
+                                               class="btn btn-sm btn-info">
+                                                <i class="fa fa-print"></i> Print
+                                            </a>
+                                        </td>
+
+                                    </tr>
+
+                                    <% }); %>
+
+                                </tbody>
+                            </table>
+                            
+                        </div>
+                    </div>                   
+                </div>
+
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>     
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+        <script defer>
+// Initialize Feather icons
+document.addEventListener('DOMContentLoaded', function() {
+    feather.replace();
+    
+    // Reinitialize icons after DataTable operations
+    const datatablesSimple = document.getElementById('datatablesSimple');
+    if (datatablesSimple && window.simpleDatatables) {
+        const dataTable = new simpleDatatables.DataTable(datatablesSimple);
+        
+        // Reinitialize icons after DataTable events
+        dataTable.on('datatable.search', () => feather.replace());
+        dataTable.on('datatable.page', () => feather.replace());
+        dataTable.on('datatable.sort', () => feather.replace());
+    }
+});
+
+window.addEventListener('load', () => {
+    // Select all delete buttons
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+
+    // Get modal elements
+    const confirmDelete = document.getElementById('confirmDelete');
+    const subtestNameElement = document.getElementById('subtestName');
+    const ownerElement = document.getElementById('owner');
+
+    // Add click event listener to each delete button
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            // Get data attributes from the clicked button
+            const kodekategori = button.getAttribute('data-kodekategori');
+            const subtestName = button.getAttribute('data-subtest');
+            const owner = button.getAttribute('data-owner');
+
+            // Update modal content dynamically
+            subtestNameElement.textContent = subtestName;
+            ownerElement.textContent = owner;
+            confirmDelete.setAttribute('href', `/admin/manajemen-soal/hapus-subtest/${kodekategori}`);
+        });
+    });
+});
+
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Get the URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const message = urlParams.get('message');
+                const error = urlParams.get('error');
+
+                if (message || error) {
+                    Swal.fire({
+                        title: error ? 'Error!' : 'Berhasil!',
+                        text: message || error,
+                        icon: error ? 'error' : (message.toLowerCase().includes('hapus') ? 'warning' : 'success'),
+                        confirmButtonColor: error ? '#dc3545' : '#28a745',
+                        confirmButtonText: 'OK'
+                    });
+
+                    // Clear the URL parameters
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('message');
+                    url.searchParams.delete('error');
+                    window.history.replaceState({}, document.title, url);
+                }
+            });
+        </script>
+        <!-- Add SweetAlert2 script -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const ownerFilter = document.getElementById('ownerFilter');
+                const dataTable = new simpleDatatables.DataTable("#datatablesSimple", {
+                    perPage: 7,
+                    perPageSelect: [3, 7, 14],
+                    searchable: true,
+                    sortable: false // Disable sorting for all columns
+                });
+
+                ownerFilter.addEventListener('change', function() {
+                    const selectedOwner = this.value;
+                    
+                    if (selectedOwner) {
+                        // Filter the table by selected owner
+                        dataTable.search(selectedOwner, [5]); // 5 is the index of the owner column
+                    } else {
+                        // Clear the filter
+                        dataTable.search('');
+                    }
+                });
+            });
+        </script>
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.feather) {
+    feather.replace();
+  }
+});
+</script>
+    </body>
+</html>

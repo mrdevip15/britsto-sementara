@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Riwayat Pembayaran Siswa - Admin Dashboard</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+</head>
+
+<body class="nav-fixed">
+    <%- include('partials/topNav') %>
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="credit-card"></i></div>
+                                        Riwayat Pembayaran: <%= siswa.nama %>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <div class="row justify-content-between align-items-center">
+                                <div class="col">
+                                    Riwayat Pembayaran
+                                </div>
+                                <div class="col text-end">
+                                    <button class="btn btn-success btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+                                        <i data-feather="plus"></i>
+                                        Tambah Pembayaran
+                                    </button>
+                                    <a href="/admin/siswa/edit/<%= siswa.id %>" class="btn btn-primary btn-sm">
+                                        <i data-feather="edit-2"></i>
+                                        Edit Siswa
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="alertContainer"></div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h5>Informasi Siswa</h5>
+                                    <p class="mb-1"><strong>Nama:</strong> <%= siswa.nama %></p>
+                                    <p class="mb-1"><strong>No HP:</strong> <%= siswa.noHp || '-' %></p>
+                                    <p class="mb-1"><strong>No HP Ortu:</strong> <%= siswa.noHpOrtu %></p>
+                                    <p class="mb-1"><strong>Sisa Kuota:</strong> <%= siswa.sisaKuotaBelajar %> pertemuan</p>
+                                    <p class="mb-1">
+                                        <strong>Status:</strong>
+                                        <span class="badge text-white bg-<%= siswa.isActive ? 'success' : 'danger' %>">
+                                            <%= siswa.isActive ? 'Aktif' : 'Nonaktif' %>
+                                        </span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Detail Pembayaran</h5>
+                                    <p class="mb-1"><strong>Periode:</strong> <%= siswa.paymentPeriod === '1_month' ? '1 Bulan' : '3 Bulan' %></p>
+                                    <p class="mb-1"><strong>Tipe:</strong> <%= siswa.paymentType === 'pre_paid' ? 'Bayar Di muka' : 'Bayar Di akhir' %></p>
+                                    <p class="mb-1">
+                                        <strong>Pembayaran Terakhir:</strong> 
+                                        <%= siswa.tanggalBayarTerakhir ? new Date(siswa.tanggalBayarTerakhir).toLocaleDateString('id-ID') : '-' %>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table id="paymentTable" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Jumlah</th>
+                                            <th>Periode</th>
+                                            <th>Tambahan Pertemuan</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% paymentHistory.forEach((payment, index) => { %>
+                                        <tr>
+                                            <td><%= new Date(payment.date).toLocaleDateString('id-ID') %></td>
+                                            <td>Rp <%= payment.amount.toLocaleString('id-ID') %></td>
+                                            <td><%= payment.period === '1_month' ? '1 Bulan' : '3 Bulan' %></td>
+                                            <td><%= payment.additionalSessions || 0 %> pertemuan</td>
+                                            <td>
+                                                <span class="badge text-white bg-<%= payment.status === 'paid' ? 'success' : 'warning' %>">
+                                                    <%= payment.status === 'paid' ? 'Lunas' : 'Pending' %>
+                                                </span>
+                                                <% if (payment.isLocked) { %>
+                                                    <span class="badge bg-secondary ms-1" title="Data terkunci">
+                                                        <i data-feather="lock" class="feather-small text-white"></i>
+                                                    </span>
+                                                <% } %>
+                                            </td>
+                                            <td>
+                                                <% if (!payment.isLocked) { %>
+                                                    <button class="btn btn-warning btn-sm me-1" onclick="editPayment(<%= index %>)">
+                                                        <i data-feather="edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm me-1" onclick="deletePayment(<%= index %>)">
+                                                        <i data-feather="trash-2"></i>
+                                                    </button>
+                                                    <button class="btn btn-secondary btn-sm me-1" onclick="lockPayment(<%= index %>)" title="Kunci data">
+                                                        <i data-feather="lock"></i>
+                                                    </button>
+                                                <% } %>
+                                                <button class="btn btn-info btn-sm" onclick="showInvoice(<%= index %>)" title="Lihat Invoice">
+                                                    <i data-feather="file-text"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header d-flex align-items-center">
+                    <h5 class="modal-title d-flex align-items-center" id="deleteConfirmModalLabel">
+                        <i data-feather="trash-2" class="me-2"></i>
+                        Konfirmasi Hapus Pembayaran
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i data-feather="alert-triangle" class="me-2"></i>Menghapus pembayaran akan mempengaruhi sisa pertemuan siswa sesuai dengan status pembayaran.
+                    </div>
+                    <p>Apakah Anda yakin ingin menghapus pembayaran ini?</p>
+                    <div class="payment-details">
+                        <p><strong>Tanggal:</strong> <span id="delete-date"></span></p>
+                        <p><strong>Jumlah:</strong> Rp <span id="delete-amount"></span></p>
+                        <p><strong>Status:</strong> <span id="delete-status"></span></p>
+                        <hr>
+                        <p><strong>Sisa Kuota Saat Ini:</strong> <span id="delete-current-quota"></span> pertemuan</p>
+                        <p><strong>Pertemuan yang Dihapus:</strong> <span id="delete-sessions"></span> pertemuan</p>
+                        <p><strong>Sisa Kuota Setelah Dihapus:</strong> <span id="delete-after-quota"></span> pertemuan</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Confirmation Modal -->
+    <div class="modal fade" id="editConfirmModal" tabindex="-1" aria-labelledby="editConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header d-flex align-items-center">
+                    <h5 class="modal-title d-flex align-items-center" id="editConfirmModalLabel">
+                        <i data-feather="edit" class="me-2"></i>
+                        Konfirmasi Edit Pembayaran
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i data-feather="info" class="me-2"></i>Mengubah jumlah pertemuan akan mempengaruhi sisa pertemuan siswa sesuai dengan status pembayaran.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Data Lama:</h6>
+                            <p><strong>Tanggal:</strong> <span id="old-date"></span></p>
+                            <p><strong>Jumlah:</strong> Rp <span id="old-amount"></span></p>
+                            <p><strong>Status:</strong> <span id="old-status"></span></p>
+                            <p><strong>Pertemuan:</strong> <span id="old-sessions"></span> pertemuan</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Data Baru:</h6>
+                            <p><strong>Tanggal:</strong> <span id="new-date"></span></p>
+                            <p><strong>Jumlah:</strong> Rp <span id="new-amount"></span></p>
+                            <p><strong>Status:</strong> <span id="new-status"></span></p>
+                            <p><strong>Pertemuan:</strong> <span id="new-sessions"></span> pertemuan</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mt-3">
+                        <h6>Perubahan Sisa Kuota:</h6>
+                        <p><strong>Sisa Kuota Saat Ini:</strong> <span id="edit-current-quota"></span> pertemuan</p>
+                        <p><strong>Sisa Kuota Setelah Update:</strong> <span id="edit-after-quota"></span> pertemuan</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="confirmEditBtn">Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lock Confirmation Modal -->
+    <div class="modal fade" id="lockConfirmModal" tabindex="-1" aria-labelledby="lockConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header d-flex align-items-center">
+                    <h5 class="modal-title d-flex align-items-center" id="lockConfirmModalLabel">
+                        <i data-feather="lock" class="me-2"></i>
+                        Konfirmasi Kunci Pembayaran
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i data-feather="alert-triangle" class="me-2"></i>
+                        <strong>Perhatian!</strong> Setelah data dikunci:
+                        <ul class="mb-0 mt-2">
+                            <li>Data pembayaran tidak dapat diubah</li>
+                            <li>Data pembayaran tidak dapat dihapus</li>
+                            <li>Tindakan ini tidak dapat dibatalkan</li>
+                        </ul>
+                    </div>
+                    <p>Apakah Anda yakin ingin mengunci data pembayaran ini?</p>
+                    <div class="payment-details">
+                        <p><strong>Tanggal:</strong> <span id="lock-date"></span></p>
+                        <p><strong>Jumlah:</strong> Rp <span id="lock-amount"></span></p>
+                        <p><strong>Status:</strong> <span id="lock-status"></span></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="confirmLockBtn">
+                        <i data-feather="lock" class="me-1"></i>
+                        Kunci Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Modal Content -->
+    <div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header d-flex align-items-center">
+                    <h5 class="modal-title d-flex align-items-center" id="invoiceModalLabel">
+                        <i data-feather="file-text" class="me-2"></i>
+                        Invoice Pembayaran
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="invoiceContent" class="p-4">
+                        <!-- Invoice Header -->
+                        <div class="invoice-header">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <img src="/assets/img/5.png" alt="Brits Edu Center Logo" style="max-width: 150px; margin-bottom: 10px;">
+                                    <h4 class="company-name mb-0">Brits Edu Center</h4>
+                                    <p class="company-tagline text-muted small mb-0">Membuka Gerbang Kecerdasan</p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <h2 class="invoice-title text-primary mb-2">INVOICE</h2>
+                                    <h6 class="invoice-number mb-1" id="invoice-number"></h6>
+                                    <p class="invoice-date small mb-1">Tanggal: <span id="invoice-date" class="fw-bold"></span></p>
+                                    <div class="mt-2">
+                                        <span id="invoice-status" class="badge badge-lg rounded-pill"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr class="invoice-divider my-2">
+                        </div>
+                        
+                        <!-- Invoice Addresses -->
+                        <div class="invoice-addresses">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="from-details">
+                                        <h6 class="address-title text-uppercase text-muted mb-2 small">Pengirim:</h6>
+                                        <div class="address-content">
+                                            <p class="mb-0 fw-bold">Brits Edu Center</p>
+                                            <p class="mb-0 small">Perumahan Villa Megasari</p>
+                                            <p class="mb-0 small">Jl. Jipang Raya Blok B No 16</p>
+                                            <p class="mb-0 small">Makassar, Sulawesi Selatan</p>
+                                            <p class="mb-0 small">Telp: (123) 456-7890</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="to-details">
+                                        <h6 class="address-title text-uppercase text-muted mb-2 small">Penerima:</h6>
+                                        <div class="address-content">
+                                            <p class="mb-0 fw-bold">Ayah/Bunda <span id="invoice-student-name"></span></p>
+                                            <p class="mb-0 small" id="invoice-student-phone"></p>
+                                            <p class="mb-0 small" id="invoice-student-address"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Invoice Items -->
+                        <div class="invoice-items">
+                            <h6 class="table-title text-uppercase text-muted mb-2 small">Detail Pembayaran</h6>
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm table-striped invoice-table">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th style="width: 60%">Deskripsi</th>
+                                            <th style="width: 20%" class="text-end">Periode</th>
+                                            <th style="width: 20%" class="text-end">Jumlah</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td id="invoice-description" class="fw-bold"></td>
+                                            <td class="text-end" id="invoice-period"></td>
+                                            <td class="text-end" id="invoice-amount"></td>
+                                        </tr>
+                                        <tr id="additional-sessions-row">
+                                            <td class="fw-bold">Tambahan Pertemuan</td>
+                                            <td class="text-end"><span id="invoice-sessions-count"></span> pertemuan</td>
+                                            <td class="text-end">-</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="2" class="text-end fw-bold border-top-2">Total</td>
+                                            <td class="text-end fw-bold border-top-2" id="invoice-total"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Invoice Footer -->
+                        <div class="invoice-footer">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h6 class="text-uppercase text-muted mb-2 small">Catatan:</h6>
+                                    <p class="invoice-note mb-0 small">Terima kasih atas kepercayaan Anda menggunakan layanan kami.</p>
+                                    <p class="invoice-note mb-0 small">Pembayaran ini untuk periode <span id="invoice-period-note"></span>.</p>
+                                    
+                                    <div class="payment-info mt-2 p-2">
+                                        <h6 class="text-uppercase text-muted mb-1 small">Informasi Pembayaran:</h6>
+                                        <p class="mb-0 small"><span class="fw-bold">Bank Transfer:</span> Bank BRI</p>
+                                        <p class="mb-0 small"><span class="fw-bold">No. Rekening:</span> 005001004522568</p>
+                                        <p class="mb-0 small"><span class="fw-bold">Atas Nama:</span> CV Gerbang Pendidikan Indonesia</p>
+                                    </div>
+                                </div>
+                                <!-- <div class="col-md-4 text-md-end">
+                                    <div class="qr-code text-center">
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=005001004522568-BRI" alt="QR Code" class="img-fluid mb-1" style="max-width: 80px;">
+                                        <p class="small text-muted mb-0" style="font-size: 10px;">Pindai untuk pembayaran</p>
+                                    </div>
+                                </div> -->
+                            </div>
+                            
+                            <div class="text-center mt-2 pt-2 border-top">
+                                <p class="small text-muted mb-0" style="font-size: 9px;">Invoice ini dibuat secara digital dan sah tanpa tanda tangan.</p>
+                                <p class="small text-muted mb-0" style="font-size: 9px;">© <%= new Date().getFullYear() %> Brits Edu Center. Semua Hak Dilindungi.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" onclick="exportInvoicePDF()">
+                        <i data-feather="download" class="me-1"></i>
+                        Download PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add html2pdf.js for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+    .feather-small {
+        width: 14px;
+        height: 14px;
+    }
+    
+    /* Invoice Styling */
+    #invoiceContent {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #333;
+        background-color: #fff;
+        font-size: 0.85rem;
+        max-width: 100%;
+    }
+    
+    .invoice-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #4e73df;
+    }
+    
+    .company-name {
+        font-weight: 700;
+        color: #333;
+    }
+    
+    .invoice-divider {
+        border-top: 2px solid #4e73df;
+        margin: 0.75rem 0;
+    }
+    
+    .address-title {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: #6c757d;
+    }
+    
+    .address-content {
+        border-left: 3px solid #4e73df;
+        padding-left: 10px;
+    }
+    
+    .table-title {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+    
+    .invoice-table thead th {
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 2px solid #4e73df;
+        padding: 0.4rem;
+    }
+    
+    .invoice-table td {
+        padding: 0.4rem;
+    }
+    
+    .invoice-table tfoot td {
+        font-weight: 700;
+        color: #333;
+        padding: 0.4rem;
+    }
+    
+    .border-top-2 {
+        border-top: 2px solid #4e73df !important;
+    }
+    
+    .invoice-note {
+        color: #666;
+    }
+    
+    .payment-info {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+    
+    /* PDF Export Specific Styles */
+    .pdf-mode {
+        font-family: 'Helvetica', 'Arial', sans-serif !important;
+        color: #000 !important;
+        background-color: #fff !important;
+        font-size: 10pt !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        position: relative !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+    
+    .pdf-mode * {
+        box-sizing: border-box !important;
+        line-height: 1.2 !important;
+    }
+    
+    .pdf-mode .row {
+        margin-left: -10px !important;
+        margin-right: -10px !important;
+    }
+    
+    .pdf-mode .col-6,
+    .pdf-mode .col-md-6,
+    .pdf-mode .col-md-4,
+    .pdf-mode .col-md-8 {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+    
+    .pdf-mode .address-content {
+        padding-left: 5px !important;
+        border-left-width: 2px !important;
+    }
+    
+    .pdf-mode h2.invoice-title {
+        font-size: 18pt !important;
+        margin-bottom: 5px !important;
+    }
+    
+    .pdf-mode h4, 
+    .pdf-mode h6 {
+        margin-top: 0 !important;
+        margin-bottom: 3px !important;
+    }
+    
+    .pdf-mode p {
+        margin-bottom: 2px !important;
+        font-size: 9pt !important;
+    }
+    
+    .pdf-mode .mb-0 {
+        margin-bottom: 0 !important;
+    }
+    
+    .pdf-mode .mb-1 {
+        margin-bottom: 3px !important;
+    }
+    
+    .pdf-mode .mb-2 {
+        margin-bottom: 5px !important;
+    }
+    
+    .pdf-mode .mb-3 {
+        margin-bottom: 8px !important;
+    }
+    
+    .pdf-mode .invoice-divider {
+        margin: 5px 0 !important;
+        border-top-width: 1px !important;
+    }
+    
+    .pdf-mode .table {
+        width: 100% !important;
+        margin-bottom: 8px !important;
+        border-collapse: collapse !important;
+    }
+    
+    .pdf-mode .table th, 
+    .pdf-mode .table td {
+        border: 1px solid #dee2e6 !important;
+        padding: 4px !important;
+        font-size: 9pt !important;
+        text-align: left !important;
+    }
+    
+    .pdf-mode .table th {
+        font-weight: bold !important;
+        background-color: #f8f9fa !important;
+    }
+    
+    .pdf-mode .table-sm td, 
+    .pdf-mode .table-sm th {
+        padding: 3px !important;
+    }
+    
+    .pdf-mode .text-end {
+        text-align: right !important;
+    }
+    
+    .pdf-mode .text-center {
+        text-align: center !important;
+    }
+    
+    .pdf-mode .fw-bold {
+        font-weight: bold !important;
+    }
+    
+    .pdf-mode .invoice-note {
+        font-size: 8pt !important;
+    }
+    
+    .pdf-mode .badge {
+        display: inline-block !important;
+        padding: 3px 6px !important;
+        font-size: 8pt !important;
+        font-weight: bold !important;
+        color: #fff !important;
+        border-radius: 10px !important;
+    }
+    
+    .pdf-mode .badge.bg-success {
+        background-color: #28a745 !important;
+    }
+    
+    .pdf-mode .badge.bg-warning {
+        background-color: #ffc107 !important;
+        color: #212529 !important;
+    }
+    
+    .pdf-mode .payment-info {
+        margin-top: 5px !important;
+        padding: 5px !important;
+        background-color: #f8f9fa !important;
+        font-size: 8pt !important;
+    }
+    
+    .pdf-mode .qr-code img {
+        max-width: 80px !important;
+        height: auto !important;
+    }
+    
+    .pdf-mode .border-top {
+        border-top: 1px solid #dee2e6 !important;
+        padding-top: 5px !important;
+        margin-top: 5px !important;
+    }
+    
+    .pdf-mode .small {
+        font-size: 8pt !important;
+    }
+    
+    /* Print Styles */
+    @media print {
+        #invoiceContent {
+            padding: 10px;
+            max-width: 100%;
+            width: 100%;
+            page-break-inside: avoid;
+            page-break-after: always;
+        }
+        
+        .modal-header, .modal-footer {
+            display: none;
+        }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        p {
+            margin-bottom: 0.1rem !important;
+        }
+    }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+    <script>
+        // Initialize DataTable
+        const paymentTable = document.getElementById('paymentTable');
+        if (paymentTable) {
+            new simpleDatatables.DataTable(paymentTable, {
+                perPage: 10,
+                searchable: true,
+                sortable: true,
+            });
+        }
+
+        // Remove existing alert handling code
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const error = urlParams.get('error');
+
+            if (message || error) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${error ? 'danger' : 'success'} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
+                    ${message || error}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                document.querySelector('.card-body').insertBefore(alertDiv, document.querySelector('.table-responsive'));
+
+                // Handle alert dismissal
+                alertDiv.addEventListener('closed.bs.alert', function () {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('message');
+                    url.searchParams.delete('error');
+                    window.history.replaceState({}, document.title, url);
+                });
+            }
+        });
+
+        // Replace with SweetAlert2 implementation
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const error = urlParams.get('error');
+
+            if (message || error) {
+                const alertType = error ? 'danger' : 'success';
+                const alertIcon = error ? 'alert-triangle' : 'check-circle';
+                const alertText = message || error;
+
+                Swal.fire({
+                    title: alertType === 'danger' ? 'Error!' : 'Berhasil!',
+                    text: alertText,
+                    icon: alertType === 'danger' ? 'error' : 'success',
+                    confirmButtonColor: alertType === 'danger' ? '#dc3545' : '#28a745',
+                    confirmButtonText: 'OK'
+                });
+
+                // Clear the URL parameters
+                const url = new URL(window.location.href);
+                url.searchParams.delete('message');
+                url.searchParams.delete('error');
+                window.history.replaceState({}, document.title, url);
+            }
+        });
+
+        let editFormData = null;
+        let deleteIndex = null;
+
+        function editPayment(index) {
+            const paymentHistory = <%- JSON.stringify(paymentHistory) %>;
+            const payment = paymentHistory[index];
+            
+            if (payment.isLocked) {
+                alert('Pembayaran ini telah dikunci dan tidak dapat diubah');
+                return;
+            }
+            
+            // Fill the edit modal with payment data
+            document.getElementById('edit-amount').value = payment.amount;
+            document.getElementById('edit-date').value = new Date(payment.date).toISOString().split('T')[0];
+            document.getElementById('edit-period').value = payment.period;
+            document.getElementById('edit-additionalSessions').value = payment.additionalSessions || 0;
+            document.getElementById('edit-status').value = payment.status;
+            document.getElementById('edit-payment-index').value = index;
+
+            // Show the edit modal
+            const editModal = new bootstrap.Modal(document.getElementById('editPaymentModal'));
+            editModal.show();
+
+            // Add form submit handler
+            const form = document.querySelector('#editPaymentModal form');
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                editFormData = new FormData(form);
+                showEditConfirmation(payment, Object.fromEntries(editFormData));
+            };
+        }
+
+        function showEditConfirmation(oldData, newData) {
+            // Hide edit modal
+            const editModal = bootstrap.Modal.getInstance(document.getElementById('editPaymentModal'));
+            editModal.hide();
+
+            // Get current quota
+            const currentQuota = <%= siswa.sisaKuotaBelajar %>;
+            
+            // Calculate new quota
+            let quotaDifference = 0;
+            if (oldData.status === 'paid') {
+                quotaDifference -= (oldData.additionalSessions || 0);
+            }
+            if (newData.status === 'paid') {
+                quotaDifference += parseInt(newData.additionalSessions || 0);
+            }
+            const afterQuota = Math.max(0, currentQuota + quotaDifference);
+
+            // Fill confirmation modal with old and new data
+            document.getElementById('old-date').textContent = new Date(oldData.date).toLocaleDateString('id-ID');
+            document.getElementById('old-amount').textContent = oldData.amount.toLocaleString('id-ID');
+            document.getElementById('old-sessions').textContent = oldData.additionalSessions || 0;
+            document.getElementById('old-status').textContent = oldData.status === 'paid' ? 'Lunas' : 'Pending';
+
+            document.getElementById('new-date').textContent = new Date(newData.date).toLocaleDateString('id-ID');
+            document.getElementById('new-amount').textContent = parseInt(newData.amount).toLocaleString('id-ID');
+            document.getElementById('new-sessions').textContent = newData.additionalSessions || 0;
+            document.getElementById('new-status').textContent = newData.status === 'paid' ? 'Lunas' : 'Pending';
+
+            document.getElementById('edit-current-quota').textContent = currentQuota;
+            document.getElementById('edit-after-quota').textContent = afterQuota;
+
+            // Show confirmation modal
+            const confirmModal = new bootstrap.Modal(document.getElementById('editConfirmModal'));
+            confirmModal.show();
+
+            // Handle confirmation
+            document.getElementById('confirmEditBtn').onclick = function() {
+                const form = document.querySelector('#editPaymentModal form');
+                form.submit();
+            };
+        }
+
+        function deletePayment(index) {
+            const paymentHistory = <%- JSON.stringify(paymentHistory) %>;
+            const payment = paymentHistory[index];
+            
+            if (payment.isLocked) {
+                alert('Pembayaran ini telah dikunci dan tidak dapat dihapus');
+                return;
+            }
+            
+            deleteIndex = index;
+
+            // Get current quota and calculate after deletion
+            const currentQuota = <%= siswa.sisaKuotaBelajar %>;
+            const sessionsToRemove = payment.status === 'paid' ? (payment.additionalSessions || 0) : 0;
+            const afterQuota = Math.max(0, currentQuota - sessionsToRemove);
+
+            // Fill the delete confirmation modal
+            document.getElementById('delete-date').textContent = new Date(payment.date).toLocaleDateString('id-ID');
+            document.getElementById('delete-amount').textContent = payment.amount.toLocaleString('id-ID');
+            document.getElementById('delete-sessions').textContent = payment.additionalSessions || 0;
+            document.getElementById('delete-status').textContent = payment.status === 'paid' ? 'Lunas' : 'Pending';
+            document.getElementById('delete-current-quota').textContent = currentQuota;
+            document.getElementById('delete-after-quota').textContent = afterQuota;
+
+            // Show the delete confirmation modal
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            deleteModal.show();
+
+            // Handle delete confirmation
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                fetch(`/admin/siswa/delete-payment/<%= siswa.id %>/${deleteIndex}`, {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Gagal menghapus pembayaran: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menghapus pembayaran');
+                });
+                
+                // Hide the modal
+                deleteModal.hide();
+            };
+        }
+
+        function lockPayment(index) {
+            const paymentHistory = <%- JSON.stringify(paymentHistory) %>;
+            const payment = paymentHistory[index];
+
+            // Fill the lock confirmation modal
+            document.getElementById('lock-date').textContent = new Date(payment.date).toLocaleDateString('id-ID');
+            document.getElementById('lock-amount').textContent = payment.amount.toLocaleString('id-ID');
+            document.getElementById('lock-status').textContent = payment.status === 'paid' ? 'Lunas' : 'Pending';
+
+            // Show the lock confirmation modal
+            const lockModal = new bootstrap.Modal(document.getElementById('lockConfirmModal'));
+            lockModal.show();
+
+            // Handle lock confirmation
+            document.getElementById('confirmLockBtn').onclick = function() {
+                fetch(`/admin/siswa/lock-payment/<%= siswa.id %>/${index}`, {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Gagal mengunci pembayaran: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat mengunci pembayaran');
+                });
+                
+                // Hide the modal
+                lockModal.hide();
+            };
+        }
+
+        function showInvoice(index) {
+            const paymentHistory = <%- JSON.stringify(paymentHistory) %>;
+            const siswa = <%- JSON.stringify(siswa) %>;
+            const payment = paymentHistory[index];
+            
+            // Generate invoice number (you might want to store this in the database)
+            const invoiceNumber = `INV-${siswa.id}-${new Date(payment.date).getFullYear()}${String(index + 1).padStart(4, '0')}`;
+            
+            // Format date more formally for invoice
+            const paymentDate = new Date(payment.date);
+            const formattedDate = new Intl.DateTimeFormat('id-ID', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            }).format(paymentDate);
+            
+            // Fill invoice details
+            document.getElementById('invoice-number').textContent = invoiceNumber;
+            document.getElementById('invoice-date').textContent = formattedDate;
+            document.getElementById('invoice-student-name').textContent = siswa.nama;
+            document.getElementById('invoice-student-phone').textContent = `Telp: ${siswa.noHp || '-'}`;
+            document.getElementById('invoice-student-address').textContent = siswa.alamat || '-';
+            
+            // Payment details
+            const periodText = payment.period === '1_month' ? '1 Bulan' : '3 Bulan';
+            const description = `Pembayaran Les Periode ${periodText}`;
+            document.getElementById('invoice-description').textContent = description;
+            document.getElementById('invoice-period').textContent = periodText;
+            document.getElementById('invoice-period-note').textContent = periodText;
+            document.getElementById('invoice-amount').textContent = `Rp ${payment.amount.toLocaleString('id-ID')}`;
+            document.getElementById('invoice-total').textContent = `Rp ${payment.amount.toLocaleString('id-ID')}`;
+            
+            // Additional sessions
+            if (payment.additionalSessions && payment.additionalSessions > 0) {
+                document.getElementById('invoice-sessions-count').textContent = payment.additionalSessions;
+                document.getElementById('additional-sessions-row').style.display = 'table-row';
+            } else {
+                document.getElementById('additional-sessions-row').style.display = 'none';
+            }
+            
+            // Status formatting with appropriate colors
+            let statusText, statusClass;
+            if (payment.status === 'paid') {
+                statusText = 'LUNAS';
+                statusClass = 'bg-success';
+            } else {
+                statusText = 'BELUM LUNAS';
+                statusClass = 'bg-warning';
+            }
+            document.getElementById('invoice-status').innerHTML = `<span class="badge text-white ${statusClass}">${statusText}</span>`;
+
+            // Show the modal
+            const invoiceModal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+            invoiceModal.show();
+        }
+
+        function exportInvoicePDF() {
+            // Get the invoice content element
+            const element = document.getElementById('invoiceContent');
+            
+            // Create a clone of the element to avoid modifying the original
+            const clone = element.cloneNode(true);
+            const container = document.createElement('div');
+            container.appendChild(clone);
+            
+            // Apply specific PDF export styles to the clone
+            clone.classList.add('pdf-mode');
+            clone.style.width = '210mm'; // A4 width
+            clone.style.height = '297mm'; // A4 height
+            clone.style.margin = '0';
+            clone.style.padding = '10mm';
+            
+            // Optimize QR code for the PDF
+            const qrCode = clone.querySelector('.qr-code img');
+            if (qrCode) {
+                qrCode.style.maxWidth = '80px';
+            }
+            
+            // Use more optimized settings for the PDF export
+            const opt = {
+                margin: 0,
+                filename: document.getElementById('invoice-number').textContent + '.pdf',
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true,
+                    letterRendering: true,
+                    logging: false,
+                    // Explicitly set dimensions to A4
+                    width: 793, // 210mm at 96 DPI
+                    height: 1122, // 297mm at 96 DPI
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait',
+                    compress: true,
+                    precision: 16
+                },
+                // Prevent automatic page breaks
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            // Hide the clone container outside the viewport but keep it in the DOM for rendering
+            container.style.position = 'absolute';
+            container.style.top = '-9999px';
+            container.style.left = '-9999px';
+            document.body.appendChild(container);
+            
+            // Wait a moment for the DOM to update
+            setTimeout(() => {
+                // Generate PDF with more robust error handling
+                html2pdf()
+                    .from(clone)
+                    .set(opt)
+                    .save()
+                    .then(() => {
+                        // Clean up - remove the temporary container
+                        document.body.removeChild(container);
+                    })
+                    .catch(error => {
+                        console.error('PDF generation error:', error);
+                        alert('Terjadi kesalahan saat membuat PDF. Silakan coba lagi.');
+                        document.body.removeChild(container);
+                    });
+            }, 100);
+        }
+    </script>
+
+    <!-- Add Payment Modal -->
+    <div class="modal fade" id="addPaymentModal" tabindex="-1" aria-labelledby="addPaymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header d-flex align-items-center">
+                    <h5 class="modal-title d-flex align-items-center" id="addPaymentModalLabel">
+                        <i data-feather="plus-circle" class="me-2"></i>
+                        Tambah Pembayaran
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/admin/siswa/add-payment/<%= siswa.id %>" method="POST" onsubmit="logFormSubmission(event)">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Jumlah Pembayaran</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" class="form-control" id="amount" name="amount" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Tanggal Pembayaran</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="period" class="form-label">Periode</label>
+                            <select class="form-select" id="period" name="period" required>
+                                <option value="1_month">1 Bulan</option>
+                                <option value="3_months">3 Bulan</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="additionalSessions" class="form-label">Tambah Pertemuan</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="additionalSessions" name="additionalSessions" 
+                                       min="0" value="0" required>
+                                <span class="input-group-text">pertemuan</span>
+                            </div>
+                            <div class="form-text">Jumlah pertemuan yang akan ditambahkan</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="paid">Lunas</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Payment Modal -->
+    <div class="modal fade" id="editPaymentModal" tabindex="-1" aria-labelledby="editPaymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header d-flex align-items-center">
+                    <h5 class="modal-title d-flex align-items-center" id="editPaymentModalLabel">
+                        <i data-feather="edit-3" class="me-2"></i>
+                        Edit Pembayaran
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/admin/siswa/edit-payment/<%= siswa.id %>" method="POST" onsubmit="logFormSubmission(event)">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit-payment-index" name="index">
+                        <div class="mb-3">
+                            <label for="edit-amount" class="form-label">Jumlah Pembayaran</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" class="form-control" id="edit-amount" name="amount" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-date" class="form-label">Tanggal Pembayaran</label>
+                            <input type="date" class="form-control" id="edit-date" name="date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-period" class="form-label">Periode</label>
+                            <select class="form-select" id="edit-period" name="period" required>
+                                <option value="1_month">1 Bulan</option>
+                                <option value="3_months">3 Bulan</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-additionalSessions" class="form-label">Tambah Pertemuan</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="edit-additionalSessions" name="additionalSessions" 
+                                       min="0" value="0" required>
+                                <span class="input-group-text">pertemuan</span>
+                            </div>
+                            <div class="form-text">Jumlah pertemuan yang akan ditambahkan</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-status" class="form-label">Status</label>
+                            <select class="form-select" id="edit-status" name="status" required>
+                                <option value="paid">Lunas</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

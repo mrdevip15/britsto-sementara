@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title><%= kelas ? 'Edit' : 'Tambah' %> Kelas - Admin Dashboard</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="nav-fixed">
+    <%- include('partials/topNav') %>
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="users"></i></div>
+                                        <%= kelas ? 'Edit' : 'Tambah' %> Kelas
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="card mb-4">
+                        <div class="card-header"><%= kelas ? 'Edit Kelas' : 'Tambah Kelas Baru' %></div>
+                        <div class="card-body">
+                            <form action="<%= kelas ? `/admin/class/edit/${kelas.id}` : '/admin/class/tambah' %>" method="POST">
+                                <div class="mb-3">
+                                    <label class="small mb-1" for="name">Nama Kelas</label>
+                                    <input class="form-control" id="name" name="name" type="text" 
+                                           value="<%= kelas ? kelas.name : '' %>" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="small mb-1" for="description">Deskripsi</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3"><%= kelas ? kelas.description : '' %></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="small mb-1" for="fee">Biaya Per Pertemuan</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp</span>
+                                        <input class="form-control" id="fee" name="fee" type="number" 
+                                               value="<%= kelas ? kelas.fee : '50000' %>" required>
+                                    </div>
+                                    <small class="text-muted">Biaya ini adalah pendapatan tentor untuk satu sesi kelas</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="small mb-1" for="mataPelajaran">Mata Pelajaran</label>
+                                    <select class="form-select" id="mataPelajaran" name="mataPelajaran" multiple>
+                                        <option value="MTK" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('MTK') ? 'selected' : '' %>>Matematika</option>
+                                        <option value="IPA" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('IPA') ? 'selected' : '' %>>IPA</option>
+                                        <option value="IPAS" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('IPAS') ? 'selected' : '' %>>IPAS</option>
+                                        <option value="KIMIA" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('KIMIA') ? 'selected' : '' %>>Kimia</option>
+                                        <option value="FISIKA" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('FISIKA') ? 'selected' : '' %>>Fisika</option>
+                                        <option value="BIOLOGI" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('BIOLOGI') ? 'selected' : '' %>>Biologi</option>
+                                        <option value="BINDO" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('BINDO') ? 'selected' : '' %>>Bahasa Indonesia</option>
+                                        <option value="BING" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('BING') ? 'selected' : '' %>>Bahasa Inggris</option>
+                                        <option value="IPS" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('IPS') ? 'selected' : '' %>>IPS</option>
+                                        <option value="PPKN" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('PPKN') ? 'selected' : '' %>>PPKN</option>
+                                        <option value="PAI" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('PAI') ? 'selected' : '' %>>PAI</option>
+                                        <option value="PBM" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('PBM') ? 'selected' : '' %>>PBM</option>
+                                        <option value="PPU" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('PPU') ? 'selected' : '' %>>PPU</option>
+                                        <option value="PU" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('PU') ? 'selected' : '' %>>PU</option>
+                                        <option value="PK" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('PK') ? 'selected' : '' %>>PK</option>
+                                        <option value="LBI" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('LBI') ? 'selected' : '' %>>LBI</option>
+                                        <option value="LBE" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('LBE') ? 'selected' : '' %>>LBE</option>
+                                        <option value="PM" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('PM') ? 'selected' : '' %>>PM</option>
+                                        <option value="English" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('English') ? 'selected' : '' %>>English</option>
+                                        <option value="Sosiologi" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('Sosiologi') ? 'selected' : '' %>>Sosiologi</option>
+                                        <option value="Ekonomi" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('Ekonomi') ? 'selected' : '' %>>Ekonomi</option>
+                                        <option value="Geografi" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('Geografi') ? 'selected' : '' %>>Geografi</option>
+                                        <option value="Sejarah" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('Sejarah') ? 'selected' : '' %>>Sejarah</option>
+                                        <option value="TIU" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('TIU') ? 'selected' : '' %>>TIU</option>
+                                        <option value="TWK" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('TWK') ? 'selected' : '' %>>TWK</option>
+                                        <option value="TKP" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('TKP') ? 'selected' : '' %>>TKP</option>
+                                        <option value="TIK" <%= kelas && kelas.mataPelajaran && kelas.mataPelajaran.includes('TIK') ? 'selected' : '' %>>TIK</option>
+                                    </select>
+                                    <small class="text-muted">Pilih mata pelajaran yang akan diajarkan di kelas ini</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="small mb-1" for="siswaIds">Pilih Siswa</label>
+                                    <select class="form-select" id="siswaIds" name="siswaIds" multiple required>
+                                        <% siswas.forEach(siswa => { %>
+                                            <option value="<%= siswa.id %>" 
+                                                <%= kelas && kelas.studentIds && kelas.studentIds.includes(Number(siswa.id)) ? 'selected' : '' %>>
+                                                <%= siswa.nama %>
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+
+                                <% if (kelas) { %>
+                                    <div class="mb-3">
+                                        <label class="small mb-1" for="isActive">Status</label>
+                                        <select class="form-select" id="isActive" name="isActive">
+                                            <option value="true" <%= kelas && kelas.isActive ? 'selected' : '' %>>Aktif</option>
+                                            <option value="false" <%= kelas && !kelas.isActive ? 'selected' : '' %>>Tidak Aktif</option>
+                                        </select>
+                                    </div>
+                                <% } %>
+
+                                <button class="btn btn-primary" type="submit">
+                                    <%= kelas ? 'Update Kelas' : 'Tambah Kelas' %>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script>
+        $(document).ready(function() {
+            const siswaIds = $('#siswaIds');
+            const mataPelajaran = $('#mataPelajaran');
+            
+            siswaIds.select2({
+                placeholder: 'Pilih siswa untuk kelas ini',
+                allowClear: true
+            });
+            
+            mataPelajaran.select2({
+                placeholder: 'Pilih mata pelajaran untuk kelas ini',
+                allowClear: true
+            });
+
+            // Log selected students on page load
+         
+
+            // Detailed form submission logging
+            $('form').on('submit', function(e) {
+                const selectedStudents = siswaIds.val();
+            
+                
+                if (!selectedStudents || selectedStudents.length === 0) {
+                    e.preventDefault();
+                    alert('Harap pilih setidaknya satu siswa');
+                    return false;
+                }
+            });
+        });
+    </script>
+    
+    <!-- Load essential scripts for layout functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.feather) {
+    feather.replace();
+  }
+});
+</script>
+</body>
+</html> 

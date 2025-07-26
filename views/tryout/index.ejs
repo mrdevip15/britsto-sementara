@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+	<title>Simulasi Tes</title>
+    <%- include('../partials/head') %>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="msapplication-TileColor" content="#da532c">
+	<meta name="theme-color" content="#ffffff">
+  <style>
+    body {
+        user-select: none; /* Disable text selection */
+        -webkit-user-select: none; /* For Safari */
+        -moz-user-select: none; /* For Firefox */
+    }
+</style>
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$']],
+            displayMath: [['$$', '$$']],
+        },
+        svg: {
+            fontCache: 'global'
+        },
+        options: {
+            ignoreHtmlClass: "ignore-math" // Skip elements with this class
+        }
+    };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        const examId = "<%= examId %>";
+        const durasi = "<%= durasi %>";
+        const token = "<%= user.tokens[0] %>";
+        let questions = JSON.parse(`<%- JSON.stringify(questions).replace(/\\/g, '\\\\').replace(/'/g, "\\'") %>`);
+        const ANSWER = JSON.parse(`<%- JSON.stringify(answer).replace(/\\/g, '\\\\').replace(/'/g, "\\'") %>`);
+        const examStartDate = "<%= mapel.tanggalMulai %>";
+        const examEndDate = "<%= mapel.tanggalBerakhir %>";
+
+     
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </head>
+    <body>
+    <div class="container-fluid fadeInDown mb-0" style="margin-top:10px;">
+    <div class="row">
+        <div class="col-sm-12" style="border:0px solid red">
+            <div class="text-left pt-3 pb-2 mb-2" id="formContent">
+            <div class="row row-atas "> 
+                <div class="col-sm-4 "><div style="font-size:20px;font-weight:bold">Brits Edu Center</div> <div style="font-size:14px;color:#000">Simulasi | Seleksi Nasional Penerimaan Mahasiswa Baru </div></div>
+                <div class="col-sm-4 text-center"><div style="font-size:14px;color:#576574">Nomor Soal</div> <div style="font-size:20px;font-weight:bold" id="noSoal">1</div></div>
+                <div class="col-sm-4 text-right pb-1">
+                    <table class="top-table">
+                        <tbody>
+                            <tr>
+                                <td class="text-left pl-2" style="border-right:1px solid #eee width: 50%;">
+                                    <div style="font-size:14px;color:#000000">Sisa Waktu</div>
+                                    <div style="font-size:20px;font-weight:bold">00:10:51</div>
+                                </td>
+                                <td class="text-right pr-2">
+                                    <!-- New div for IP and latency info -->
+                                    <div>
+                                        <h5 style="margin: 0; font-size: 16px;">103.47.135.115</h5>
+                                        <span style="font-size:14px;color:#01a3a4">22 ms</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                </div>
+
+            </div>
+
+            <div class="row pl-3 pr-3 pb-2 mb-1"> 
+                <div class="col" style="border-bottom:1px solid #eee"></div>
+            </div>
+            <div class="row pl-3 pr-3 pb-2 mb-2" > 
+                <div class="col-sm-2 col-md-4 col-lg-2"  style="padding: 0;">
+                    <div class="parent-foto-profil">
+                        <div class="foto-profil bg-primary d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%; color: white; font-weight: bold; font-size: 24px; margin: 0 auto;">
+                            <%= user.nama ? user.nama.charAt(0).toUpperCase() : 'U' %>
+                        </div>
+                    </div>
+                    <div class="text-center mt-1 p-2 " style="border:1px solid #eee;border-radius:5px">
+                        <div style="font-size:20px;font-family:courier"><strong>USER-<%= user.id.toString().padStart(6, '0') %></strong></div>
+                        <div style="font-size:14px;"><strong><%= user.nama %></strong></div>
+                    </div>
+
+                    <div class="text-center mt-1 p-2" style="border:1px solid #eee;">
+                        <div style="font-size:14px;"><strong><%= kategori %></strong></div>
+                        <div style="font-size:14px;color:#576574"><%= mapel %></div>
+                    </div>
+                    <div class="text-center mt-1 container-soal" style="border:1px solid #eee;">
+                        <% let counter = 1%>
+                        <% for(var j = 1 ; j <= questions.length; j++){%>
+                            <div class="kotak-soal" onclick="updateSoalNumber(this)"><span class="kotal-soal--item"><%= counter %></span>
+                            </div>
+                            <%  counter +=1%>
+                        <%}%>
+                    </div>
+                </div>
+                <div class="col-sm-10 col-md-8 col-lg-10 p-3 watermark-container" id="isisoal" style="border-style: solid; border-color: rgb(238, 238, 238); border-image: initial; font-size: 13px;">
+                    <div class="soal-soal row" id="soal-no-1"><div class="col-lg-12 cont-soal" style="padding-right:20px;"><!--?xml encoding="utf-8" ?--><!--?xml encoding="utf-8" ?-->
+    <!-- Put content here -->
+    <div id="question-container" style="font-size: 16px;">
+    
+    </div>
+    <div class="table-responsive" id="pgkompleks">
+        <table class="table table-bordered quiz-table">
+            <thead>
+              <tr>
+                <th scope="col">Pernyataan</th>
+                <th scope="col" id="kbenar">Benar</th>
+                <th scope="col" id="ksalah">Salah</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="pilihanK" id="pilihanKa">
+                <td scope="row" id="ka_label" style="text-align: justify;">Makan tengah hari membuatmu mengantuk dan tidak produktif</td>
+                <td><input value="a1" id="A1" type="checkbox" name="answerA"></td>
+                <td><input value="a2" id="A2" type="checkbox" name="answerA"></td>
+              </tr>
+              <tr class="pilihanK" id="pilihanKb">
+                <td scope="row" id="kb_label" style="text-align: justify;">Kucing punya 9 nyawa</td>
+                <td><input value="b1" id="B1" type="checkbox" name="answerB"></td>
+                <td><input value="b2" id="B2" type="checkbox" name="answerB"></td>
+              </tr>
+              <tr class="pilihanK" id="pilihanKc">
+                <td scope="row" id="kc_label" style="text-align: justify;">Oksigen pertama kali ditemukan 1980</td>
+                <td><input value="c1" id="C1" type="checkbox" name="answerC"></td>
+                <td><input value="c2" id="C2" type="checkbox" name="answerC"></td>
+              </tr>
+              <tr class="pilihanK" id="pilihanKd">
+                <td scope="row" id="kd_label" style="text-align: justify;">Gravitasi itu tidak ada</td>
+                <td><input value="d1" id="D1" type="checkbox" name="answerD"></td>
+                <td><input value="d2" id="D2" type="checkbox" name="answerD"></td>
+              </tr>
+              <tr class="pilihanK" id="pilihanKe">
+                <td scope="row" id="ke_label" style="text-align: justify;">Brits Edu Center</td>
+                <td><input value="e1" id="E1" type="checkbox" name="answerE"></td>
+                <td><input value="e2" id="E2" type="checkbox" name="answerE"></td>
+              </tr>
+            </tbody>
+          </table>
+          
+    </div>
+    <div class="opsi" style="font-size: 16px; display: block;" id="pgbiasa">
+        <table class="table table-borderless" style="max-width: 600px;">
+
+            <tbody>
+              <tr>
+                <td style="width: 10px;"><input type="checkbox" name="opsi" value="a"></td>
+                <td><div id="opsiA"></div></td>
+              </tr>
+              <tr>
+                <td><input  type="checkbox" name="opsi" value="b"></td>
+                <td><div id="opsiB"></div></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" name="opsi" value="c"></td>
+                <td><div id="opsiC"></div></td>
+              </tr>
+              <tr>
+                <td><input  type="checkbox" name="opsi" value="d"></td>
+                <td><div id="opsiD"></div></td>
+              </tr>
+              <tr>
+                <td><input  type="checkbox" name="opsi" value="e"></td>
+                <td><div id="opsiE"></div></td>
+              </tr>
+            </tbody>
+          </table>
+    </div>
+    <div class="opsi" style="font-size: 16px; display: none;" id="isian">
+        <div class="form-group">
+            <input type="text" 
+                   class="form-control" 
+                   id="isianJawaban" 
+                   name="isian" 
+                   placeholder="Ketik jawaban Anda di sini"
+                   autocomplete="off">
+            <p style="font-weight:bold" id="isian-hint">Masukkan jawaban dengan ejaan yang tepat</p>
+        </div>
+    </div>
+    <!-- Selanjutnya button                    -->
+    <%- include('./partials/navQuestions') %>
+
+
+<link rel="stylesheet" href="<%= hostname %>tryout/css/style.css">
+<script src="<%= hostname %>tryout/js/script.js"></script>
+<script>
+  // Function to prevent content copying and screenshots
+function preventCopyingAndScreenshots() {
+    // Watermark functionality removed
+
+    // Detect screenshot attempts
+    document.addEventListener('keyup', function(e) {
+        // Detect PrintScreen key
+        if (e.key === 'PrintScreen') {
+            navigator.clipboard.writeText('');
+            alert('Screenshots are not allowed!');
+        }
+
+        // Detect Ctrl+Shift+S or Windows+Shift+S (Windows screenshot shortcuts)
+        if (e.ctrlKey && e.shiftKey && e.key === 'S' || e.key === 'Meta' && e.shiftKey && e.key === 'S') {
+            e.preventDefault();
+            alert('Screenshots are not allowed!');
+        }
+    });
+
+    // Prevent right-click
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        alert('Right-click is disabled');
+    });
+
+    // Disable keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Prevent Ctrl+S
+        if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
+            e.preventDefault();
+        }
+        // Prevent Ctrl+P (Print)
+        if (e.ctrlKey && (e.key === 'p' || e.key === 'P')) {
+            e.preventDefault();
+            alert('Printing is disabled');
+        }
+        // Prevent Ctrl+Shift+I (Developer Tools)
+        if (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I')) {
+            e.preventDefault();
+            alert('Developer tools are disabled');
+        }
+        // Prevent Ctrl+Shift+C (Developer Tools)
+        if (e.ctrlKey && e.shiftKey && (e.key === 'c' || e.key === 'C')) {
+            e.preventDefault();
+            alert('Developer tools are disabled');
+        }
+        // Prevent F12 (Developer Tools)
+        if (e.key === 'F12') {
+            e.preventDefault();
+            alert('Developer tools are disabled');
+        }
+    });
+
+    // Disable drag and drop
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+    });
+
+    // Disable copy
+    document.addEventListener('copy', function(e) {
+        e.preventDefault();
+    });
+
+    // Disable cut
+    document.addEventListener('cut', function(e) {
+        e.preventDefault();
+    });
+
+    // Disable paste
+    document.addEventListener('paste', function(e) {
+        e.preventDefault();
+    });
+
+    // Watermark creation removed
+
+    // Detect visibility change (tab switching)
+
+}
+
+// Call the function when the page loads
+document.addEventListener('DOMContentLoaded', preventCopyingAndScreenshots);
+
+// Watermark resize handler removed
+</script>
+
+
+    </body>
+</html>

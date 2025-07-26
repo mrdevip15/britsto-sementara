@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Manajemen Kelas - Admin Dashboard</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+    <!-- Add SweetAlert2 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="nav-fixed">
+    <%- include('partials/topNav') %>
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="users"></i></div>
+                                        Manajemen Kelas
+                                    </h1>
+                                </div>
+                                <div class="col-12 col-xl-auto mt-4">
+                                    <a class="btn btn-white" href="/admin/class/tambah">
+                                        <i data-feather="plus"></i>
+                                        Tambah Kelas Baru
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="card mb-4">
+                        <div class="card-header">Daftar Kelas</div>
+                        <div class="card-body">
+                            <!-- Alert placeholder - will be populated by JavaScript -->
+                            <div class="alert-container"></div>
+                            
+                            <div class="table-responsive">
+                                <table id="datatablesSimple" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Kelas</th>
+                                            <th>Deskripsi</th>
+                                            <th>Jumlah Siswa</th>
+                                            <th>Biaya Per Siswa</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% classes.forEach(kelas => { %>
+                                            <tr>
+                                                <td><%= kelas.name %></td>
+                                                <td><%= kelas.description %></td>
+                                                <td>
+                                                    <% if (Array.isArray(kelas.studentIds)) { %>
+                                                        <%= kelas.studentIds.length %>
+                                                    <% } else { %>
+                                                        0
+                                                    <% } %>
+                                                </td>
+                                                <td>Rp <%= kelas.fee.toLocaleString('id-ID') %></td>
+                                                <td>
+                                                    <span class="badge text-white <%= kelas.isActive ? 'bg-success' : 'bg-danger' %>">
+                                                        <%= kelas.isActive ? 'Aktif' : 'Tidak Aktif' %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="/admin/class/edit/<%= kelas.id %>" class="btn btn-sm btn-primary">
+                                                        <i data-feather="edit-2" class="feather-sm"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-danger delete-class-btn" 
+                                                            data-id="<%= kelas.id %>" data-name="<%= kelas.name %>"
+                                                            data-students="<%= Array.isArray(kelas.studentIds) ? kelas.studentIds.length : 0 %>">
+                                                        <i data-feather="trash-2" class="feather-sm"></i>
+                                                    </button>
+                                                    <form id="delete-form-<%= kelas.id %>" action="/admin/class/delete/<%= kelas.id %>" method="POST" class="d-none">
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+    <script>
+        // Initialize DataTable
+        const datatablesSimple = document.getElementById('datatablesSimple');
+        if (datatablesSimple) {
+            const dataTable = new simpleDatatables.DataTable(datatablesSimple, {
+                perPage: 10,
+                searchable: true,
+                sortable: true,
+                afterRender: () => {
+                    setTimeout(() => {
+                        feather.replace();
+                    }, 100);
+                }
+            });
+
+            // Handle all table events that might affect the DOM
+            const events = [
+                'datatable.perpage',
+                'datatable.sort',
+                'datatable.page',
+                'datatable.search'
+            ];
+
+            events.forEach(event => {
+                dataTable.on(event, () => {
+                    setTimeout(() => {
+                        feather.replace();
+                    }, 100);
+                });
+            });
+        }
+
+        // Replace URL parameters handling with SweetAlert2 implementation
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const error = urlParams.get('error');
+
+            if (message || error) {
+                Swal.fire({
+                    title: error ? 'Error!' : 'Berhasil!',
+                    text: message || error,
+                    icon: error ? 'error' : 'success',
+                    confirmButtonColor: error ? '#dc3545' : '#28a745',
+                    confirmButtonText: 'OK'
+                });
+
+                // Clear the URL parameters
+                const url = new URL(window.location.href);
+                url.searchParams.delete('message');
+                url.searchParams.delete('error');
+                window.history.replaceState({}, document.title, url);
+            }
+
+            // Setup delete class buttons
+            document.querySelectorAll('.delete-class-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const classId = this.getAttribute('data-id');
+                    const className = this.getAttribute('data-name');
+                    const studentCount = parseInt(this.getAttribute('data-students'));
+                    
+                    // Different validation based on whether the class has students
+                    if (studentCount > 0) {
+                        Swal.fire({
+                            title: 'Peringatan!',
+                            html: `Kelas <strong>${className}</strong> masih memiliki <strong>${studentCount}</strong> siswa terdaftar.<br>
+                                  Menghapus kelas ini akan menghapus semua asosiasi siswa.<br><br>
+                                  <small class="text-danger">Catatan: Kelas dengan jadwal tidak dapat dihapus. Server akan memvalidasi ini.</small>`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Ya, Hapus!',
+                            cancelButtonText: 'Batal',
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Double confirmation when there are students
+                                Swal.fire({
+                                    title: 'Apakah Anda yakin?',
+                                    text: "Tindakan ini tidak dapat dibatalkan!",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#dc3545',
+                                    cancelButtonColor: '#6c757d',
+                                    confirmButtonText: 'Ya, Hapus!',
+                                    cancelButtonText: 'Batal'
+                                }).then((finalResult) => {
+                                    if (finalResult.isConfirmed) {
+                                        document.getElementById(`delete-form-${classId}`).submit();
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        // Simple confirmation for classes with no students
+                        Swal.fire({
+                            title: 'Hapus Kelas?',
+                            html: `Apakah Anda yakin ingin menghapus kelas "<strong>${className}</strong>"?<br><br>
+                                  <small class="text-danger">Catatan: Kelas dengan jadwal tidak dapat dihapus. Server akan memvalidasi ini.</small>`,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Ya, Hapus!',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById(`delete-form-${classId}`).submit();
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+    
+    <!-- Load essential scripts for layout functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+</body>
+</html> 

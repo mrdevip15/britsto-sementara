@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Brits Edu Center</title>
+    <%- include('./partials/head') %>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800&amp;display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <link rel="stylesheet" href="<%= hostname %>assets/css/form.css">
+</head>
+<body>
+    <!-- multistep form -->
+<form id="msform" method="POST" action="/signup">
+    <!-- progressbar -->
+    <ul id="progressbar">
+      <li class="active">Buat Akun</li>
+      <li>Data Orang Tua/ Wali</li>
+      <li>Data Diri</li>
+    </ul>
+    <!-- fieldsets -->
+    <fieldset>
+      <h2 class="fs-title">Buat akunmu</h2>
+      <h3 id="subtitle"  class="fs-subtitle">Jangan sampai lupa yaa</h3>
+      <span class="error-message" id="email-error"></span>
+      <input type="text" name="email" placeholder="Email" />
+     
+      <span class="error-message" id="pass-error"></span>
+      <input type="password" name="password" placeholder="Password" />
+     
+      <span class="error-message" id="cpass-error"></span>
+      <input type="password" name="cpass" placeholder="Confirm Password" />
+      <p id="login-text">Sudah punya akun? login di <a href="/login" style="font-style: italic; color: black;">sini</a></p>
+      <a id="google-login" href="/auth/google" class="next action action-button" style="background-color: #572120;"><img src="<% hostname %>assets/img/google-logo.png" alt="google-ico" width="25px" style="transform:translate(-7%,30%); ">Daftar dengan Google</a>
+      <input type="button" name="next" class="next action-button" value="Selanjutnya" />
+    </fieldset>
+    <fieldset>
+      <h2 class="fs-title">Data Orang Tua/ Wali</h2>
+      <h3 class="fs-subtitle">Jangan sampai salah isi ya</h3>
+      <span class="error-message" id="namaOrtu-error"></span>
+      <input type="text" name="nama_ortu" placeholder="Nama Lengkap Orang Tua/ Wali" />
+     
+      <span class="error-message" id="noHpOrtu-error"></span>
+      <input type="text" name="no_hp_ortu" placeholder="No Hp Orang Tua/ Wali" />
+    
+      <input type="button" name="previous" class="previous action-button" value="Sebelumnya" />
+      <input type="button" name="next" class="next action-button" value="Selanjutnya" />
+    </fieldset>
+<!-- Personal Details Step -->
+<fieldset>
+    <h2 class="fs-title">Data Diri</h2>
+    <h3 class="fs-subtitle">Isi data dirimu dengan benar</h3>
+
+    <div class="form-container">
+        <div class="form-group">
+            <label class="form-label">Nama Lengkap</label>
+            <span class="error-message" id="nama-error"></span>
+            <input type="text" id="name" name="nama" placeholder="Nama">
+            
+        </div>
+        <div class="form-group">
+            <label class="form-label">Asal Sekolah</label>
+            <span class="error-message" id="asalSekolah-error"></span>
+            <input type="text" id="asal_sekolah" name="asal_sekolah" placeholder="Asal Sekolah">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Paket</label>
+                <select class="form-control" name="paket" id="jenisPaket" onchange="updateProgramOptions()">
+                    <option value="privat">Belajar Privat</option>
+                    <option value="snbt">SNBT 2025</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Jenjang</label>
+                <select class="form-control" name="jenjang" id="jenjang">
+                    <option value="sd">SD </option>
+                    <option value="smp">SMP</option>
+                    <option value="sma">SMA</option>
+                    <option value="alumni">Alumni & Gap Year</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Program yang dipilih</label>
+            <select class="form-control" name="program" id="program" onchange="showProgramDetails()" style="margin-bottom: 3px;">
+                <option value="gg-lite">GG Lite</option>
+                <option value="gg-pro">GG Pro</option>
+                <option value="gg-plus">GG Plus</option>
+                <option value="gg-promax">GG Pro Max</option>
+
+            </select>
+            <div id="programDetails" style="text-align: start; margin-bottom: 10px; font-size: 12px; padding-left:20px ;">
+                <ul>
+                    <li>Deskripsi: Paket 1 bulan, total 12 sesi (3x seminggu), khusus 1 mata pelajaran pilihan.</li>
+                    <li>Pembayaran: Bisa dilunasi di akhir bulan dengan DP 50%.</li>
+                    <li>Harga: Rp1.5 JT</li>
+                </ul>
+    
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">No HP</label>
+                <span class="error-message" id="phone-error"></span>
+                <input type="text" id="phone" name="phone" placeholder="0853..."> 
+            </div>
+        </div>
+        
+        
+       
+
+    </div>
+
+    <input type="button" name="previous" class="previous action-button" value="Sebelumnya" />
+    <input type="submit" value="Kirim" class="submit action-button">
+</fieldset>
+
+  </form>
+  <footer class="footer">
+    <p>Copyright © <a style="color: white;" href="<%= hostname %>">Brits Edu Center</a> 2024 | mr.d</p> 
+  </footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+ 
+  <script src="<% hostname %>assets/js/form-validation.js"></script>
+  <script src="<% hostname %>assets/js/form-programUpdate.js"></script>
+  <script src="<% hostname %>assets/js/form.js"></script>
+  <script src="<% hostname %>assets/js/urlParseOrder.js"></script>
+  <!-- script to update program and its description -->
+  <script>
+   
+</script>
+</body>
+</html>

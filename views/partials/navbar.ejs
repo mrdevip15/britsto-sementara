@@ -1,0 +1,33 @@
+<nav class="navbar navbar-expand-md fixed-top navbar-shrink navbar-light" id="mainNav">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="/" >
+            <span class="navbar-brand">
+                BritsEdu
+            </span>
+        </a>
+        <button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-1">
+            <span class="visually-hidden">Toggle navigation</span>
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navcol-1">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item text-center">
+                    <a class="nav-link <%= activePage === 'home' ? 'active' : '' %>" href="/">Home</a>
+                </li>
+                <li class="nav-item text-center">
+                    <a class="nav-link <%= activePage === 'to-snbt' ? 'active' : '' %>" href="to-snbt">Practice Tests</a>
+                </li>
+                <li class="nav-item text-center">
+                    <a class="nav-link <%= activePage === 'analytics' ? 'active' : '' %>" href="#analytics">Analytics</a>
+                </li>
+                <li class="nav-item text-center">
+                    <a class="nav-link <%= activePage === 'question-bank' ? 'active' : '' %>" href="#question-bank">Question Bank</a>
+                </li>
+                <li class="nav-item text-center button-masuk">
+                    <a class="btn btn-primary text-center shadow" role="button" href="/daftar" 
+                    style="border-radius: 22px;width: 100px;">Register</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

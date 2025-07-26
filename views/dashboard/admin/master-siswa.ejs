@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Master Siswa - Admin Dashboard</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+    <!-- Add SweetAlert2 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="nav-fixed">
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Yakin ingin menghapus siswa <strong><span id="siswaName"></span></strong>?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
+                    <form id="deleteForm" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Hapus</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/topNav') %>
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="user"></i></div>
+                                        Manajemen Siswa
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="card mb-4">
+                        <div class="card-header">Daftar Siswa</div>
+                        <div class="card-body">
+                            <!-- Alert placeholder - will be populated by JavaScript -->
+                            <div class="alert-container"></div>
+                            
+                            <div class="table-responsive">
+                                <table id="datatablesSimple" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Panggilan</th>
+                                            <th>Nama Lengkap</th>
+                                            <th>No HP</th>
+                                            <th>Sisa Kuota</th>
+                                            <th>Periode Bayar</th>
+                                            <th>Tipe Bayar</th>
+                                            <th>Tanggal Bayar</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% siswas.forEach(siswa => { %>
+                                            <tr>
+                                                <td><%= siswa.nama %></td>
+                                                <td><%= siswa.namaLengkap || '-' %></td>
+                                                <td><%= siswa.noHp || '-' %></td>
+                                                <td><%= siswa.sisaKuotaBelajar %></td>
+                                                <td>
+                                                    <% if(siswa.paymentPeriod === '1_month') { %>
+                                                        1 Bulan
+                                                    <% } else { %>
+                                                        3 Bulan
+                                                    <% } %>
+                                                </td>
+                                                <td>
+                                                    <% if(siswa.paymentType === 'pre_paid') { %>
+                                                        Bayar Dimuka
+                                                    <% } else { %>
+                                                        Bayar Diakhir
+                                                    <% } %>
+                                                </td>
+                                                <td>
+                                                    <% if(siswa.tanggalBayarTerakhir) { %>
+                                                        <%= new Date(siswa.tanggalBayarTerakhir).toLocaleDateString('id-ID') %>
+                                                    <% } else { %>
+                                                        -
+                                                    <% } %>
+                                                </td>
+                                                <td>
+                                                    <span class="badge text-white bg-<%= siswa.isActive ? 'success' : 'danger' %>">
+                                                        <%= siswa.isActive ? 'Aktif' : 'Nonaktif' %>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn-group" role="group">
+                                                        <button class="btn btn-datatable btn-icon btn-outline-info me-2"
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#detailModal"
+                                                                data-siswa-id="<%= siswa.id %>"
+                                                                data-siswa-detail="<%= JSON.stringify(siswa) %>"
+                                                                title="Detail">
+                                                            <i data-feather="info"></i>
+                                                        </button>
+                                                        <button class="btn btn-datatable btn-icon btn-outline-secondary me-2"
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#sessionsModal"
+                                                                data-siswa-id="<%= siswa.id %>"
+                                                                data-siswa-nama="<%= siswa.nama %>"
+                                                                title="Sesi">
+                                                            <i data-feather="calendar"></i>
+                                                        </button>
+                                                        <a href="/admin/siswa/payment-history/<%= siswa.id %>" 
+                                                           class="btn btn-datatable btn-icon btn-outline-primary me-2"
+                                                           title="Riwayat Pembayaran">
+                                                            <i data-feather="credit-card"></i>
+                                                        </a>
+                                                        <a href="/admin/siswa/edit/<%= siswa.id %>" 
+                                                           class="btn btn-datatable btn-icon btn-outline-warning me-2" 
+                                                           title="Edit">
+                                                            <i data-feather="edit-2"></i>
+                                                        </a>
+                                                        <button class="btn btn-datatable btn-icon btn-outline-danger" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#deleteModal"
+                                                                data-siswa-id="<%= siswa.id %>"
+                                                                data-siswa-nama="<%= siswa.nama %>"
+                                                                title="Hapus">
+                                                            <i data-feather="trash-2"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-gradient-primary-to-secondary">
+                    <h5 class="modal-title text-white">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Detail Siswa
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-4">
+                        <!-- Personal Information Card -->
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-user me-1"></i>
+                                        Informasi Pribadi
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="small text-muted d-block">Nama Panggilan</label>
+                                        <div class="fw-bold" id="detail-nama"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="small text-muted d-block">Nama Lengkap</label>
+                                        <div class="fw-bold" id="detail-namaLengkap"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="small text-muted d-block">Nomor HP</label>
+                                        <div class="fw-bold" id="detail-noHp"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="small text-muted d-block">Nomor HP Orang Tua</label>
+                                        <div class="fw-bold" id="detail-noHpOrtu"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="small text-muted d-block">Alamat</label>
+                                        <div class="fw-bold" id="detail-alamat"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academic Information Card -->
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-graduation-cap me-1"></i>
+                                        Informasi Akademik
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="small text-muted d-block">Asal Sekolah</label>
+                                        <div class="fw-bold" id="detail-asalSekolah"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="small text-muted d-block">Tingkat</label>
+                                        <div class="fw-bold">
+                                            <span class="badge text-white bg-primary" id="detail-tingkat"></span>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="small text-muted d-block">Kurikulum</label>
+                                        <div class="fw-bold">
+                                            <span class="badge text-white bg-info" id="detail-kurikulum"></span>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="small text-white text-muted d-block">Mata Pelajaran</label>
+                                        <div id="detail-mataPelajaran-container"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Information Card -->
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-credit-card me-1"></i>
+                                        Informasi Pembayaran
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label class="small text-muted d-block">Sisa Kuota</label>
+                                            <div class="fw-bold h4 mb-0 text-primary" id="detail-sisaKuota"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="small text-muted d-block">Periode Bayar</label>
+                                            <div class="fw-bold" id="detail-periodeBayar"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="small text-muted d-block">Tipe Pembayaran</label>
+                                            <div class="fw-bold" id="detail-tipeBayar"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="small text-muted d-block">Tanggal Bayar Terakhir</label>
+                                            <div class="fw-bold" id="detail-tanggalBayar"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="small text-muted d-block">Biaya Per Pertemuan</label>
+                                            <div class="fw-bold">
+                                                Rp <span id="detail-fee"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sessions Modal -->
+    <div class="modal fade" id="sessionsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-gradient-primary-to-secondary">
+                    <h5 class="modal-title text-white">
+                        <i class="fas fa-calendar me-2"></i>
+                        Detail Sesi <span id="siswaSessionName"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <select class="form-select" id="sessionMonth">
+                                    <option value="1">Januari</option>
+                                    <option value="2">Februari</option>
+                                    <option value="3">Maret</option>
+                                    <option value="4">April</option>
+                                    <option value="5">Mei</option>
+                                    <option value="6">Juni</option>
+                                    <option value="7">Juli</option>
+                                    <option value="8">Agustus</option>
+                                    <option value="9">September</option>
+                                    <option value="10">Oktober</option>
+                                    <option value="11">November</option>
+                                    <option value="12">Desember</option>
+                                </select>
+                                <select class="form-select" id="sessionYear">
+                                    <% for(let y = new Date().getFullYear(); y >= 2020; y--) { %>
+                                        <option value="<%= y %>"><%= y %></option>
+                                    <% } %>
+                                </select>
+                                <button class="btn btn-primary" id="filterSessions">
+                                    <i class="fas fa-filter me-2"></i>Filter
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button class="btn btn-success" id="printSessions">
+                                <i class="fas fa-print me-2"></i>Print
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="bg-light">
+                                <tr id="sessionTableHeader">
+                                    <th>Pekan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessionsTableBody">
+                                <!-- Sessions will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="noSessionsMessage" class="text-center text-muted py-4" style="display: none;">
+                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                        <p>Tidak ada sesi untuk periode ini</p>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+    <script>
+        // Initialize DataTable
+        const datatablesSimple = document.getElementById('datatablesSimple');
+        if (datatablesSimple) {
+            const dataTable = new simpleDatatables.DataTable(datatablesSimple, {
+                perPage: 10,
+                searchable: true,
+                sortable: true,
+                afterRender: () => {
+                    setTimeout(() => {
+                        feather.replace();
+                    }, 100);
+                }
+            });
+
+            // Handle all table events that might affect the DOM
+            const events = [
+                'datatable.perpage',
+                'datatable.sort',
+                'datatable.page',
+                'datatable.search'
+            ];
+
+            events.forEach(event => {
+                dataTable.on(event, () => {
+                    setTimeout(() => {
+                        feather.replace();
+                    }, 100);
+                });
+            });
+        }
+
+        // Handle delete modal
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const siswaId = button.getAttribute('data-siswa-id');
+                const siswaNama = button.getAttribute('data-siswa-nama');
+                const deleteForm = document.getElementById('deleteForm');
+                const siswaNameSpan = document.getElementById('siswaName');
+                
+                deleteForm.action = `/admin/siswa/delete/${siswaId}`;
+                siswaNameSpan.textContent = siswaNama;
+            });
+        }
+
+        // Replace with SweetAlert2 implementation
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const error = urlParams.get('error');
+
+            if (message || error) {
+                Swal.fire({
+                    title: error ? 'Error!' : 'Berhasil!',
+                    text: message || error,
+                    icon: error ? 'error' : 'success',
+                    confirmButtonColor: error ? '#dc3545' : '#28a745',
+                    confirmButtonText: 'OK'
+                });
+
+                // Clear the URL parameters
+                const url = new URL(window.location.href);
+                url.searchParams.delete('message');
+                url.searchParams.delete('error');
+                window.history.replaceState({}, document.title, url);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const detailModal = document.getElementById('detailModal');
+            detailModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const siswaDetail = JSON.parse(button.getAttribute('data-siswa-detail'));
+                
+                // Update personal info
+                document.getElementById('detail-nama').textContent = siswaDetail.nama;
+                document.getElementById('detail-namaLengkap').textContent = siswaDetail.namaLengkap || '-';
+                document.getElementById('detail-noHp').textContent = siswaDetail.noHp || '-';
+                document.getElementById('detail-noHpOrtu').textContent = siswaDetail.noHpOrtu || '-';
+                document.getElementById('detail-alamat').textContent = siswaDetail.alamat || '-';
+                
+                // Update academic info
+                document.getElementById('detail-asalSekolah').textContent = siswaDetail.asalSekolah || '-';
+                document.getElementById('detail-tingkat').textContent = siswaDetail.tingkat || '-';
+                document.getElementById('detail-kurikulum').textContent = siswaDetail.kurikulum || '-';
+                
+                // Update mata pelajaran with badges
+                const mapelContainer = document.getElementById('detail-mataPelajaran-container');
+                mapelContainer.innerHTML = '';
+                if (siswaDetail.mataPelajaran && siswaDetail.mataPelajaran.length > 0) {
+                    siswaDetail.mataPelajaran.forEach(mapel => {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge text-white bg-secondary me-1 mb-1';
+                        badge.textContent = mapel;
+                        mapelContainer.appendChild(badge);
+                    });
+                } else {
+                    mapelContainer.textContent = '-';
+                }
+
+                // Update payment info
+                document.getElementById('detail-sisaKuota').textContent = siswaDetail.sisaKuotaBelajar;
+                document.getElementById('detail-periodeBayar').textContent = 
+                    siswaDetail.paymentPeriod === '1_month' ? '1 Bulan' : '3 Bulan';
+                document.getElementById('detail-tipeBayar').textContent = 
+                    siswaDetail.paymentType === 'pre_paid' ? 'Bayar Di muka' : 'Bayar Di akhir';
+                document.getElementById('detail-tanggalBayar').textContent = 
+                    siswaDetail.tanggalBayarTerakhir ? 
+                    new Date(siswaDetail.tanggalBayarTerakhir).toLocaleDateString('id-ID') : '-';
+
+                // Add fee formatting
+                document.getElementById('detail-fee').textContent = 
+                    siswaDetail.fee ? siswaDetail.fee.toLocaleString('id-ID') : '50.000';
+            });
+        });
+
+        // Add session modal handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const sessionsModal = document.getElementById('sessionsModal');
+            let currentSiswaId = null;
+
+            sessionsModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                currentSiswaId = button.getAttribute('data-siswa-id');
+                const siswaName = button.getAttribute('data-siswa-nama');
+                
+                document.getElementById('siswaSessionName').textContent = siswaName;
+                
+                // Set current month and year
+                const now = new Date();
+                document.getElementById('sessionMonth').value = now.getMonth() + 1;
+                document.getElementById('sessionYear').value = now.getFullYear();
+                
+                // Load sessions
+                loadSessions(currentSiswaId);
+            });
+
+            document.getElementById('filterSessions').addEventListener('click', function() {
+                if (currentSiswaId) {
+                    loadSessions(currentSiswaId);
+                }
+            });
+
+            document.getElementById('printSessions').addEventListener('click', function() {
+                if (currentSiswaId) {
+                    const month = document.getElementById('sessionMonth').value;
+                    const year = document.getElementById('sessionYear').value;
+                    const printUrl = `/admin/siswa/${currentSiswaId}/sessions/print?month=${month}&year=${year}`;
+                    window.open(printUrl, '_blank');
+                }
+            });
+
+            function loadSessions(siswaId) {
+                const month = document.getElementById('sessionMonth').value;
+                const year = document.getElementById('sessionYear').value;
+                const tbody = document.getElementById('sessionsTableBody');
+                const header = document.getElementById('sessionTableHeader');
+                const noSessionsMessage = document.getElementById('noSessionsMessage');
+                
+                // Show loading state
+                tbody.innerHTML = '<tr><td colspan="2" class="text-center"><div class="spinner-border text-primary" role="status"></div></td></tr>';
+                
+                fetch(`/admin/siswa/${siswaId}/sessions?month=${month}&year=${year}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        tbody.innerHTML = '';
+                        
+                        if (data.success && data.sessions.length > 0) {
+                            // Group sessions by week
+                            const weeks = {
+                                'Pekan 1': {},
+                                'Pekan 2': {},
+                                'Pekan 3': {},
+                                'Pekan 4': {},
+                                'Pekan 5': {}
+                            };
+
+                            // Sort sessions by date
+                            data.sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                            function getWeekOfMonth(date) {
+                                // Get the first day of the month
+                                const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                                
+                                // Get the first schedule's day as the start of the week
+                                const firstScheduleDate = data.sessions[0] ? new Date(data.sessions[0].date) : new Date();
+                                const firstScheduleDay = firstScheduleDate.getDay();
+                                
+                                // Calculate days since the first schedule's day
+                                const daysSinceFirstSchedule = Math.floor((date - firstScheduleDate) / (24 * 60 * 60 * 1000));
+                                
+                                // Calculate week number based on the first schedule's day
+                                return Math.floor(daysSinceFirstSchedule / 7) + 1;
+                            }
+
+                            // Group sessions by week and day
+                            const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                            let reorderedDayNames = [...dayNames];
+
+                            if (data.sessions.length > 0) {
+                                const firstScheduleDate = new Date(data.sessions[0].date);
+                                const firstScheduleDay = firstScheduleDate.getDay();
+                                // Reorder days starting from the first schedule's day
+                                reorderedDayNames = [
+                                    ...dayNames.slice(firstScheduleDay),
+                                    ...dayNames.slice(0, firstScheduleDay)
+                                ];
+                            }
+
+                            data.sessions.forEach(session => {
+                                const date = new Date(session.date);
+                                const weekOfMonth = getWeekOfMonth(date);
+                                const dayName = dayNames[date.getDay()];
+                                
+                                const weekKey = `Pekan ${weekOfMonth}`;
+                                if (!weeks[weekKey]) {
+                                    weeks[weekKey] = {};
+                                }
+                                weeks[weekKey][dayName] = {
+                                    date: date.toLocaleDateString('id-ID'),
+                                    mapel: session.mataPelajaran,
+                                    status: session.status
+                                };
+                            });
+
+                            // Get unique days that have sessions
+                            const availableDays = new Set();
+                            Object.values(weeks).forEach(weekDays => {
+                                Object.keys(weekDays).forEach(day => availableDays.add(day));
+                            });
+
+                            // Update table header using reordered days
+                            header.innerHTML = '<th>Pekan</th>';
+                            reorderedDayNames.forEach(day => {
+                                if (availableDays.has(day)) {
+                                    header.innerHTML += `<th>${day}</th>`;
+                                }
+                            });
+
+                            // Create table rows using reordered days
+                            Object.entries(weeks).forEach(([weekName, weekDays]) => {
+                                if (Object.keys(weekDays).length > 0) {
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `<td class="bg-light fw-bold">${weekName}</td>`;
+                                    
+                                    reorderedDayNames.forEach(day => {
+                                        if (availableDays.has(day)) {
+                                            if (weekDays[day]) {
+                                                const isCanceled = weekDays[day].status === 'canceled';
+                                                const badgeClass = isCanceled ? 'bg-danger' : 'bg-primary';
+                                                const textStyle = isCanceled ? 'text-decoration-line-through' : '';
+                                                row.innerHTML += `
+                                                    <td>
+                                                        <div class="small ${textStyle}">${weekDays[day].date}</div>
+                                                        <div class="badge text-white ${badgeClass} ${textStyle}">${weekDays[day].mapel}</div>
+                                                    </td>`;
+                                            } else {
+                                                row.innerHTML += '<td></td>';
+                                            }
+                                        }
+                                    });
+                                    
+                                    tbody.appendChild(row);
+                                }
+                            });
+                            
+                            noSessionsMessage.style.display = 'none';
+                        } else {
+                            noSessionsMessage.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-danger">Error loading sessions</td></tr>';
+                    });
+            }
+        });
+    </script>
+    
+    <!-- Load essential scripts for layout functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+</body>
+</html> 

@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Master Jadwal - Admin Dashboard</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <style>
+        /* Hide edit button for completed schedules */
+        .edit-btn[data-status="completed"] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="nav-fixed">
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus Jadwal</h5>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Anda akan menghapus jadwal dengan detail berikut:</p>
+                    <div class="schedule-details mt-3">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Tanggal</th>
+                                <td id="deleteScheduleDate"></td>
+                            </tr>
+                            <tr>
+                                <th>Waktu</th>
+                                <td id="deleteScheduleTime"></td>
+                            </tr>
+                            <tr>
+                                <th>Tentor</th>
+                                <td id="deleteScheduleTentor"></td>
+                            </tr>
+                            <tr>
+                                <th>Siswa/Kelas</th>
+                                <td id="deleteScheduleStudent"></td>
+                            </tr>
+                            <tr>
+                                <th>Mata Pelajaran</th>
+                                <td id="deleteScheduleSubject"></td>
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                <td id="deleteScheduleStatus"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i data-feather="info" class="me-2"></i>
+                        <span id="deleteScheduleNote"></span>
+                    </div>
+                    <div id="completedScheduleWarning" class="alert alert-danger mt-3" style="display: none;">
+                        <i data-feather="alert-triangle" class="me-2"></i>
+                        <p><strong>Perhatian!</strong> Anda akan menghapus jadwal yang sudah selesai. Tindakan ini akan:</p>
+                        <ul>
+                            <li>Mengembalikan sesi ke kuota siswa</li>
+                            <li>Menghapus pendapatan tentor</li>
+                            <li>Menghapus catatan kehadiran</li>
+                        </ul>
+                        <p>Masukkan password untuk melanjutkan:</p>
+                        <input type="password" class="form-control" id="adminPassword" placeholder="Masukkan password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password for Completed Schedule Modal -->
+    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="passwordModalLabel">Konfirmasi Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i data-feather="alert-triangle" class="me-2"></i>
+                        <strong>Perhatian!</strong> Tindakan ini tidak dapat dibatalkan.
+                    </div>
+                    <p>Masukkan password admin untuk menghapus jadwal yang sudah selesai:</p>
+                    <div class="mb-3">
+                        <input type="password" class="form-control" id="adminPasswordConfirm" placeholder="Password">
+                        <div class="invalid-feedback">Password salah</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteWithPasswordBtn">Hapus Jadwal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Jadwal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editForm" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editDate" class="form-label">Tanggal</label>
+                            <input type="date" class="form-control" id="editDate" name="date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTimeStart" class="form-label">Waktu Mulai</label>
+                            <input type="time" class="form-control" id="editTimeStart" name="timeStart" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTimeEnd" class="form-label">Waktu Selesai</label>
+                            <input type="time" class="form-control" id="editTimeEnd" name="timeEnd" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTentorId" class="form-label">Tentor</label>
+                            <select class="form-select" id="editTentorId" name="tentorId" required>
+                                <% tentors.forEach(tentor => { %>
+                                    <option value="<%= tentor.id %>"><%= tentor.nama %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editType" class="form-label">Tipe Jadwal</label>
+                            <select class="form-select" id="editType" name="type" required>
+                                <option value="individual">Individual</option>
+                                <option value="class">Kelas</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="editSiswaSection">
+                            <label for="editSiswaId" class="form-label">Siswa</label>
+                            <select class="form-select" id="editSiswaId" name="siswaId">
+                                <% siswas.forEach(siswa => { %>
+                                    <option value="<%= siswa.id %>"><%= siswa.nama %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="editClassSection" style="display: none;">
+                            <label for="editClassId" class="form-label">Kelas</label>
+                            <select class="form-select" id="editClassId" name="classId">
+                                <% classes.forEach(kelas => { %>
+                                    <option value="<%= kelas.id %>"><%= kelas.name %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editMataPelajaran" class="form-label">Mata Pelajaran</label>
+                            <select class="form-select" id="editMataPelajaran" name="mataPelajaran" required>
+                                <option value="MTK">Matematika</option>
+                                <option value="IPA">IPA</option>
+                                <option value="IPAS">IPAS</option>
+                                <option value="KIMIA">Kimia</option>
+                                <option value="FISIKA">Fisika</option>
+                                <option value="BIOLOGI">Biologi</option>
+                                <option value="BINDO">Bahasa Indonesia</option>
+                                <option value="BING">Bahasa Inggris</option>
+                                <option value="IPS">IPS</option>
+                                <option value="PPKN">PPKN</option>
+                                <option value="PAI">PAI</option>
+                                <option value="PBM">PBM</option>
+                                <option value="PPU">PPU</option>
+                                <option value="PU">PU</option>
+                                <option value="PK">PK</option>
+                                <option value="LBI">LBI</option>
+                                <option value="LBE">LBE</option>
+                                <option value="PM">PM</option>
+                                <option value="English">English</option>
+                                <option value="Sosiologi">Sosiologi</option>
+                                <option value="Ekonomi">Ekonomi</option>
+                                <option value="Geografi">Geografi</option>
+                                <option value="Sejarah">Sejarah</option>
+                                <option value="TIU">TIU</option>
+                                <option value="TWK">TWK</option>
+                                <option value="TKP">TKP</option>
+                                <option value="TIK">TIK</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editStatus" class="form-label">Status</label>
+                            <select class="form-select" id="editStatus" name="status" required>
+                                <option value="scheduled">Terjadwal</option>
+                                <option value="canceled">Dibatalkan</option>
+                            </select>
+                        </div>
+                 
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this new modal for completion confirmation -->
+    <div class="modal fade" id="completeConfirmModal" tabindex="-1" aria-labelledby="completeConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="completeConfirmModalLabel">Konfirmasi Selesaikan Jadwal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i data-feather="alert-triangle" class="me-2"></i>
+                        <strong>Perhatian!</strong> Tindakan ini tidak dapat dibatalkan.
+                    </div>
+                    <p>Anda akan menandai jadwal ini sebagai selesai. Hal ini akan:</p>
+                    <ul>
+                        <li>Mengurangi sisa kuota pertemuan siswa</li>
+                        <li>Mengunci jadwal dari perubahan</li>
+                        <li>Menambah pendapatan tentor</li>
+                    </ul>
+                    <div class="alert alert-info mt-3">
+                        <i data-feather="info" class="me-2"></i>
+                        <span>Pastikan daftar hadir sudah diisi sebelum melanjutkan.</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="confirmCompleteBtn">Ya, Selesaikan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/topNav') %>
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="calendar"></i></div>
+                                        Manajemen Jadwal
+                                    </h1>
+                                </div>
+                                <div class="col-12 col-xl-auto mt-4">
+                                    <a class="btn btn-white me-2" href="/admin/jadwal/preview">
+                                        <i data-feather="eye"></i>
+                                        Preview Jadwal
+                                    </a>
+                                    <button class="btn btn-info me-2" onclick="sendReminders()">
+                                        <i class="fas fa-bell me-1"></i> Kirim Pengingat H-1
+                                    </button>
+                                    <a class="btn btn-white" href="/admin/jadwal/tambah">
+                                        <i data-feather="plus"></i>
+                                        Tambah Jadwal Baru
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <form class="row align-items-center" method="GET">
+                                <div class="col-md-4">
+                                    <label class="form-label">Bulan</label>
+                                    <select name="month" class="form-select">
+                                        <option value="1" <%= selectedMonth == 1 ? 'selected' : '' %>>Januari</option>
+                                        <option value="2" <%= selectedMonth == 2 ? 'selected' : '' %>>Februari</option>
+                                        <option value="3" <%= selectedMonth == 3 ? 'selected' : '' %>>Maret</option>
+                                        <option value="4" <%= selectedMonth == 4 ? 'selected' : '' %>>April</option>
+                                        <option value="5" <%= selectedMonth == 5 ? 'selected' : '' %>>Mei</option>
+                                        <option value="6" <%= selectedMonth == 6 ? 'selected' : '' %>>Juni</option>
+                                        <option value="7" <%= selectedMonth == 7 ? 'selected' : '' %>>Juli</option>
+                                        <option value="8" <%= selectedMonth == 8 ? 'selected' : '' %>>Agustus</option>
+                                        <option value="9" <%= selectedMonth == 9 ? 'selected' : '' %>>September</option>
+                                        <option value="10" <%= selectedMonth == 10 ? 'selected' : '' %>>Oktober</option>
+                                        <option value="11" <%= selectedMonth == 11 ? 'selected' : '' %>>November</option>
+                                        <option value="12" <%= selectedMonth == 12 ? 'selected' : '' %>>Desember</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tahun</label>
+                                    <select name="year" class="form-select">
+                                        <% for(let y = currentYear; y >= 2023; y--) { %>
+                                            <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %></option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i data-feather="filter" class="me-1"></i>Filter
+                                        </button>
+                                        <a href="/admin/jadwal" class="btn btn-secondary">
+                                            <i data-feather="refresh-cw" class="me-1"></i>Reset
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">Daftar Jadwal</div>
+                        <div class="card-body">
+                            <div class="alert-container"></div>
+                            <div class="table-responsive">
+                                <table id="datatablesSimple" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Waktu</th>
+                                            <th>Tentor</th>
+                                            <th>Siswa</th>
+                                            <th>Mata Pelajaran</th>
+                                            <th>Status</th>
+                                            <th>Kehadiran</th>
+                                            <th>Email</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% schedules.forEach(schedule => { %>
+                                            <tr>
+                                                <td><%= new Date(schedule.date).toLocaleDateString('id-ID') %></td>
+                                                <td><%= schedule.timeStart %> - <%= schedule.timeEnd %></td>
+                                                <td><%= schedule.tentor.nama %></td>
+                                                <td>
+                                                    <% if (schedule.type === 'class') { %>
+                                                        <% if (schedule.Class) { %>
+                                                            <%= schedule.Class.name %>
+                                                        <% } else { %>
+                                                            <% const kelas = classes.find(k => k.id === schedule.classId) %>
+                                                            <%= kelas ? kelas.name : 'Kelas tidak ditemukan' %>
+                                                        <% } %>
+                                                    <% } else { %>
+                                                        <%= schedule.siswa ? schedule.siswa.nama : 'Siswa tidak ditemukan' %>
+                                                    <% } %>
+                                                </td>
+                                                <td><%= schedule.mataPelajaran %></td>
+                                                <td>
+                                                    <span class="badge text-white bg-<%= schedule.status === 'completed' ? 'success' : 
+                                                                            schedule.status === 'canceled' ? 'danger' : 
+                                                                            'primary' %>">
+                                                        <%= schedule.status %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge text-white bg-<%= schedule.isAttendanceMarked ? 'success' : 'warning' %>">
+                                                        <%= schedule.isAttendanceMarked ? 'Hadir' : 'Belum' %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge text-white bg-<%= schedule.emailSent ? 'success' : 'warning' %>">
+                                                        <%= schedule.emailSent ? 'Sudah' : 'Belum' %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-datatable btn-icon btn-outline-primary me-2 edit-btn"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editModal"
+                                                            data-schedule-id="<%= schedule.id %>"
+                                                            data-date="<%= schedule.date %>"
+                                                            data-time-start="<%= schedule.timeStart %>"
+                                                            data-time-end="<%= schedule.timeEnd %>"
+                                                            data-tentor-id="<%= schedule.tentorId %>"
+                                                            data-type="<%= schedule.type %>"
+                                                            data-siswa-id="<%= schedule.siswaId %>"
+                                                            data-class-id="<%= schedule.classId %>"
+                                                            data-mata-pelajaran="<%= schedule.mataPelajaran %>"
+                                                            data-status="<%= schedule.status %>"
+                                                            data-attendance-marked="<%= schedule.attendanceMarked ? 'true' : 'false' %>"
+                                                            <%= schedule.status === 'completed' ? 'style="display:none;"' : '' %>>
+                                                        <i data-feather="edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-datatable btn-icon btn-outline-info me-2"
+                                                            onclick="sendIndividualReminder('<%= schedule.id %>')"
+                                                            title="Kirim email pengingat"
+                                                            <%= schedule.status !== 'scheduled' ? 'disabled' : '' %>>
+                                                        <i data-feather="mail"></i>
+                                                    </button>
+                                                    <button class="btn btn-datatable btn-icon btn-outline-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteModal"
+                                                            data-schedule-id="<%= schedule.id %>">
+                                                        <i data-feather="trash-2"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+    <script>
+        // Initialize DataTable
+        const datatablesSimple = document.getElementById('datatablesSimple');
+        if (datatablesSimple) {
+            const dataTable = new simpleDatatables.DataTable(datatablesSimple);
+
+            // Reinitialize Feather icons after search event
+            dataTable.on('datatable.search', () => {
+                feather.replace();
+            });
+
+            // Reinitialize Feather icons after pagination
+            dataTable.on('datatable.page', () => {
+                feather.replace();
+            });
+
+            // Reinitialize Feather icons after sorting
+            dataTable.on('datatable.sort', () => {
+                feather.replace();
+            });
+
+            // Reinitialize Feather icons when the search input changes
+            const searchInput = datatablesSimple.querySelector('.dataTable-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    feather.replace();
+                });
+            }
+        }
+
+        // Handle delete modal
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            let currentScheduleId = null;
+            let isCompletedSchedule = false;
+            
+            // Reset form when modal is hidden
+            deleteModal.addEventListener('hidden.bs.modal', function() {
+                // Reset password field and any validation styling
+                const passwordField = document.getElementById('adminPassword');
+                if (passwordField) {
+                    passwordField.value = '';
+                }
+                
+                // Reset any validation styling
+                const warningDiv = document.getElementById('completedScheduleWarning');
+                if (warningDiv) {
+                    warningDiv.classList.remove('was-validated');
+                }
+            });
+            
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const scheduleId = button.getAttribute('data-schedule-id');
+                const date = button.closest('tr').cells[0].textContent;
+                const time = button.closest('tr').cells[1].textContent;
+                const tentor = button.closest('tr').cells[2].textContent;
+                const student = button.closest('tr').cells[3].textContent;
+                const subject = button.closest('tr').cells[4].textContent;
+                const status = button.closest('tr').cells[5].textContent.trim();
+
+                // Save current schedule ID
+                currentScheduleId = scheduleId;
+                isCompletedSchedule = status.includes('completed');
+
+                // Update modal content
+                document.getElementById('deleteScheduleDate').textContent = date;
+                document.getElementById('deleteScheduleTime').textContent = time;
+                document.getElementById('deleteScheduleTentor').textContent = tentor;
+                document.getElementById('deleteScheduleStudent').textContent = student;
+                document.getElementById('deleteScheduleSubject').textContent = subject;
+                document.getElementById('deleteScheduleStatus').textContent = status;
+
+                // Set note based on status
+                const noteElement = document.getElementById('deleteScheduleNote');
+                const completedWarning = document.getElementById('completedScheduleWarning');
+                const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+                if (status.includes('completed')) {
+                    noteElement.textContent = 'Jadwal yang sudah selesai memerlukan konfirmasi password admin untuk dihapus.';
+                    completedWarning.style.display = 'block';
+                    // Show the delete button for completed schedules
+                    confirmDeleteBtn.style.display = 'block';
+                } else {
+                    noteElement.textContent = 'Menghapus jadwal ini tidak akan mempengaruhi sisa kuota pertemuan siswa.';
+                    completedWarning.style.display = 'none';
+                    confirmDeleteBtn.style.display = 'block';
+                }
+
+                // Ensure feather icons are initialized in the modal
+                setTimeout(() => {
+                    feather.replace();
+                }, 50);
+            });
+
+            // Handle delete confirmation
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            confirmDeleteBtn.onclick = async function() {
+                if (isCompletedSchedule) {
+                    // For completed schedules, check password
+                    const password = document.getElementById('adminPassword').value;
+                    if (password === '486948') {
+                        deleteSchedule(currentScheduleId, true);
+                    } else {
+                        // Show error for incorrect password
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Password salah',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                } else {
+                    // For non-completed schedules, delete directly
+                    deleteSchedule(currentScheduleId, false);
+                }
+            };
+        }
+
+        // Handle edit modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const editModal = document.getElementById('editModal');
+            const completeConfirmModal = document.getElementById('completeConfirmModal');
+            let currentScheduleId = null;
+            let currentScheduleStatus = null;
+            let isAttendanceMarked = false;
+
+            if (editModal) {
+                // Reset form when modal is hidden
+                editModal.addEventListener('hidden.bs.modal', function() {
+                    // Reset form fields
+                    const form = editModal.querySelector('form');
+                    if (form) {
+                        form.reset();
+                    }
+                    
+                    // Reset any Select2 dropdowns if they exist
+                    try {
+                        $('#editTentorId').val('').trigger('change');
+                        $('#editSiswaId').val('').trigger('change');
+                        $('#editClassId').val('').trigger('change');
+                        $('#editMataPelajaran').val('').trigger('change');
+                        $('#editStatus').val('scheduled').trigger('change');
+                    } catch (e) {
+                        console.error('Error resetting Select2:', e);
+                    }
+                    
+                    // Re-enable all fields
+                    const allInputs = editModal.querySelectorAll('input, select');
+                    allInputs.forEach(input => {
+                        input.disabled = false;
+                    });
+                    
+                    // Reset current state variables
+                    currentScheduleId = null;
+                    currentScheduleStatus = null;
+                    isAttendanceMarked = false;
+                });
+
+                const typeSelect = editModal.querySelector('#editType');
+                const siswaSection = editModal.querySelector('#editSiswaSection');
+                const classSection = editModal.querySelector('#editClassSection');
+                const siswaSelect = editModal.querySelector('#editSiswaId');
+                const classSelect = editModal.querySelector('#editClassId');
+                const timeStartInput = editModal.querySelector('#editTimeStart');
+                const timeEndInput = editModal.querySelector('#editTimeEnd');
+
+                // Add time start change handler
+                timeStartInput.addEventListener('change', function() {
+                    if (this.value) {
+                        // Parse the start time
+                        const [hours, minutes] = this.value.split(':').map(Number);
+                        const startDate = new Date();
+                        startDate.setHours(hours, minutes, 0);
+
+                        // Add 90 minutes
+                        const endDate = new Date(startDate.getTime() + 90 * 60000);
+                        
+                        // Format the end time
+                        const endHours = endDate.getHours().toString().padStart(2, '0');
+                        const endMinutes = endDate.getMinutes().toString().padStart(2, '0');
+                        timeEndInput.value = `${endHours}:${endMinutes}`;
+                    }
+                });
+
+                // Handle form submission
+                const editForm = editModal.querySelector('#editForm');
+                editForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const scheduleId = currentScheduleId;
+
+                    // Check if trying to complete without attendance
+                    if (formData.get('status') === 'completed' && !isAttendanceMarked) {
+                        Swal.fire({
+                            title: 'Tidak dapat diselesaikan!',
+                            text: 'Daftar hadir harus diisi terlebih dahulu sebelum menyelesaikan jadwal.',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/admin/jadwal/edit/${scheduleId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(Object.fromEntries(formData))
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            const modal = bootstrap.Modal.getInstance(editModal);
+                            modal.hide();
+                            
+                            await Swal.fire({
+                                title: 'Berhasil!',
+                                text: result.message || 'Jadwal berhasil diupdate',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            });
+
+                            window.location.reload();
+                        } else {
+                            throw new Error(result.error || 'Gagal mengupdate jadwal');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: error.message || 'Gagal mengupdate jadwal',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+
+                // Handle type change
+                typeSelect.addEventListener('change', function() {
+                    if (this.value === 'individual') {
+                        siswaSection.style.display = 'block';
+                        classSection.style.display = 'none';
+                        siswaSelect.required = true;
+                        classSelect.required = false;
+                    } else {
+                        siswaSection.style.display = 'none';
+                        classSection.style.display = 'block';
+                        siswaSelect.required = false;
+                        classSelect.required = true;
+                    }
+                });
+
+                editModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    const scheduleId = button.getAttribute('data-schedule-id');
+                    const date = button.getAttribute('data-date');
+                    const timeStart = button.getAttribute('data-time-start');
+                    const timeEnd = button.getAttribute('data-time-end');
+                    const tentorId = button.getAttribute('data-tentor-id');
+                    const type = button.getAttribute('data-type');
+                    const siswaId = button.getAttribute('data-siswa-id');
+                    const classId = button.getAttribute('data-class-id');
+                    const mataPelajaran = button.getAttribute('data-mata-pelajaran');
+                    const status = button.getAttribute('data-status');
+                    const attendanceMarked = button.getAttribute('data-attendance-marked') === 'true';
+
+                    const form = editModal.querySelector('#editForm');
+                    form.action = `/admin/jadwal/edit/${scheduleId}`;
+                    
+                    editModal.querySelector('#editDate').value = date;
+                    editModal.querySelector('#editTimeStart').value = timeStart;
+                    editModal.querySelector('#editTimeEnd').value = timeEnd;
+                    editModal.querySelector('#editTentorId').value = tentorId;
+                    editModal.querySelector('#editType').value = type;
+                    editModal.querySelector('#editMataPelajaran').value = mataPelajaran;
+                    editModal.querySelector('#editStatus').value = status;
+
+                    // Set the appropriate ID based on type
+                    if (type === 'individual') {
+                        siswaSection.style.display = 'block';
+                        classSection.style.display = 'none';
+                        siswaSelect.value = siswaId;
+                        siswaSelect.required = true;
+                        classSelect.required = false;
+                    } else {
+                        siswaSection.style.display = 'none';
+                        classSection.style.display = 'block';
+                        classSelect.value = classId;
+                        siswaSelect.required = false;
+                        classSelect.required = true;
+                    }
+
+                    // Disable all fields if status is completed
+                    const allInputs = editModal.querySelectorAll('input, select');
+                    const statusSelect = editModal.querySelector('#editStatus');
+
+                    if (status.includes('completed')) {
+                        allInputs.forEach(input => {
+                            input.disabled = true;
+                        });
+                        statusSelect.disabled = true;
+                    } else {
+                        allInputs.forEach(input => {
+                            input.disabled = false;
+                        });
+                        
+                        // Handle status select special case
+                        statusSelect.disabled = false;
+                        const completedOption = Array.from(statusSelect.options).find(option => option.value === 'completed');
+                        if (completedOption) {
+                            completedOption.disabled = !attendanceMarked;
+                            if (!attendanceMarked) {
+                                completedOption.title = 'Daftar hadir harus diisi terlebih dahulu';
+                            }
+                        }
+                    }
+
+                    currentScheduleId = scheduleId;
+                    currentScheduleStatus = status;
+                    isAttendanceMarked = attendanceMarked;
+                });
+
+                // Handle status change
+                const statusSelect = editModal.querySelector('#editStatus');
+                statusSelect.addEventListener('change', function(e) {
+                    if (this.value === 'completed') {
+                        if (!isAttendanceMarked) {
+                            this.value = currentScheduleStatus;
+                            Swal.fire({
+                                title: 'Tidak dapat diselesaikan!',
+                                text: 'Daftar hadir harus diisi terlebih dahulu sebelum menyelesaikan jadwal.',
+                                icon: 'warning',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+                        const completeModal = new bootstrap.Modal(completeConfirmModal);
+                        completeModal.show();
+                    }
+                });
+
+                // Handle complete confirmation
+                document.getElementById('confirmCompleteBtn').addEventListener('click', async function() {
+                    try {
+                        const response = await fetch(`/admin/jadwal/edit/${currentScheduleId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                status: 'completed'
+                            })
+                        });
+
+                        const result = await response.json();
+                        if (result.success) {
+                            const completeModal = bootstrap.Modal.getInstance(completeConfirmModal);
+                            completeModal.hide();
+                            const editModalInstance = bootstrap.Modal.getInstance(editModal);
+                            editModalInstance.hide();
+
+                            await Swal.fire({
+                                title: 'Berhasil!',
+                                text: 'Jadwal telah diselesaikan',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            });
+
+                            window.location.reload();
+                        } else {
+                            throw new Error(result.message);
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: error.message || 'Gagal menyelesaikan jadwal',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            }
+        });
+
+        // Handle URL parameters for alerts
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const error = urlParams.get('error');
+
+            if (message || error) {
+                const alertType = error ? 'danger' : 'success';
+                const alertIcon = error ? 'alert-triangle' : 'check-circle';
+                const alertText = message || error;
+
+                Swal.fire({
+                    title: alertType === 'danger' ? 'Error!' : 'Berhasil!',
+                    text: alertText,
+                    icon: alertType === 'danger' ? 'error' : 'success',
+                    confirmButtonColor: alertType === 'danger' ? '#dc3545' : '#28a745',
+                    confirmButtonText: 'OK'
+                });
+
+                // Clear the URL parameters
+                const url = new URL(window.location.href);
+                url.searchParams.delete('message');
+                url.searchParams.delete('error');
+                window.history.replaceState({}, document.title, url);
+            }
+        });
+
+        async function sendReminders() {
+            try {
+                const response = await fetch('/admin/jadwal/send-reminders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    let message = data.message + '\n\n';
+                    
+                    if (data.details.successful.length > 0) {
+                        message += 'Berhasil terkirim ke:\n';
+                        data.details.successful.forEach(item => {
+                            message += `- ${item.tentor} (${item.email})\n`;
+                        });
+                    }
+                    
+                    if (data.details.failed.length > 0) {
+                        message += '\nGagal terkirim ke:\n';
+                        data.details.failed.forEach(item => {
+                            message += `- ${item.tentor} (${item.email}): ${item.error}\n`;
+                        });
+                    }
+                    
+                    Swal.fire({
+                        title: 'Success!',
+                        text: message,
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Gagal mengirim pengingat: ' + data.message,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Terjadi kesalahan saat mengirim pengingat',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }
+
+        async function resetEmailStatus(scheduleId) {
+            if (!confirm('Reset status email untuk jadwal ini?')) return;
+            
+            try {
+                const response = await fetch(`/admin/jadwal/reset-email-status/${scheduleId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Gagal mereset status email');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat mereset status email');
+            }
+        }
+
+        async function sendIndividualReminder(scheduleId) {
+            try {
+                const response = await fetch(`/admin/jadwal/send-individual-reminder/${scheduleId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        html: `${data.message}<br>`,
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Gagal mengirim pengingat: ' + data.message,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Terjadi kesalahan saat mengirim pengingat',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }
+
+        // Function to delete schedule
+        async function deleteSchedule(scheduleId, isCompleted) {
+            try {
+                const response = await fetch(`/admin/jadwal/delete/${scheduleId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        isCompletedSchedule: isCompleted,
+                        restoreSession: isCompleted
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Close the modal
+                    const modal = bootstrap.Modal.getInstance(deleteModal);
+                    modal.hide();
+
+                    // Show success message with SweetAlert2
+                    await Swal.fire({
+                        title: 'Berhasil!',
+                        text: result.message,
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+
+                    // Reload the page
+                    window.location.reload();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.message || 'Terjadi kesalahan saat menghapus jadwal',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }
+
+        // Add event listeners for cancel buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all "Batal" buttons in the modals
+            const cancelButtons = document.querySelectorAll('.modal-footer .btn-secondary');
+            
+            // Add click event listener to each cancel button
+            cancelButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Get the parent modal
+                    const modal = this.closest('.modal');
+                    if (modal) {
+                        // Get the Bootstrap modal instance and hide it
+                        const modalInstance = bootstrap.Modal.getInstance(modal);
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Master Token - Admin Dashboard</title>
+        <%- include('../../partials/head') %>
+        <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+        <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+        <!-- Add SweetAlert2 CDN -->
+        <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+        <style>
+            /* Clean icon styling */
+            [data-feather] {
+                width: 20px;
+                height: 20px;
+                stroke-width: 2;
+            }
+            
+            /* Action button icon containers */
+            .icon-container {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                transition: all 0.2s ease;
+                text-decoration: none;
+            }
+            
+            .icon-container:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                text-decoration: none;
+            }
+            
+            /* Color variants for action icons */
+            .icon-success {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            
+            .icon-success:hover {
+                background: #c3e6cb;
+                color: #155724;
+            }
+            
+            .icon-danger {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            
+            .icon-danger:hover {
+                background: #f5c6cb;
+                color: #721c24;
+            }
+            
+            .icon-warning {
+                background: #fff3cd;
+                color: #856404;
+                border: 1px solid #ffeaa7;
+            }
+            
+            .icon-warning:hover {
+                background: #ffeaa7;
+                color: #856404;
+            }
+            
+            .icon-info {
+                background: #d1ecf1;
+                color: #0c5460;
+                border: 1px solid #bee5eb;
+            }
+            
+            .icon-info:hover {
+                background: #bee5eb;
+                color: #0c5460;
+            }
+            
+            .icon-primary {
+                background: #cce7ff;
+                color: #004085;
+                border: 1px solid #b3d7ff;
+            }
+            
+            .icon-primary:hover {
+                background: #b3d7ff;
+                color: #004085;
+            }
+            
+            /* Button icons - keep them simple */
+            .btn [data-feather] {
+                width: 18px;
+                height: 18px;
+                margin-right: 8px;
+            }
+            
+            /* Header icons */
+            .page-header-icon [data-feather] {
+                width: 32px;
+                height: 32px;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
+                color: white;
+            }
+        </style>
+    </head>
+    <%
+    function formatDate(date) {
+        // Days of the week in Bahasa Indonesia
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    
+        // Get day, month, year
+        const dayName = days[date.getDay()]; // Get the day name
+        const day = String(date.getDate()).padStart(2, '0'); // Format day as 2 digits
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Format month as 2 digits (months are 0-based)
+        const year = String(date.getFullYear()).slice(-2); // Get last 2 digits of the year
+    
+        return `${day}-${month}-${year}`;
+    }
+    %>
+    <body class="nav-fixed">
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Confirm Delete</h5>
+                        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Yakin hapus subtest "<span id="subtestName"></span> - <span id="owner"></span>"? Aksi ini tidak dapat dibatalkan.
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                        <a href="#" id="confirmDelete" class="btn btn-danger">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+       <%- include('partials/topNav') %> 
+        <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+               
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                   
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="key"></i></div>
+                                        Manajemen Token
+                                    </h1>
+                                    <div class="page-header-subtitle">Brits Edu Center, <span style="font-style: italic;">Teman belajarmu</span></div>
+                                </div>
+                                <div class="col-12 col-xl-auto mt-4">
+                                    <a class="btn btn-white" href="/admin/token/tambah">
+                                        <i data-feather="plus"></i>
+                                        Tambah Token Baru
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <!-- Main page content-->
+                <div class="container-xl px-4">
+                    <div class="card mt-n10"> 
+                        <div class="card-header">Daftar Token</div>
+                        <div class="card-body">
+                            <!-- Alert placeholder - will be populated by JavaScript -->
+                            <div class="alert-container"></div>
+ 
+                            <div class="table-responsive">
+                                <table class="table my-0" id="datatablesSimple">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Token</th>
+                                            <th>Kategori</th>
+                                            <th>Token</th>
+                                            <th>Kuota</th>
+                                            <th>Max Subtes</th>
+                                            <th>Paket</th>
+                                            <th>Terpakai</th>
+                                            <th>Edit</th>
+                                            <th>Hapus</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% datas.forEach(data => { %>
+                                         
+                                            <tr>
+                                                <td><%= data.namaToken %></td>
+                                                <td><%= data.kategori %></td>
+                                                <td><%= data.token %></td>
+                                                <td><%= data.kuota %></td>   
+                                                <td><%= data.maxSubtest %></td>
+                                                <td><%= data.owner %></td>              
+                                                <td><%= data.userRegistered.length %></td>  
+                                                <td>
+                                                    <a href="#" class="icon-container icon-warning btn-edit-token" 
+                                                       data-id="<%= data.id %>" 
+                                                       data-nama="<%= data.namaToken %>" 
+                                                       data-kategori="<%= data.kategori %>" 
+                                                       data-kuota="<%= data.kuota %>" 
+                                                       data-maxsubtest="<%= data.maxSubtest %>" 
+                                                       data-owner="<%= data.owner %>"
+                                                       title="Edit Token">
+                                                        <i data-feather="edit-2"></i>
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    <form action="/admin/manajemen-token/delete/<%= data.id %>" method="POST" class="d-inline">
+                                                        <button type="submit" class="icon-container icon-danger" 
+                                                                onclick="return confirm('Yakin ingin menghapus token ini?')"
+                                                                title="Hapus Token">
+                                                            <i data-feather="trash-2"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                           
+
+                                              
+                                            </tr>
+                                       
+                                     
+
+                                        <% }); %>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>                   
+                </div>
+
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>     
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+        <script defer>
+// Initialize Feather icons
+document.addEventListener('DOMContentLoaded', function() {
+    feather.replace();
+    
+    // Reinitialize icons after DataTable operations
+    const datatablesSimple = document.getElementById('datatablesSimple');
+    if (datatablesSimple && window.simpleDatatables) {
+        const dataTable = new simpleDatatables.DataTable(datatablesSimple);
+        
+        // Reinitialize icons after DataTable events
+        dataTable.on('datatable.search', () => feather.replace());
+        dataTable.on('datatable.page', () => feather.replace());
+        dataTable.on('datatable.sort', () => feather.replace());
+    }
+});
+
+window.addEventListener('load', () => {
+    // Select all delete buttons
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+
+    // Get modal elements
+    const confirmDelete = document.getElementById('confirmDelete');
+    const subtestNameElement = document.getElementById('subtestName');
+    const ownerElement = document.getElementById('owner');
+
+    // Add click event listener to each delete button
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            // Get data attributes from the clicked button
+            const kodekategori = button.getAttribute('data-kodekategori');
+            const subtestName = button.getAttribute('data-subtest');
+            const owner = button.getAttribute('data-owner');
+
+            // Update modal content dynamically
+            subtestNameElement.textContent = subtestName;
+            ownerElement.textContent = owner;
+            confirmDelete.setAttribute('href', `/admin/manajemen-soal/hapus-subtest/${kodekategori}`);
+        });
+    });
+});
+
+        </script>
+       <script>
+        // Initialize DataTable
+        const datatablesSimple = document.getElementById('datatablesSimple');
+        if (datatablesSimple) {
+            const dataTable = new simpleDatatables.DataTable(datatablesSimple, {
+                perPage: 10,
+                searchable: true,
+                sortable: true,
+                afterRender: () => {
+                    setTimeout(() => {
+                        feather.replace();
+                    }, 100);
+                }
+            });
+
+            // Handle all table events that might affect the DOM
+            const events = [
+                'datatable.perpage',
+                'datatable.sort',
+                'datatable.page',
+                'datatable.search'
+            ];
+
+            events.forEach(event => {
+                dataTable.on(event, () => {
+                    setTimeout(() => {
+                        feather.replace();
+                    }, 100);
+                });
+            });
+        }
+
+        // Replace URL parameters handling with SweetAlert2 implementation
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const error = urlParams.get('error');
+
+            if (message || error) {
+                Swal.fire({
+                    title: error ? 'Error!' : 'Berhasil!',
+                    text: message || error,
+                    icon: error ? 'error' : (message.toLowerCase().includes('hapus') ? 'warning' : 'success'),
+                    confirmButtonColor: error ? '#dc3545' : '#28a745',
+                    confirmButtonText: 'OK'
+                });
+
+                // Clear the URL parameters
+                const url = new URL(window.location.href);
+                url.searchParams.delete('message');
+                url.searchParams.delete('error');
+                window.history.replaceState({}, document.title, url);
+            }
+        });
+    </script>
+                <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+                <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
+    </body>
+</html>
+
+<!-- Add this modal structure at the end of the body -->
+<div class="modal fade" id="editTokenModal" tabindex="-1" aria-labelledby="editTokenModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTokenModalLabel">Edit Token</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTokenForm" action="" method="POST">
+                    <div class="mb-3">
+                        <label for="editNamaToken" class="form-label">Nama Token</label>
+                        <input type="text" class="form-control" id="editNamaToken" name="namaToken" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editKategori" class="form-label">Kategori</label>
+                        <select class="form-select" id="editKategori" name="kategori" required>
+                            <option value="saintek">Saintek</option>
+                            <option value="soshum">Soshum</option>
+                            <option value="campur">Campur</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editKuota" class="form-label">Kuota</label>
+                        <input type="number" class="form-control" id="editKuota" name="kuota" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMaxSubtest" class="form-label">Max Subtes</label>
+                        <input type="number" class="form-control" id="editMaxSubtest" name="maxSubtest" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editOwner" class="form-label">Paket Soal</label>
+                        <input type="text" class="form-control" id="editOwner" name="owner" required>
+                    </div>
+                    <input type="hidden" id="editTokenId" name="tokenId">
+                    <button type="submit" class="btn btn-primary">Update Token</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle edit button click
+        document.querySelectorAll('.btn-edit-token').forEach(button => {
+            button.addEventListener('click', function() {
+                const tokenId = this.getAttribute('data-id');
+                const tokenName = this.getAttribute('data-nama');
+                const tokenCategory = this.getAttribute('data-kategori');
+                const tokenQuota = this.getAttribute('data-kuota');
+                const tokenMaxSubtest = this.getAttribute('data-maxsubtest');
+                const tokenOwner = this.getAttribute('data-owner');
+
+                // Populate the modal fields
+                document.getElementById('editTokenId').value = tokenId;
+                document.getElementById('editNamaToken').value = tokenName;
+                document.getElementById('editKategori').value = tokenCategory;
+                document.getElementById('editKuota').value = tokenQuota;
+                document.getElementById('editMaxSubtest').value = tokenMaxSubtest;
+                document.getElementById('editOwner').value = tokenOwner;
+
+                // Show the modal
+                const editTokenModal = new bootstrap.Modal(document.getElementById('editTokenModal'));
+                editTokenModal.show();
+            });
+        });
+
+        // Handle form submission
+        document.getElementById('editTokenForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const tokenId = document.getElementById('editTokenId').value;
+
+            // Convert FormData to JSON object
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            fetch(`/admin/manajemen-token/update/${tokenId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    namaToken: data.namaToken,
+                    kategori: data.kategori,
+                    kuota: parseInt(data.kuota),
+                    maxSubtest: parseInt(data.maxSubtest),
+                    owner: data.owner
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/admin/manajemen-token/daftar-token?message=Token berhasil diperbarui';
+                } else {
+                    throw new Error('Failed to update token');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat memperbarui token');
+            });
+        });
+    });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.feather) {
+    feather.replace();
+  }
+});
+</script>

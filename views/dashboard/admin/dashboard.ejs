@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Admin Dashboard - BritsEdu</title>
+        <%- include('../../partials/head') %>
+        <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+        <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+    </head>
+    <body class="nav-fixed">
+        <%- include('partials/topNav') %> 
+        <div id="layoutSidenav">
+            <%- include('partials/sideNav') %>   
+            <div id="layoutSidenav_content">
+                <main>
+                    <header class="page-header page-header-dark bg-gradient-primary pb-10">
+                        <div class="container-xl px-4">
+                            <div class="page-header-content pt-4">
+                                <div class="row align-items-center justify-content-between">
+                                    <div class="col-auto mt-4">
+                                        <h1 class="page-header-title">
+                                            <div class="page-header-icon"><i data-feather="activity"></i></div>
+                                            BritsEdu Admin
+                                        </h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="container-xl px-4 mt-n10">
+                        <!-- Filter Section -->
+                        <div class="row mb-4">
+                            <div class="col-xl-6">
+                                <div class="card card-modern card-header-actions h-100">
+                                    <div class="card-header">
+                                        Filter Periode
+                                        <div class="dropdown no-caret">
+                                            <form id="periodFilter" class="d-flex gap-2">
+                                                <select name="month" class="form-select form-select-sm" style="width: auto;">
+                                                    <% const months = [
+                                                        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                                                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                                                    ] %>
+                                                    <% months.forEach((month, index) => { %>
+                                                        <option value="<%= index + 1 %>" 
+                                                                <%= selectedMonth === index + 1 ? 'selected' : '' %>>
+                                                            <%= month %>
+                                                        </option>
+                                                    <% }) %>
+                                                </select>
+                                                <select name="year" class="form-select form-select-sm" style="width: auto;">
+                                                    <% for(let y = currentYear; y >= currentYear - 2; y--) { %>
+                                                        <option value="<%= y %>" 
+                                                                <%= selectedYear === y ? 'selected' : '' %>>
+                                                            <%= y %>
+                                                        </option>
+                                                    <% } %>
+                                                </select>
+                                                <button type="submit" class="btn btn-sm btn-primary">
+                                                    Filter
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Metrics Section -->
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-primary h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <div class="small fw-bold text-primary mb-1">Total Siswa</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.totalSiswa %></div>
+                                            </div>
+                                            <div class="ms-2"><i class="fas fa-users fa-2x text-primary"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-success h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <div class="small fw-bold text-success mb-1">Total Tentor</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.totalTentor %></div>
+                                            </div>
+                                            <div class="ms-2"><i class="fas fa-chalkboard-teacher fa-2x text-success"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-info h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <div class="small fw-bold text-info mb-1">Total Kelas</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.totalKelas %></div>
+                                            </div>
+                                            <div class="ms-2"><i class="fas fa-book fa-2x text-info"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-warning h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <div class="small fw-bold text-warning mb-1">Total Paket Soal</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800"><%= Math.floor(stats.totalMapel / 7) %></div>
+                                            </div>
+                                            <div class="ms-2"><i class="fas fa-book-open fa-2x text-warning"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Performance Overview and Financial Summary Side by Side -->
+                        <div class="row">
+                            <div class="col-xl-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <i class="fas fa-chart-line me-1"></i>
+                                        Ringkasan Kinerja
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4 mb-3">
+                                                <div class="small text-muted mb-1">Tingkat Penyelesaian Sesi</div>
+                                                <div class="h5 mb-0">
+                                                    <%= performanceMetrics.sessionMetrics.completionRate %>%
+                                                </div>
+                                                <div class="text-xs text-muted">
+                                                    <%= performanceMetrics.sessionMetrics.completed %> dari <%= performanceMetrics.sessionMetrics.total %> sesi
+                                                </div>
+                                                <div class="progress mt-2" style="height: 4px;">
+                                                    <div class="progress-bar" role="progressbar" style="width: <%= performanceMetrics.sessionMetrics.completionRate %>%"></div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="small text-muted mb-1">Siswa Aktif</div>
+                                                <div class="h5 mb-0">
+                                                    <%= Math.round((performanceMetrics.studentEngagement.activeStudents / performanceMetrics.studentEngagement.totalStudents) * 100) %>%
+                                                </div>
+                                                <div class="progress mt-2" style="height: 4px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width: <%= (performanceMetrics.studentEngagement.activeStudents / performanceMetrics.studentEngagement.totalStudents) * 100 %>%"></div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="small text-muted mb-1">Partisipasi Ujian</div>
+                                                <div class="h5 mb-0">
+                                                    <%= Math.round((performanceMetrics.testParticipation.activeUsers / performanceMetrics.testParticipation.totalUsers) * 100) %>%
+                                                </div>
+                                                <div class="progress mt-2" style="height: 4px;">
+                                                    <div class="progress-bar bg-info" role="progressbar" style="width: <%= (performanceMetrics.testParticipation.activeUsers / performanceMetrics.testParticipation.totalUsers) * 100 %>%"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Second Row -->
+                                            <div class="col-md-4 mb-3">
+                                                <div class="small text-muted mb-1">Cancel Rate Bulan Ini</div>
+                                                <div class="h5 mb-0 text-danger">
+                                                    <%= performanceMetrics.monthlyMetrics.canceledRate %>%
+                                                </div>
+                                                <div class="text-xs text-muted">dari <%= performanceMetrics.monthlyMetrics.totalSchedules %> jadwal</div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="small text-muted mb-1">Rata-rata Sesi per Hari (Minggu Ini)</div>
+                                                <div class="h5 mb-0">
+                                                    <%= performanceMetrics.sessionMetrics.avgSessionsPerDayThisWeek %>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="small text-muted mb-1">Mata Pelajaran Terpopuler</div>
+                                                <div class="h5 mb-0 text-primary">
+                                                    <%= performanceMetrics.monthlyMetrics.mostActiveSubject?.name || '-' %>
+                                                </div>
+                                                <div class="text-xs text-muted">
+                                                    <%= performanceMetrics.monthlyMetrics.mostActiveSubject?.count || 0 %> sesi bulan ini
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <i class="fas fa-money-bill-wave me-1"></i>
+                                        Ringkasan Keuangan
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="small text-muted mb-1">Pendapatan Bulan Ini</div>
+                                                <div class="h5 mb-0">
+                                                    Rp <%= new Intl.NumberFormat('id-ID').format(performanceMetrics.monthlyMetrics.pendapatanBulanIni) %>
+                                                </div>
+                                                <div class="text-xs text-muted">Total: Rp <%= new Intl.NumberFormat('id-ID').format(performanceMetrics.monthlyMetrics.totalPendapatan) %></div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="small text-muted mb-1">Fee Tentor Bulan Ini</div>
+                                                <div class="h5 mb-0">
+                                                    Rp <%= new Intl.NumberFormat('id-ID').format(performanceMetrics.monthlyMetrics.feeTentorBulanIni) %>
+                                                </div>
+                                                <div class="text-xs text-muted">Total: Rp <%= new Intl.NumberFormat('id-ID').format(performanceMetrics.monthlyMetrics.totalFeeTentor) %></div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="small text-muted mb-1">Profit Bulan Ini</div>
+                                                <div class="h5 mb-0 <%= performanceMetrics.monthlyMetrics.profitBulanIni >= 0 ? 'text-success' : 'text-danger' %>">
+                                                    Rp <%= new Intl.NumberFormat('id-ID').format(performanceMetrics.monthlyMetrics.profitBulanIni) %>
+                                                </div>
+                                                <div class="text-xs text-muted">Total: Rp <%= new Intl.NumberFormat('id-ID').format(performanceMetrics.monthlyMetrics.totalProfit) %></div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="small text-muted mb-1">Profit Margin Bulan Ini</div>
+                                                <div class="h5 mb-0 <%= performanceMetrics.monthlyMetrics.profitBulanIni >= 0 ? 'text-success' : 'text-danger' %>">
+                                                    <%= Math.round((performanceMetrics.monthlyMetrics.profitBulanIni / performanceMetrics.monthlyMetrics.pendapatanBulanIni) * 100) || 0 %>%
+                                                </div>
+                                                <div class="progress mt-2" style="height: 4px;">
+                                                    <div class="progress-bar <%= performanceMetrics.monthlyMetrics.profitBulanIni >= 0 ? 'bg-success' : 'bg-danger' %>" 
+                                                         role="progressbar" 
+                                                         style="width: <%= Math.abs(Math.round((performanceMetrics.monthlyMetrics.profitBulanIni / performanceMetrics.monthlyMetrics.pendapatanBulanIni) * 100)) || 0 %>%">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Jadwal Hari Ini and Aktivitas Terkini Side by Side -->
+                        <div class="row">
+                            <div class="col-xl-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <i class="fas fa-calendar-day me-1"></i>
+                                        Jadwal Hari Ini
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="timeline timeline-xs">
+                                            <% todaySchedules.forEach(schedule => { %>
+                                                <div class="timeline-item">
+                                                    <div class="timeline-item-marker">
+                                                        <div class="timeline-item-marker-indicator bg-<%= schedule.status === 'completed' ? 'success' : (schedule.status === 'canceled' ? 'danger' : 'primary') %>"></div>
+                                                    </div>
+                                                    <div class="timeline-item-content">
+                                                        <span class="fw-bold">
+                                                            <%= schedule.timeStart %> - <%= schedule.timeEnd %>
+                                                        </span>
+                                                        <br>
+                                                        <%= schedule.tentor.nama %> with 
+                                                        <%= schedule.type === 'class' ? schedule.class.name : schedule.siswa.nama %>
+                                                        <br>
+                                                        <span class="badge text-white bg-<%= schedule.status === 'completed' ? 'success' : (schedule.status === 'canceled' ? 'danger' : 'primary') %>">
+                                                            <%= schedule.status %>
+                                                        </span>
+                                                        <span class="badge text-white bg-info"><%= schedule.mataPelajaran %></span>
+                                                    </div>
+                                                </div>
+                                            <% }); %>
+                                            <% if (todaySchedules.length === 0) { %>
+                                                <div class="text-center text-muted">No schedules for today</div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header">
+                                        <i class="fas fa-list me-1"></i>
+                                        Aktivitas Terkini
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="timeline timeline-xs" style="max-height: 400px; overflow-y: auto; overflow-x: hidden;">
+                                            <% recentActivities.forEach(activity => { %>
+                                                <div class="timeline-item" style="margin-bottom: 0.5rem;">
+                                                    <div class="timeline-item-marker">
+                                                        <div class="timeline-item-marker-indicator bg-<%= 
+                                                            activity.type === 'canceled' ? 'danger' : 
+                                                            activity.type === 'exam' ? 'success' : 
+                                                            'primary' 
+                                                        %>"></div>
+                                                    </div>
+                                                    <div class="timeline-item-content py-0">
+                                                        <div class="row align-items-center">
+                                                            <div class="col">
+                                                                <div style="font-size: 0.875rem;">
+                                                                    <%= activity.description %>
+                                                                </div>
+                                                                <div class="text-muted" style="font-size: 0.75rem;">
+                                                                    <%= activity.time %>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-auto" style="padding-right: 20px;">
+                                                                <i class="fas <%= 
+                                                                    activity.type === 'canceled' ? 'fa-ban text-danger' : 
+                                                                    activity.type === 'exam' ? 'fa-check-circle text-success' : 
+                                                                    'fa-calendar-plus text-primary' 
+                                                                %>" style="font-size: 1rem;"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <% }); %>
+                                            <% if (recentActivities.length === 0) { %>
+                                                <div class="text-center text-muted">No recent activities</div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <%- include('../../partials/footer-dashboard') %>
+            </div>     
+        </div>
+        <style>
+            .timeline-xs .timeline-item {
+                padding-left: 1.5rem;
+            }
+            .timeline-xs .timeline-item-marker {
+                left: 0;
+            }
+            .timeline-xs .timeline-item-marker-indicator {
+                height: 0.75rem;
+                width: 0.75rem;
+                margin-top: 0.25rem;
+            }
+            .timeline-item-content {
+                padding-top: 0.25rem;
+                padding-bottom: 0.25rem;
+            }
+        </style>
+        <script>
+        document.getElementById('periodFilter').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const month = this.elements.month.value;
+            const year = this.elements.year.value;
+            window.location.href = `/admin/dashboard?month=${month}&year=${year}`;
+        });
+        </script>
+        
+        <!-- Load essential scripts for layout functionality -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+        <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+        <script>
+            // Initialize additional functionality after page load
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize Lucide icons if available
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+                
+                // Ensure sidebar toggle works (scripts.js handles feather icons)
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                if (sidebarToggle) {
+                    sidebarToggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.body.classList.toggle('sidenav-toggled');
+                        localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sidenav-toggled'));
+                    });
+                }
+            });
+        </script>
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.feather) {
+    feather.replace();
+  }
+});
+</script>
+    </body>
+</html> 

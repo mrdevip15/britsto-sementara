@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Detail Nilai <%= mapel.mapel %> - GG</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+      window.MathJax = {
+          tex: {
+              inlineMath: [['$', '$']],
+              displayMath: [['$$', '$$']],
+          },
+          svg: {
+              fontCache: 'global'
+          },
+          options: {
+              ignoreHtmlClass: "ignore-math" // Skip elements with this class
+          }
+      };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 1;
+            min-width: 50px;
+        }
+        .sticky-col-2 {
+            position: sticky;
+            left: 150px;
+            background: white;
+            z-index: 1;
+            min-width: 120px;
+        }
+        .answer-correct {
+            background-color: #d4edda !important;
+            color: #155724;
+        }
+        .answer-wrong {
+            background-color: #f8d7da !important;
+            color: #721c24;
+        }
+        .answer-partial {
+            background-color: #fff3cd !important;
+            color: #856404;
+        }
+        .table {
+            border: 1px solid black;
+        }
+        .table th, .table td {
+            border: 1px solid black;
+            white-space: nowrap;
+            text-align: center;
+            vertical-align: middle;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .answer-cell {
+            min-width: 40px;
+            max-width: 40px;
+            position: relative;
+        }
+        .score-cell {
+            min-width: 40px;
+        }
+        .info-section {
+            margin-bottom: 20px;
+        }
+        .info-section p {
+            margin-bottom: 5px;
+        }
+        .answer-hover {
+            cursor: pointer;
+        }
+        .modal-body {
+            font-size: 0.9em;
+            line-height: 1.4;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .option-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            min-height: 44px;
+        }
+        .option-label {
+            flex: 0 0 30px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100%;
+        }
+        .option-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+        }
+        .quiz-table td {
+            vertical-align: middle !important;
+            min-height: 44px;
+            padding: 8px !important;
+        }
+        .quiz-table th {
+            vertical-align: middle !important;
+            padding: 12px 8px !important;
+        }
+        .selected-option {
+            background-color: #e2e3e5;
+        }
+        .correct-option {
+            background-color: #d4edda;
+        }
+    </style>
+</head>
+<body class="nav-fixed">
+    <%- include('partials/topNav') %> 
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="file-text"></i></div>
+                                        Detail Jawaban <%= mapel.mapel %>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="card">
+                        <div class="card-header">Detail Jawaban Peserta</div>
+                        <div class="card-body">
+                            <div class="info-section">
+                                <p><strong>Mata Pelajaran:</strong> <%= mapel.mapel %></p>
+                                <p><strong>Jumlah Soal:</strong> <%= soalData.length %></p>
+                                <p><strong>Durasi:</strong> <%= mapel.durasi %> menit</p>
+                            </div>
+                            <div class="mb-3">
+                                <button class="btn btn-sm btn-primary" onclick="exportDetailToExcel()">
+                                    <i data-feather="download" style="margin-right: 5px;"></i>Export Detail Excel
+                                </button>
+                                <button class="btn btn-sm btn-success" onclick="exportSummaryToExcel()">
+                                    <i data-feather="file-spreadsheet" style="margin-right: 5px;"></i>Export Summary Excel
+                                </button>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th class="sticky-col" style="background-color: #ffffff;">No</th>
+                                            <th class="sticky-col" style="background-color: #ffffff;">Nama</th>
+                                            <th>Email</th>
+                                            <% for(let i = 0; i < soalData.length; i++) { %>
+                                                <th class="answer-cell"><%= i + 1 %></th>
+                                            <% } %>
+                                            <th class="score-cell">B</th>
+                                            <th class="score-cell">S</th>
+                                            <th class="score-cell">Nilai</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% userData.forEach((user, index) => { %>
+                                            <tr>
+                                                <td class="sticky-col" style="background-color: #ffffff;"><%= index + 1 %></td>
+                                                <td class="sticky-col" style="background-color: #ffffff;"><%= user.nama %></td>
+                                                <td><%= user.email %></td>
+                                                <% 
+                                                let benar = 0;
+                                                let salah = 0;
+                                                user.jawaban.forEach((jawaban, idx) => {
+                                                    const correctAnswer = soalData[idx].answer[0].toUpperCase();
+                                                    const userAns = jawaban.toUpperCase() || 'F';
+                                                    let answerClass = 'answer-wrong';
+                                                    
+                                                    if (soalData[idx].tipeSoal === 'pgkompleks1' || soalData[idx].tipeSoal === 'pgkompleks2') {
+                                                        // Parse answers for complex questions
+                                                        const correctParts = correctAnswer.match(/[A-E][1-2]/g) || [];
+                                                        const userParts = userAns.match(/[A-E][1-2]/g) || [];
+                                                        
+                                                        const matchingCount = correctParts.filter(part => userParts.includes(part)).length;
+                                                        
+                                                        if (matchingCount === correctParts.length) {
+                                                            answerClass = 'answer-correct';
+                                                            benar++;
+                                                        } else if (matchingCount > 0) {
+                                                            answerClass = 'answer-partial';
+                                                            benar += matchingCount / correctParts.length;
+                                                        } else {
+                                                            salah++;
+                                                        }
+                                                    } else {
+                                                        // For regular questions
+                                                        if (userAns === correctAnswer) {
+                                                            answerClass = 'answer-correct';
+                                                            benar++;
+                                                        } else {
+                                                            salah++;
+                                                        }
+                                                    }
+                                                %>
+                                                    <td class="<%= answerClass %> answer-hover" 
+                                                        data-question="<%= mapel.soals[idx].content %>"
+                                                        data-option-a="<%= mapel.soals[idx].a %>"
+                                                        data-option-b="<%= mapel.soals[idx].b %>"
+                                                        data-option-c="<%= mapel.soals[idx].c %>"
+                                                        data-option-d="<%= mapel.soals[idx].d %>"
+                                                        data-option-e="<%= mapel.soals[idx].e %>"
+                                                        data-tipe-soal="<%= mapel.soals[idx].tipeSoal %>"
+                                                        data-soal-no="<%= soalData[idx].no %>"
+                                                        data-correct-answer="<%= correctAnswer %>"
+                                                        data-user-answer="<%= userAns %>">
+                                                        <%= userAns %>
+                                                    </td>
+                                                <% }); %>
+                                                <td><%= Math.floor(benar) %></td>
+                                                <td><%= Math.ceil(soalData.length - benar) %></td>
+                                                <td><%= Math.round((benar / soalData.length) * 1000) %></td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-4">
+                                <h5 class="mb-3">Kunci Jawaban:</h5>
+                                <div class="row">
+                                    <% soalData.forEach((soal) => { %>
+                                        <div class="col-md-2 col-sm-3 col-4 mb-2">
+                                            <div class="card answer-hover" 
+                                                 data-question="<%= mapel.soals[soal.no-1].content %>"
+                                                 data-option-a="<%= mapel.soals[soal.no-1].a %>"
+                                                 data-option-b="<%= mapel.soals[soal.no-1].b %>"
+                                                 data-option-c="<%= mapel.soals[soal.no-1].c %>"
+                                                 data-option-d="<%= mapel.soals[soal.no-1].d %>"
+                                                 data-option-e="<%= mapel.soals[soal.no-1].e %>"
+                                                 data-tipe-soal="<%= mapel.soals[soal.no-1].tipeSoal %>"
+                                                 data-soal-no="<%= soal.no %>">
+                                                <div class="card-body p-2 text-center">
+                                                    <small class="d-block text-muted">Soal <%= soal.no %></small>
+                                                    <strong><%= soal.answer[0].toUpperCase() %></strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize feather icons
+            feather.replace();
+            
+            // Get modal elements
+            const modalElement = document.getElementById('questionModal');
+            const questionModal = new bootstrap.Modal(modalElement);
+            const questionContent = document.getElementById('questionContent');
+            const optionsContent = document.getElementById('optionsContent');
+            
+            // Add event listeners to answer cells
+            document.querySelectorAll('.answer-hover').forEach(element => {
+                element.addEventListener('click', (e) => {
+                    const target = e.currentTarget;
+                    const question = target.dataset.question;
+                    const optionA = target.dataset.optionA;
+                    const optionB = target.dataset.optionB;
+                    const optionC = target.dataset.optionC;
+                    const optionD = target.dataset.optionD;
+                    const optionE = target.dataset.optionE;
+                    const soalNo = target.dataset.soalNo;
+                    const userAnswer = target.dataset.userAnswer || '';
+                    const correctAnswer = target.dataset.correctAnswer || '';
+                    const tipeSoal = target.dataset.tipeSoal;
+
+                    document.getElementById('questionModalLabel').textContent = `Detail Soal Nomor ${soalNo}`;
+                    
+                    // Add answer status at the top
+                    questionContent.innerHTML = `<div class="question-content">${question}</div>`;
+
+                    if (tipeSoal === 'pgkompleks1' || tipeSoal === 'pgkompleks2') {
+                        optionsContent.innerHTML = `
+                            <div class="options">
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    <table class="table table-bordered quiz-table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Pernyataan</th>
+                                                <th scope="col">${tipeSoal === 'pgkompleks1' ? 'Benar' : 'Memperlemah'}</th>
+                                                <th scope="col">${tipeSoal === 'pgkompleks1' ? 'Salah' : 'Tidak Memperlemah'}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${optionA && optionA !== '<p><br></p>' ? `
+                                                <tr>
+                                                    <td>${optionA}</td>
+                                                    <td class="${userAnswer.includes('A1') ? (correctAnswer.includes('A1') ? 'table-success' : 'table-danger') : ''}">
+                                                        ${userAnswer.includes('A1') ? (correctAnswer.includes('A1') ? '✔️' : '❌') : ''}
+                                                    </td>
+                                                    <td class="${userAnswer.includes('A2') ? (correctAnswer.includes('A2') ? 'table-success' : 'table-danger') : ''}">
+                                                        ${userAnswer.includes('A2') ? (correctAnswer.includes('A2') ? '✔️' : '❌') : ''}
+                                                    </td>
+                                                </tr>` : ''}
+                                            ${optionB && optionB !== '<p><br></p>' ? `
+                                                <tr>
+                                                    <td>${optionB}</td>
+                                                    <td class="${userAnswer.includes('B1') ? (correctAnswer.includes('B1') ? 'table-success' : 'table-danger') : ''}">
+                                                        ${userAnswer.includes('B1') ? (correctAnswer.includes('B1') ? '✔️' : '❌') : ''}
+                                                    </td>
+                                                    <td class="${userAnswer.includes('B2') ? (correctAnswer.includes('B2') ? 'table-success' : 'table-danger') : ''}">
+                                                        ${userAnswer.includes('B2') ? (correctAnswer.includes('B2') ? '✔️' : '❌') : ''}
+                                                    </td>
+                                                </tr>` : ''}
+                                            ${optionC && optionC !== '<p><br></p>' ? `
+                                                <tr>
+                                                    <td>${optionC}</td>
+                                                    <td class="${userAnswer.includes('C1') ? (correctAnswer.includes('C1') ? 'table-success' : 'table-danger') : ''}">
+                                                        ${userAnswer.includes('C1') ? (correctAnswer.includes('C1') ? '✔️' : '❌') : ''}
+                                                    </td>
+                                                    <td class="${userAnswer.includes('C2') ? (correctAnswer.includes('C2') ? 'table-success' : 'table-danger') : ''}">
+                                                        ${userAnswer.includes('C2') ? (correctAnswer.includes('C2') ? '✔️' : '❌') : ''}
+                                                    </td>
+                                                </tr>` : ''}
+                                            ${optionD && optionD !== '<p><br></p>' ? `
+                                                <tr>
+                                                    <td>${optionD}</td>
+                                                    <td class="${userAnswer.includes('D1') ? (correctAnswer.includes('D1') ? 'table-success' : 'table-danger') : ''}">
+                                                        ${userAnswer.includes('D1') ? (correctAnswer.includes('D1') ? '✔️' : '❌') : ''}
+                                                    </td>
+                                                    <td class="${userAnswer.includes('D2') ? (correctAnswer.includes('D2') ? 'table-success' : 'table-danger') : ''}">
+                                                        ${userAnswer.includes('D2') ? (correctAnswer.includes('D2') ? '✔️' : '❌') : ''}
+                                                    </td>
+                                                </tr>` : ''}
+                                            ${optionE && optionE !== '<p><br></p>' ? `
+                                                <tr>
+                                                    <td>${optionE}</td>
+                                                    <td class="${userAnswer.includes('E1') ? (correctAnswer.includes('E1') ? 'table-success' : 'table-danger') : ''}">
+                                                        ${userAnswer.includes('E1') ? (correctAnswer.includes('E1') ? '✔️' : '❌') : ''}
+                                                    </td>
+                                                    <td class="${userAnswer.includes('E2') ? (correctAnswer.includes('E2') ? 'table-success' : 'table-danger') : ''}">
+                                                        ${userAnswer.includes('E2') ? (correctAnswer.includes('E2') ? '✔️' : '❌') : ''}
+                                                    </td>
+                                                </tr>` : ''}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>`;
+                    } else {
+                        optionsContent.innerHTML = `
+                            <div class="options">
+                                ${optionA && optionA !== '<p><br></p>' ? `
+                                    <div class="option-row ${userAnswer === 'A' ? (correctAnswer === 'A' ? 'correct-option' : 'selected-option') : 
+                                                           correctAnswer === 'A' ? 'correct-option' : ''} p-2 rounded mb-2">
+                                        <div class="option-label">A.</div>
+                                        <div class="option-content">${optionA}</div>
+                                        <div class="ms-2">${userAnswer === 'A' ? (correctAnswer === 'A' ? '✔️' : '❌') : 
+                                                         correctAnswer === 'A' ? '✔️' : ''}</div>
+                                    </div>` : ''}
+                                ${optionB && optionB !== '<p><br></p>' ? `
+                                    <div class="option-row ${userAnswer === 'B' ? (correctAnswer === 'B' ? 'correct-option' : 'selected-option') : 
+                                                           correctAnswer === 'B' ? 'correct-option' : ''} p-2 rounded mb-2">
+                                        <div class="option-label">B.</div>
+                                        <div class="option-content">${optionB}</div>
+                                        <div class="ms-2">${userAnswer === 'B' ? (correctAnswer === 'B' ? '✔️' : '❌') : 
+                                                         correctAnswer === 'B' ? '✔️' : ''}</div>
+                                    </div>` : ''}
+                                ${optionC && optionC !== '<p><br></p>' ? `
+                                    <div class="option-row ${userAnswer === 'C' ? (correctAnswer === 'C' ? 'correct-option' : 'selected-option') : 
+                                                           correctAnswer === 'C' ? 'correct-option' : ''} p-2 rounded mb-2">
+                                        <div class="option-label">C.</div>
+                                        <div class="option-content">${optionC}</div>
+                                        <div class="ms-2">${userAnswer === 'C' ? (correctAnswer === 'C' ? '✔️' : '❌') : 
+                                                         correctAnswer === 'C' ? '✔️' : ''}</div>
+                                    </div>` : ''}
+                                ${optionD && optionD !== '<p><br></p>' ? `
+                                    <div class="option-row ${userAnswer === 'D' ? (correctAnswer === 'D' ? 'correct-option' : 'selected-option') : 
+                                                           correctAnswer === 'D' ? 'correct-option' : ''} p-2 rounded mb-2">
+                                        <div class="option-label">D.</div>
+                                        <div class="option-content">${optionD}</div>
+                                        <div class="ms-2">${userAnswer === 'D' ? (correctAnswer === 'D' ? '✔️' : '❌') : 
+                                                         correctAnswer === 'D' ? '✔️' : ''}</div>
+                                    </div>` : ''}
+                                ${optionE && optionE !== '<p><br></p>' ? `
+                                    <div class="option-row ${userAnswer === 'E' ? (correctAnswer === 'E' ? 'correct-option' : 'selected-option') : 
+                                                           correctAnswer === 'E' ? 'correct-option' : ''} p-2 rounded mb-2">
+                                        <div class="option-label">E.</div>
+                                        <div class="option-content">${optionE}</div>
+                                        <div class="ms-2">${userAnswer === 'E' ? (correctAnswer === 'E' ? '✔️' : '❌') : 
+                                                         correctAnswer === 'E' ? '✔️' : ''}</div>
+                                    </div>` : ''}
+                            </div>`;
+                    }
+
+                    // Update the modal footer to include the answer status
+                    const answerStatusDiv = document.getElementById('answerStatus');
+                    answerStatusDiv.innerHTML = userAnswer ? `
+                        <div style="padding: 0.875rem 1.125rem;" class="alert alert-sm ${userAnswer === correctAnswer ? 'alert-success' : 'alert-danger'} d-flex align-items-center" role="alert">
+                            <div>
+                                <strong>Jawaban Anda:</strong> ${userAnswer} 
+                                <strong class="ms-3">Kunci:</strong> ${correctAnswer}
+                                <strong class="ms-3">Status:</strong> ${userAnswer === correctAnswer ? 'Benar' : 'Salah'}
+                            </div>
+                        </div>
+                    ` : '';
+
+                    // Show modal and render MathJax
+                    questionModal.show();
+                    setTimeout(() => {
+                        MathJax.typesetPromise([questionContent, optionsContent])
+                            .catch((err) => console.log('MathJax error:', err));
+                    }, 500);
+                });
+            });
+        });
+
+        function exportDetailToExcel() {
+            const wb = XLSX.utils.book_new();
+            
+            // Prepare data array for detailed answers
+            const data = [];
+            
+            // Add header info
+            data.push(['DETAIL JAWABAN SISWA']);
+            data.push(['Mata Pelajaran:', '<%= mapel.mapel %>']);
+            data.push(['Jumlah Soal:', '<%= soalData.length %>']);
+            data.push(['Durasi:', '<%= mapel.durasi %> menit']);
+            data.push(['Tanggal:', new Date().toLocaleDateString('id-ID')]);
+            data.push([]); // Empty row
+            
+            // Prepare headers
+            const headers = ['No', 'Nama', 'Email'];
+            <% for(let i = 0; i < soalData.length; i++) { %>
+                headers.push('Soal <%= i + 1 %>');
+            <% } %>
+            headers.push('Benar', 'Salah', 'Nilai');
+            
+            data.push(headers);
+            
+            // Extract table data
+            const rows = document.querySelectorAll("table tbody tr");
+            let rowIndex = 1;
+            
+            rows.forEach(row => {
+                const cols = row.querySelectorAll("td");
+                const rowData = [rowIndex++];
+                
+                // Add all cell data
+                for (let i = 1; i < cols.length; i++) { // Skip first column (already added as rowIndex)
+                    let cellValue = cols[i].innerText;
+                    // Convert numeric values for score columns
+                    if (i >= cols.length - 3) { // Last 3 columns are Benar, Salah, Nilai
+                        const numValue = parseInt(cellValue);
+                        if (!isNaN(numValue)) {
+                            cellValue = numValue;
+                        }
+                    }
+                    rowData.push(cellValue);
+                }
+                data.push(rowData);
+            });
+            
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            // Set column widths
+            const colWidths = [
+                { width: 5 },   // No
+                { width: 20 },  // Nama
+                { width: 25 }   // Email
+            ];
+            // Add widths for answer columns
+            <% for(let i = 0; i < soalData.length; i++) { %>
+                colWidths.push({ width: 8 });
+            <% } %>
+            colWidths.push({ width: 8 }, { width: 8 }, { width: 10 }); // B, S, Nilai
+            
+            ws['!cols'] = colWidths;
+            
+            // Style headers
+            const headerStyle = {
+                font: { bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "6C5CE7" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+            
+            if (ws['A1']) ws['A1'].s = { font: { bold: true, size: 16 }, alignment: { horizontal: "center" } };
+            
+            // Style table headers (row 7)
+            const headerRowIndex = 7;
+            const headerCells = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+            for (let i = 0; i < headers.length && i < headerCells.length; i++) {
+                const cellRef = headerCells[i] + headerRowIndex;
+                if (ws[cellRef]) ws[cellRef].s = headerStyle;
+            }
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'Detail Jawaban');
+            XLSX.writeFile(wb, `Detail_Jawaban_<%= mapel.mapel %>.xlsx`);
+        }
+
+        function exportSummaryToExcel() {
+            const wb = XLSX.utils.book_new();
+            
+            // Prepare summary data
+            const data = [];
+            
+            // Add header info
+            data.push(['RINGKASAN NILAI SISWA']);
+            data.push(['Mata Pelajaran:', '<%= mapel.mapel %>']);
+            data.push(['Jumlah Soal:', '<%= soalData.length %>']);
+            data.push(['Durasi:', '<%= mapel.durasi %> menit']);
+            data.push(['Tanggal:', new Date().toLocaleDateString('id-ID')]);
+            data.push([]); // Empty row
+            
+            // Summary headers
+            data.push(['No', 'Nama', 'Email', 'Benar', 'Salah', 'Nilai', 'Persentase']);
+            
+            // Extract summary data
+            const rows = document.querySelectorAll("table tbody tr");
+            let rowIndex = 1;
+            
+            rows.forEach(row => {
+                const cols = row.querySelectorAll("td");
+                const nama = cols[1].innerText;
+                const email = cols[2].innerText;
+                const benar = parseInt(cols[cols.length - 3].innerText);
+                const salah = parseInt(cols[cols.length - 2].innerText);
+                const nilai = parseInt(cols[cols.length - 1].innerText);
+                const persentase = Math.round((benar / <%= soalData.length %>) * 100);
+                
+                data.push([rowIndex++, nama, email, benar, salah, nilai, persentase + '%']);
+            });
+            
+            // Add statistics
+            data.push([]);
+            data.push(['STATISTIK']);
+            data.push(['Total Peserta:', rows.length]);
+            
+            // Calculate averages
+            let totalNilai = 0;
+            let totalBenar = 0;
+            rows.forEach(row => {
+                const cols = row.querySelectorAll("td");
+                totalNilai += parseInt(cols[cols.length - 1].innerText);
+                totalBenar += parseInt(cols[cols.length - 3].innerText);
+            });
+            
+            data.push(['Rata-rata Nilai:', Math.round(totalNilai / rows.length)]);
+            data.push(['Rata-rata Benar:', Math.round(totalBenar / rows.length)]);
+            data.push(['Rata-rata Persentase:', Math.round((totalBenar / rows.length / <%= soalData.length %>) * 100) + '%']);
+            
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            // Set column widths
+            ws['!cols'] = [
+                { width: 5 },   // No
+                { width: 20 },  // Nama
+                { width: 25 },  // Email
+                { width: 8 },   // Benar
+                { width: 8 },   // Salah
+                { width: 10 },  // Nilai
+                { width: 12 }   // Persentase
+            ];
+            
+            // Style headers
+            const headerStyle = {
+                font: { bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "6C5CE7" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+            
+            if (ws['A1']) ws['A1'].s = { font: { bold: true, size: 16 }, alignment: { horizontal: "center" } };
+            
+            // Style table headers (row 7)
+            const headerCells = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+            for (let i = 0; i < 7; i++) {
+                const cellRef = headerCells[i] + '7';
+                if (ws[cellRef]) ws[cellRef].s = headerStyle;
+            }
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'Ringkasan Nilai');
+            XLSX.writeFile(wb, `Ringkasan_Nilai_<%= mapel.mapel %>.xlsx`);
+        }
+    </script>
+
+    <!-- Question Modal -->
+    <div class="modal fade" id="questionModal" tabindex="-1" aria-labelledby="questionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="questionModalLabel">Detail Soal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="questionContent"></div>
+                    <div id="optionsContent" class="mt-3"></div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between align-items-center">
+                    <div id="answerStatus" class="me-auto"></div>
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

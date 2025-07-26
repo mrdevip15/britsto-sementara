@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>User Report - <%= userData.nama %></title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        .score-cell {
+            text-align: center;
+            position: relative;
+        }
+        .improvement-indicator {
+            font-size: 0.75em;
+            position: absolute;
+            right: 5px;
+            top: 5px;
+        }
+        .score-main {
+            font-size: 1.1em;
+            display: block;
+            margin-top: 10px;
+        }
+        .improvement-positive {
+            color: #28a745;
+        }
+        .improvement-negative {
+            color: #dc3545;
+        }
+        .improvement-neutral {
+            color: #6c757d;
+        }
+        .chart-container {
+            position: relative;
+            height: 450px;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body class="nav-fixed">
+    <%- include('partials/topNav') %> 
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="user"></i></div>
+                                        Report: <%= userData.nama %>
+                                    </h1>
+                                    <div class="page-header-subtitle">
+                                        <%= userData.email %> | <%= userData.phone || 'No Phone' %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <!-- Progress Chart Card -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>Progress Chart</div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary active" id="showAll">Semua Subtes</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="showAverage">Rata-Rata</button>
+                                <div class="dropdown ms-2">
+                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="subjectDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Filter Subtes
+                                    </button>
+                                    <ul class="dropdown-menu subject-filter" aria-labelledby="subjectDropdown">
+                                        <!-- Subjects will be added dynamically -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="progressChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Table Card -->
+                    <div class="card">
+                        <div class="card-header">Progress Report</div>
+                        <div class="card-body">
+                            <div class="table-wrapper">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Paket</th>
+                                            <% 
+                                            // Get all unique subjects
+                                            const allSubjects = new Set();
+                                            Object.values(examsByToken).forEach(exams => {
+                                                exams.forEach(exam => allSubjects.add(exam.mapel));
+                                            });
+                                            const subjects = Array.from(allSubjects).sort((a, b) => a.localeCompare(b));
+                                            
+                                            // Sort tokens by date
+                                            const sortedTokens = Object.keys(examsByToken).sort((a, b) => {
+                                                const dateA = new Date(examsByToken[a][0].date);
+                                                const dateB = new Date(examsByToken[b][0].date);
+                                                return dateA - dateB;
+                                            });
+
+                                            // Create a lookup for previous scores
+                                            const previousScores = {};
+                                            %>
+
+                                            <% subjects.forEach(subject => { %>
+                                                <th class="text-center"><%= subject %></th>
+                                            <% }); %>
+                                            <th class="text-center">Rata-Rata</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% 
+                                        let previousAverage = null;
+                                        sortedTokens.forEach(tokenValue => { 
+                                            const exams = examsByToken[tokenValue];
+                                            // Format the date from the first exam
+                                            const date = new Date(exams[0].date).toLocaleDateString('id-ID', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            });
+                                            const tokenDetails = tokens.find(t => t.token === tokenValue);
+                                        %>
+                                            <tr>
+                                                <td><%= date %></td>
+                                                <td><%= tokenDetails ? tokenDetails.owner : tokenValue %></td>
+                                                <% 
+                                                let totalScore = 0;
+                                                let scoreCount = 0;
+                                                
+                                                subjects.forEach(subject => {
+                                                    const exam = exams.find(e => e.mapel === subject);
+                                                    const score = exam ? exam.score : '-';
+                                                    
+                                                    // Calculate individual subject improvement
+                                                    let improvement = '-';
+                                                    if (exam && previousScores[subject]) {
+                                                        const diff = score - previousScores[subject];
+                                                        improvement = diff !== 0 ? (diff > 0 ? `+${diff}` : diff) : '0';
+                                                    }
+                                                    
+                                                    // Calculate average
+                                                    if (exam && typeof exam.score === 'number') {
+                                                        totalScore += exam.score;
+                                                        scoreCount++;
+                                                    }
+                                                    
+                                                    // Store current score for next iteration
+                                                    if (exam) {
+                                                        previousScores[subject] = score;
+                                                    }
+                                                %>
+                                                    <td class="score-cell">
+                                                        <% if (improvement !== '-') { %>
+                                                            <span class="improvement-indicator 
+                                                                <%= parseFloat(improvement) > 0 ? 'improvement-positive' : 
+                                                                   parseFloat(improvement) < 0 ? 'improvement-negative' : 
+                                                                   'improvement-neutral' %>">
+                                                                <%= improvement %>
+                                                            </span>
+                                                        <% } %>
+                                                        <span class="score-main"><%= score %></span>
+                                                    </td>
+                                                <% }); 
+
+                                                const averageScore = scoreCount > 0 ? totalScore / scoreCount : '-';
+                                                
+                                                // Calculate average improvement
+                                                let averageImprovement = '-';
+                                                if (typeof averageScore === 'number' && previousAverage !== null) {
+                                                    const diff = averageScore - previousAverage;
+                                                    averageImprovement = diff !== 0 ? (diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)) : '0';
+                                                }
+                                                
+                                                // Store current average for next iteration
+                                                if (typeof averageScore === 'number') {
+                                                    previousAverage = averageScore;
+                                                }
+                                                %>
+                                                <td class="score-cell">
+                                                    <% if (averageImprovement !== '-') { %>
+                                                        <span class="improvement-indicator 
+                                                            <%= parseFloat(averageImprovement) > 0 ? 'improvement-positive' : 
+                                                               parseFloat(averageImprovement) < 0 ? 'improvement-negative' : 
+                                                               'improvement-neutral' %>">
+                                                            <%= averageImprovement %>
+                                                        </span>
+                                                    <% } %>
+                                                    <span class="score-main">
+                                                        <%= typeof averageScore === 'number' ? averageScore.toFixed(1) : averageScore %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary" 
+                                                            onclick="showDetails('<%= tokenValue %>')">
+                                                        View Details
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detailed View</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script>
+        // Directly embed the data as JavaScript objects without using JSON.parse
+        const examsByToken = <%- JSON.stringify(examsByToken) %>;
+        const tokens = <%- JSON.stringify(tokens) %>;
+
+        function showDetails(tokenValue) {
+            const exams = examsByToken[tokenValue];
+            const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            const modalContent = document.getElementById('modalContent');
+            
+            // Find the token owner using the tokenValue
+            const tokenDetails = tokens.find(token => token.token === tokenValue);
+            const tokenOwner = tokenDetails ? tokenDetails.owner : 'Unknown Owner';
+
+            let content = `
+                <h6>${tokenOwner}</h6>
+                <h6>Token: ${tokenValue}</h6>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Score</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // Sort the exam data alphabetically by subject before displaying
+            exams.sort((a, b) => a.mapel.localeCompare(b.mapel));
+            
+            exams.forEach(exam => {
+                content += `
+                    <tr>
+                        <td>${exam.mapel}</td>
+                        <td>${exam.score}</td>
+                        <td>${exam.duration} minutes</td>
+                    </tr>
+                `;
+            });
+            
+            content += `</tbody></table>`;
+            modalContent.innerHTML = content;
+            modal.show();
+        }
+
+        // Initialize the chart
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Check if data exists and log it for debugging
+                console.log('examsByToken:', examsByToken);
+                console.log('tokens:', tokens);
+                
+                // Add check for empty data
+                if (!examsByToken || Object.keys(examsByToken).length === 0) {
+                    document.querySelector('.chart-container').innerHTML = 
+                        '<div class="alert alert-info">No test data available for this user yet.</div>';
+                    return;
+                }
+                
+                // Get the sorted tokens
+                const sortedTokens = Object.keys(examsByToken).sort((a, b) => {
+                    const dateA = new Date(examsByToken[a][0].date);
+                    const dateB = new Date(examsByToken[b][0].date);
+                    return dateA - dateB;
+                });
+
+                // Get all unique subjects
+                const allSubjects = new Set();
+                Object.values(examsByToken).forEach(exams => {
+                    exams.forEach(exam => allSubjects.add(exam.mapel));
+                });
+                const subjects = Array.from(allSubjects).sort((a, b) => a.localeCompare(b));
+
+                // Populate subject filter dropdown
+                const subjectFilterEl = document.querySelector('.subject-filter');
+                
+                // Add "All Subjects" option
+                const allSubjectsLi = document.createElement('li');
+                const allSubjectsA = document.createElement('a');
+                allSubjectsA.classList.add('dropdown-item', 'active');
+                allSubjectsA.href = '#';
+                allSubjectsA.textContent = 'All Subjects';
+                allSubjectsA.dataset.subject = 'all';
+                allSubjectsLi.appendChild(allSubjectsA);
+                subjectFilterEl.appendChild(allSubjectsLi);
+                
+                // Add each individual subject
+                subjects.forEach(subject => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.classList.add('dropdown-item');
+                    a.href = '#';
+                    a.textContent = subject;
+                    a.dataset.subject = subject;
+                    li.appendChild(a);
+                    subjectFilterEl.appendChild(li);
+                });
+
+                // Prepare datasets for each subject
+                const datasets = subjects.map((subject, index) => {
+                    // Generate a color based on index (using a simple hue rotation)
+                    const hue = (index * 137) % 360; // Golden angle approximation for good distribution
+                    const color = `hsl(${hue}, 70%, 60%)`;
+                    
+                    // Create dataset for this subject
+                    return {
+                        label: subject,
+                        data: sortedTokens.map(token => {
+                            const exams = examsByToken[token];
+                            const exam = exams.find(e => e.mapel === subject);
+                            return exam ? exam.score : null;
+                        }),
+                        borderColor: color,
+                        backgroundColor: color + '20', // Add transparency for area
+                        tension: 0.3,
+                        fill: false,
+                        subject: subject // Custom property to help with filtering
+                    };
+                });
+
+                // Add average dataset
+                const averageData = sortedTokens.map(token => {
+                    const exams = examsByToken[token];
+                    const scores = exams.map(exam => exam.score).filter(score => typeof score === 'number');
+                    if (scores.length === 0) return null;
+                    
+                    const sum = scores.reduce((total, score) => total + score, 0);
+                    return (sum / scores.length).toFixed(1);
+                });
+
+                datasets.push({
+                    label: 'Rata-rata',
+                    data: averageData,
+                    borderColor: '#343a40',
+                    backgroundColor: 'rgba(52, 58, 64, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    subject: 'average' // Special marker for average
+                });
+
+                // Prepare labels (dates)
+                const labels = sortedTokens.map(token => {
+                    const exams = examsByToken[token];
+                    const date = new Date(exams[0].date);
+                    return date.toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                });
+
+                // Get the canvas element
+                const ctx = document.getElementById('progressChart').getContext('2d');
+                
+                // Create the chart
+                const progressChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'PERKEMBANGAN NILAI TRYOUT',
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                },
+                                padding: {
+                                    top: 10,
+                                    bottom: 20
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 12,
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 1000,
+                                title: {
+                                    display: true,
+                                    text: 'Nilai'
+                                },
+                                grid: {
+                                    color: '#e9ecef',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    stepSize: 200
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: false
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        elements: {
+                            bar: {
+                                borderRadius: 3
+                            }
+                        },
+                        layout: {
+                            padding: {
+                                top: 40 // Add more padding for value labels
+                            }
+                        },
+                        barPercentage: 0.7,
+                        // Add custom plugin for showing value labels
+                        plugins: [{
+                            afterDraw: function(chart) {
+                                const ctx = chart.ctx;
+                                chart.data.datasets.forEach((dataset, i) => {
+                                    // Only add labels for the average dataset that's visible
+                                    if (dataset.subject === 'average' && !dataset.hidden) {
+                                        const meta = chart.getDatasetMeta(i);
+                                        meta.data.forEach((bar, index) => {
+                                            const data = dataset.data[index];
+                                            if (data) {
+                                                // Get color for this bar
+                                                const color = dataset.backgroundColor[index] || '#3b7ddd';
+                                                
+                                                // Create background for the text
+                                                const textWidth = ctx.measureText(data).width + 10;
+                                                const textHeight = 20;
+                                                
+                                                // Background for text
+                                                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                                                ctx.beginPath();
+                                                
+                                                // Draw rounded rectangle (compatible with all browsers)
+                                                const x = bar.x - (textWidth / 2);
+                                                const y = bar.y - 30;
+                                                const width = textWidth;
+                                                const height = textHeight;
+                                                const radius = 4;
+                                                
+                                                ctx.moveTo(x + radius, y);
+                                                ctx.lineTo(x + width - radius, y);
+                                                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                                                ctx.lineTo(x + width, y + height - radius);
+                                                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                                                ctx.lineTo(x + radius, y + height);
+                                                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                                                ctx.lineTo(x, y + radius);
+                                                ctx.quadraticCurveTo(x, y, x + radius, y);
+                                                ctx.closePath();
+                                                ctx.fill();
+                                                
+                                                // Draw border
+                                                ctx.strokeStyle = color;
+                                                ctx.lineWidth = 1;
+                                                ctx.stroke();
+                                                
+                                                // Text shadow for better visibility
+                                                ctx.font = 'bold 15px Arial';
+                                                ctx.fillStyle = color;
+                                                ctx.textAlign = 'center';
+                                                ctx.textBaseline = 'middle';
+                                                ctx.fillText(data, bar.x, bar.y - 20);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        }]
+                    }
+                });
+                
+                // Make all datasets blue for average, with different opacity for individual subjects
+                progressChart.data.datasets.forEach(dataset => {
+                    if (dataset.subject === 'average') {
+                        // Create an array of different colors for each data point in average dataset
+                        const colorPalette = [
+                            '#FF5733', // Bright Red-Orange
+                            '#C70039', // Deep Red
+                            '#900C3F', // Burgundy
+                            '#581845', // Plum
+                            '#FFC300', // Bright Yellow
+                            '#DAF7A6', // Light Green
+                            '#FF5733', // Coral
+                            '#FF8D1A', // Orange
+                            '#5DADE2', // Sky Blue
+                            '#3498DB', // Medium Blue
+                            '#2E86C1', // Ocean Blue
+                            '#2874A6', // Darker Blue
+                            '#7D3C98', // Purple
+                            '#A569BD', // Light Purple
+                            '#1ABC9C', // Turquoise
+                            '#16A085', // Green-Blue
+                            '#F1948A', // Light Pink
+                            '#EC7063', // Salmon
+                            '#2ECC71', // Emerald Green
+                            '#27AE60', // Medium Green
+                            '#FFC0CB', // Pink
+                            '#FF69B4', // Hot Pink
+                            '#9B59B6', // Amethyst Purple
+                            '#8E44AD'  // Dark Violet
+                        ];
+
+                        // Apply different colors to each bar
+                        const backgroundColors = dataset.data.map((_, index) => 
+                            colorPalette[index % colorPalette.length]
+                        );
+                        
+                        dataset.backgroundColor = backgroundColors;
+                        
+                        // For the value labels, also use the corresponding color
+                        dataset.valueColors = backgroundColors;
+                    } else {
+                        // Give each subject a distinct color rather than blue variations
+                        const subjectIndex = subjects.indexOf(dataset.subject);
+                        const distinctColors = [
+                            '#FF6384', // Pink
+                            '#36A2EB', // Blue
+                            '#FFCE56', // Yellow
+                            '#4BC0C0', // Teal
+                            '#9966FF', // Purple
+                            '#FF9F40', // Orange
+                            '#C9CBCF', // Gray
+                            '#7CFC00', // Lawn Green
+                            '#1E90FF', // Dodger Blue
+                            '#FF1493', // Deep Pink
+                            '#00CED1', // Dark Turquoise
+                            '#FF8C00', // Dark Orange
+                            '#8A2BE2', // Blue Violet
+                            '#32CD32', // Lime Green
+                            '#FF00FF', // Magenta
+                            '#FFD700', // Gold
+                            '#00BFFF', // Deep Sky Blue
+                            '#00FF7F'  // Spring Green
+                        ];
+                        
+                        // Apply a consistent but distinctive color for each subject
+                        const colorIndex = subjectIndex % distinctColors.length;
+                        dataset.backgroundColor = distinctColors[colorIndex] + '80'; // Add transparency
+                        dataset.borderColor = distinctColors[colorIndex];
+                        
+                        // Hide individual subjects initially
+                        dataset.hidden = true;
+                    }
+                });
+                
+                // Update to show just average by default
+                document.getElementById('showAll').classList.remove('active');
+                document.getElementById('showAverage').classList.add('active');
+                
+                // Add back the event listeners for buttons
+                document.getElementById('showAverage').addEventListener('click', function() {
+                    // Make this button active
+                    document.getElementById('showAll').classList.remove('active');
+                    this.classList.add('active');
+                    
+                    // Update datasets visibility
+                    progressChart.data.datasets.forEach(dataset => {
+                        dataset.hidden = dataset.subject !== 'average';
+                    });
+                    progressChart.update();
+                    
+                    // Reset subject filter highlight
+                    document.querySelectorAll('.subject-filter .dropdown-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    document.querySelector('.subject-filter [data-subject="all"]').classList.add('active');
+                });
+                
+                document.getElementById('showAll').addEventListener('click', function() {
+                    // Make this button active
+                    document.getElementById('showAverage').classList.remove('active');
+                    this.classList.add('active');
+                    
+                    // Show all datasets
+                    progressChart.data.datasets.forEach(dataset => {
+                        dataset.hidden = false;
+                    });
+                    progressChart.update();
+                    
+                    // Reset subject filter highlight
+                    document.querySelectorAll('.subject-filter .dropdown-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    document.querySelector('.subject-filter [data-subject="all"]').classList.add('active');
+                });
+                
+                // Subject filter dropdown functionality
+                document.querySelectorAll('.subject-filter .dropdown-item').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // Update active state in dropdown
+                        document.querySelectorAll('.subject-filter .dropdown-item').forEach(i => {
+                            i.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        
+                        // Reset the main toggle buttons
+                        document.getElementById('showAll').classList.remove('active');
+                        document.getElementById('showAverage').classList.remove('active');
+                        
+                        const selectedSubject = this.dataset.subject;
+                        
+                        if (selectedSubject === 'all') {
+                            // Show all subjects (same as "Show All")
+                            document.getElementById('showAll').classList.add('active');
+                            progressChart.data.datasets.forEach(dataset => {
+                                dataset.hidden = false;
+                            });
+                        } else {
+                            // Show only selected subject and average
+                            progressChart.data.datasets.forEach(dataset => {
+                                dataset.hidden = dataset.subject !== selectedSubject && dataset.subject !== 'average';
+                            });
+                        }
+                        
+                        progressChart.update();
+                    });
+                });
+                
+                progressChart.update();
+            } catch (error) {
+                console.error('Error initializing chart:', error);
+                document.querySelector('.chart-container').innerHTML = 
+                    '<div class="alert alert-danger">Error loading chart: ' + error.message + '</div>';
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.feather) {
+                feather.replace();
+            }
+        });
+    </script>
+</body>
+</html> 

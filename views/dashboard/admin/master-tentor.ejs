@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Dashboard GG</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+    <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+    <!-- Add SweetAlert2 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <style>
+        .bg-geniusgate {
+            background-color: #bd592f;
+        }
+        .text-primary {
+            color: #bd592f !important;
+        }
+        .progress-circle {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #f0f0f0;
+        }
+        .progress-circle-fill {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .progress-circle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(#bd592f var(--progress), #f0f0f0 var(--progress));
+        }
+        .progress-circle-text {
+            position: relative;
+            z-index: 1;
+            font-weight: bold;
+            color: #bd592f;
+        }
+        /* Icon background styling */
+        .icon-bg {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            transition: all 0.3s ease;
+        }
+        
+        .icon-bg:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .icon-bg-success {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+        
+        .icon-bg-success:hover {
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        
+        .icon-bg-danger {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+        
+        .icon-bg-danger:hover {
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+        }
+        
+        .icon-bg-warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+        
+        .icon-bg-warning:hover {
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+        }
+        
+        .icon-bg-info {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+        
+        .icon-bg-info:hover {
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+        }
+        
+        /* Header icon styling */
+        .page-header-icon .icon-bg {
+            width: 48px;
+            height: 48px;
+        }
+        
+        /* Button icon styling */
+        .btn .icon-bg {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-active {
+            background-color: #28a745;
+        }
+        
+        .status-inactive {
+            background-color: #dc3545;
+        }
+        
+        .status-pending {
+            background-color: #ffc107;
+        }
+        
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .export-section {
+            background: #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .tentor-card {
+            transition: transform 0.2s;
+        }
+        
+        .tentor-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .fee-badge {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .subject-tag {
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            margin: 2px;
+            display: inline-block;
+        }
+        
+        .availability-indicator {
+            font-size: 0.85em;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .available {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .busy {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .contact-info {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stats-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .action-buttons .btn {
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .tentor-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .experience-badge {
+            background: #17a2b8;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+        
+        .rating-stars {
+            color: #ffc107;
+            font-size: 0.9em;
+        }
+        
+        .tentor-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+        
+        .status-verified {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending-verification {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .monthly-summary {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .summary-value {
+            font-weight: 600;
+            color: #007bff;
+        }
+        
+        /* Clean icon styling */
+        [data-feather] {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+        
+        /* Action button icon containers */
+        .icon-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .icon-container:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-decoration: none;
+        }
+        
+        /* Color variants for action icons */
+        .icon-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .icon-success:hover {
+            background: #c3e6cb;
+            color: #155724;
+        }
+        
+        .icon-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .icon-danger:hover {
+            background: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .icon-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .icon-warning:hover {
+            background: #ffeaa7;
+            color: #856404;
+        }
+        
+        .icon-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .icon-info:hover {
+            background: #bee5eb;
+            color: #0c5460;
+        }
+        
+        .icon-primary {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d7ff;
+        }
+        
+        .icon-primary:hover {
+            background: #b3d7ff;
+            color: #004085;
+        }
+        
+        /* Button icons - keep them simple */
+        .btn [data-feather] {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+        }
+        
+        /* Header icons */
+        .page-header-icon [data-feather] {
+            width: 32px;
+            height: 32px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="nav-fixed">
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Yakin ingin menghapus tentor <strong><span id="tentorName"></span></strong>?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Batal</button>
+                    <form id="deleteForm" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Hapus</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update the session detail modal design -->
+    <div class="modal fade" id="sessionDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-gradient-primary-to-secondary text-white">
+                    <h5 class="modal-title text-white">
+                        <i class="fas fa-chalkboard-teacher me-1"></i>
+                        Detail Sesi Mengajar: <span id="modalTentorName" class="fw-bold"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Add Monthly Earnings Display -->
+                    <div class="alert alert-success mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="alert-heading mb-1">Pendapatan Bulan Ini</h6>
+                                <div class="h4 mb-0" id="monthlyEarnings">Rp 0</div>
+                            </div>
+                            <i class="fas fa-money-bill-wave fa-2x text-primary-soft"></i>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small text-muted d-block">Nama Panggilan</label>
+                        <div class="fw-bold" id="detail-nama"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-muted d-block">Nama Lengkap</label>
+                        <div class="fw-bold" id="detail-namaLengkap"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-user-graduate me-1"></i>
+                                        Siswa yang Diajar
+                                    </h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="studentList" class="list-group list-group-flush">
+                                        <!-- Student list will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">
+                                        <i class="fas fa-book me-1"></i>
+                                        Mata Pelajaran
+                                    </h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="subjectList" class="list-group list-group-flush">
+                                        <!-- Subject list will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="exportToPDF()">
+                        <i class="fas fa-file-pdf me-1"></i>Export PDF
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/topNav') %>
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="users"></i></div>
+                                        Manajemen Tentor
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                  
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <form class="row align-items-center" method="GET">
+                                <div class="col-md-4">
+                                    <label class="form-label">Bulan</label>
+                                    <select name="month" class="form-select">
+                                        <option value="1" <%= selectedMonth == 1 ? 'selected' : '' %>>Januari</option>
+                                        <option value="2" <%= selectedMonth == 2 ? 'selected' : '' %>>Februari</option>
+                                        <option value="3" <%= selectedMonth == 3 ? 'selected' : '' %>>Maret</option>
+                                        <option value="4" <%= selectedMonth == 4 ? 'selected' : '' %>>April</option>
+                                        <option value="5" <%= selectedMonth == 5 ? 'selected' : '' %>>Mei</option>
+                                        <option value="6" <%= selectedMonth == 6 ? 'selected' : '' %>>Juni</option>
+                                        <option value="7" <%= selectedMonth == 7 ? 'selected' : '' %>>Juli</option>
+                                        <option value="8" <%= selectedMonth == 8 ? 'selected' : '' %>>Agustus</option>
+                                        <option value="9" <%= selectedMonth == 9 ? 'selected' : '' %>>September</option>
+                                        <option value="10" <%= selectedMonth == 10 ? 'selected' : '' %>>Oktober</option>
+                                        <option value="11" <%= selectedMonth == 11 ? 'selected' : '' %>>November</option>
+                                        <option value="12" <%= selectedMonth == 12 ? 'selected' : '' %>>Desember</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tahun</label>
+                                    <select name="year" class="form-select">
+                                        <% for(let y = currentYear; y >= 2023; y--) { %>
+                                            <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %></option>
+                                        <% } %>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i data-feather="filter" class="me-1"></i>Filter
+                                        </button>
+                                        <a href="/admin/tentor" class="btn btn-secondary">
+                                            <i data-feather="refresh-cw" class="me-1"></i>Reset
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Alert placeholder -->
+       
+
+                    <div class="row mb-4">
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card border-start-primary border-start-3 h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            <div class="small fw-bold text-primary mb-1">Total Pendapatan Semua Tentor</div>
+                                            <div class="h5">
+                                                Rp <%= tentors.reduce((sum, t) => sum + (t.filteredEarnings || 0), 0).toLocaleString('id-ID') %>
+                                            </div>
+                                        </div>
+                                        <div class="ms-2"><i class="fas fa-money-bill-wave fa-2x text-gray-300"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card border-start-warning border-start-3 h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            <div class="small fw-bold text-warning mb-1">Total Pendapatan Tertunda</div>
+                                            <div class="h5">
+                                                Rp <%= tentors.reduce((sum, t) => sum + (t.filteredPendingEarnings || 0), 0).toLocaleString('id-ID') %>
+                                            </div>
+                                        </div>
+                                        <div class="ms-2"><i class="fas fa-clock fa-2x text-gray-300"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card border-start-success border-start-3 h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            <div class="small fw-bold text-success mb-1">Total Sesi Selesai</div>
+                                            <div class="h5">
+                                                <%= tentors.reduce((sum, t) => sum + (t.filteredCompletedSessions || 0), 0) %> Sesi
+                                            </div>
+                                        </div>
+                                        <div class="ms-2"><i class="fas fa-check-circle fa-2x text-gray-300"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-header">Daftar Tentor</div>
+                        <div class="card-body">
+                            <div class="alert-container"></div>
+                            <div class="table-responsive">
+                                <table id="datatablesSimple" class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Warna</th>
+                                            <th>Nama Panggilan</th>
+                                            <th>Nama Lengkap</th>
+                                            <th>Email</th>
+                                            <th>No HP</th>
+                                            <th>No Rekening</th>
+                                            <th>Total Pendapatan</th>
+                                            <th>Sesi Selesai</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% tentors.forEach(tentor => { %>
+                                            <tr>
+                                                <td>
+                                                    <div style="width: 30px; height: 30px; border-radius: 4px; background-color: <%= tentor.color || '#ccc' %>"></div>
+                                                </td>
+                                                <td><%= tentor.nama %></td>
+                                                <td><%= tentor.namaLengkap || '-' %></td>
+                                                <td><%= tentor.email %></td>
+                                                <td><%= tentor.noHp %></td>
+                                                <td><%= tentor.noRekening || '-' %></td>
+                                                <td>
+                                                    <div class="d-flex flex-column">
+                                                        <span class="text-primary">
+                                                            Rp <%= (tentor.filteredEarnings || 0).toLocaleString('id-ID') %>
+                                                        </span>
+                                                        <small class="text-muted">
+                                                            Pending: Rp <%= (tentor.filteredPendingEarnings || 0).toLocaleString('id-ID') %>
+                                                        </small>
+                                                    </div>
+                                                </td>
+                                                <td><%= tentor.filteredCompletedSessions || 0 %> sesi</td>
+                                                <td>
+                                                    <span class="badge text-white bg-<%= tentor.isActive ? 'success' : 'danger' %>">
+                                                        <%= tentor.isActive ? 'Aktif' : 'Nonaktif' %>
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="d-flex gap-1">
+                                                        <button class="icon-container icon-info me-2" 
+                                                                onclick="showSessionDetail('<%= tentor.id %>', '<%= tentor.nama %>', '<%= tentor.namaLengkap %>')"
+                                                                title="Detail Sesi">
+                                                            <i data-feather="users"></i>
+                                                        </button>
+                                                        <a href="/admin/tentor/edit/<%= tentor.id %>" 
+                                                           class="icon-container icon-warning me-2"
+                                                           title="Edit">
+                                                            <i data-feather="edit-2"></i>
+                                                        </a>
+                                                        <button class="icon-container icon-danger" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#deleteModal"
+                                                                data-tentor-id="<%= tentor.id %>"
+                                                                data-tentor-nama="<%= tentor.nama %>"
+                                                                title="Hapus">
+                                                            <i data-feather="trash-2"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                 
+                </div>
+
+                <!-- Add summary cards at the top -->
+             
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        // Initialize Feather Icons on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+        });
+
+        // Initialize DataTable
+        const datatablesSimple = document.getElementById('datatablesSimple');
+        if (datatablesSimple) {
+            const dataTable = new simpleDatatables.DataTable(datatablesSimple, {
+                perPage: 10,
+                searchable: true,
+                sortable: true,
+                afterRender: () => {
+                    setTimeout(() => {
+                        feather.replace();
+                    }, 100);
+                }
+            });
+
+            // Handle all table events that might affect the DOM
+            const events = [
+                'datatable.perpage',
+                'datatable.sort',
+                'datatable.page',
+                'datatable.search'
+            ];
+
+            events.forEach(event => {
+                dataTable.on(event, () => {
+                    setTimeout(() => {
+                        feather.replace();
+                    }, 100);
+                });
+            });
+        }
+
+        // Handle URL parameters for alerts
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const error = urlParams.get('error');
+
+            if (message || error) {
+                Swal.fire({
+                    title: error ? 'Error!' : 'Berhasil!',
+                    text: message || error,
+                    icon: error ? 'error' : 'success',
+                    confirmButtonColor: error ? '#dc3545' : '#28a745',
+                    confirmButtonText: 'OK'
+                });
+
+                // Clear the URL parameters
+                const url = new URL(window.location.href);
+                url.searchParams.delete('message');
+                url.searchParams.delete('error');
+                window.history.replaceState({}, document.title, url);
+            }
+        });
+
+        // Handle delete modal
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const tentorId = button.getAttribute('data-tentor-id');
+                const tentorNama = button.getAttribute('data-tentor-nama');
+                const deleteForm = document.getElementById('deleteForm');
+                const tentorNameSpan = document.getElementById('tentorName');
+                
+                deleteForm.action = `/admin/tentor/delete/${tentorId}`;
+                tentorNameSpan.textContent = tentorNama;
+            });
+        }
+
+        // Add a helper function to safely escape HTML
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Define monthNames at the top level of your script
+        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+        function parseDateString(dateStr) {
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                // Convert to "YYYY-MM-DD"
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateStr; // Return original if not in expected format
+        }
+
+        // Function to format date to "Minggu, 23 Feb 2025"
+        function formatDateToIndonesian(dateStr) {
+            const validDateStr = parseDateString(dateStr);
+            const date = new Date(validDateStr);
+            
+            // Check if the date is valid
+            if (isNaN(date.getTime())) {
+                console.error('Invalid date:', dateStr);
+                return dateStr; // Return the original string if invalid
+            }
+
+            const options = { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric', locale: 'id-ID' };
+            return date.toLocaleDateString('id-ID', options);
+        }
+
+        async function showSessionDetail(tentorId, tentorName, tentorFullName) {
+            try {
+                // Get current filter values
+                const monthSelect = document.querySelector('select[name="month"]');
+                const yearSelect = document.querySelector('select[name="year"]');
+                const month = monthSelect ? monthSelect.value : '';
+                const year = yearSelect ? yearSelect.value : '';
+
+                const response = await fetch(`/admin/tentor/${tentorId}/sessions?month=${month}&year=${year}`);
+                const data = await response.json();
+                
+                // Format monthly earnings
+                document.getElementById('monthlyEarnings').textContent = 
+                    `Rp ${(data.monthlyEarnings || 0).toLocaleString('id-ID')}`;
+                
+                // Use the escape function for tentor name
+                const escapedTentorName = escapeHtml(tentorName);
+                const escapedTentorFullName = escapeHtml(tentorFullName);
+                
+                // Add period information to the modal title
+                const periodText = month && year ? ` (${monthNames[month-1]} ${year})` : '';
+                
+                // Update personal info
+                document.getElementById('detail-nama').textContent = tentorName;
+                document.getElementById('detail-namaLengkap').textContent = tentorFullName || '-';
+                
+                // Update modal title with nickname
+                document.getElementById('modalTentorName').innerHTML = `${escapedTentorName}${periodText}`;
+                
+                const studentList = document.getElementById('studentList');
+                studentList.innerHTML = '';
+                
+                if (data.students && data.students.length > 0) {
+                    data.students.forEach(student => {
+                        // Calculate completion percentage excluding canceled sessions
+                        const totalSessions = student.totalSessions - student.canceledCount;
+                        const completedCount = student.completedCount;
+                        const completionPercentage = totalSessions > 0 ? (completedCount / totalSessions) * 100 : 0;
+
+                        let sessionsHtml = '';
+                        
+                        if (student.sessions && student.sessions.length > 0) {
+                            sessionsHtml = `
+                                <div class="small mt-2">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Tanggal</th>
+                                                    <th>Mata Pelajaran</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${student.sessions.map(session => `
+                                                    <tr>
+                                                        <td>${new Date(session.date).toLocaleDateString('id-ID')}</td>
+                                                        <td>${escapeHtml(session.mataPelajaran)}</td>
+                                                        <td>
+                                                            <span class="badge text-white bg-${
+                                                                session.status === 'completed' ? 'success' : 
+                                                                session.status === 'canceled' ? 'danger' : 
+                                                                'primary'
+                                                            }">
+                                                                ${
+                                                                    session.status === 'completed' ? 'Selesai' : 
+                                                                    session.status === 'canceled' ? 'Dibatalkan' : 
+                                                                    'Terjadwal'
+                                                                }
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        studentList.innerHTML += `
+                            <div class="list-group-item list-group-item-action" 
+                                 data-fee="${student.type === 'individual' ? student.fee || 0 : 0}"
+                                 data-class-fee="${student.type === 'class' && student.class ? student.class.fee || 0 : 0}">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">${escapeHtml(student.nama)}</h6>
+                                        <div class="mb-1">
+                                            <span class="badge text-white bg-${student.type === 'class' ? 'primary' : 'secondary'} rounded-pill">
+                                                ${student.type === 'class' ? 'Kelas' : 'Privat'}
+                                            </span>
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            ${student.completedCount} sesi selesai dari ${student.totalSessions - student.canceledCount} total sesi
+                                            ${student.canceledCount > 0 ? 
+                                                `<br><i class="fas fa-times-circle me-1 text-danger"></i>${student.canceledCount} sesi dibatalkan` 
+                                                : ''}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="progress-circle" style="--progress: ${completionPercentage}%">
+                                            <div class="progress-circle-fill">
+                                                <div class="progress-circle-text">
+                                                    ${Math.round(completionPercentage)}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                ${sessionsHtml}
+                            </div>
+                        `;
+                    });
+                } else {
+                    studentList.innerHTML = '<div class="list-group-item text-center text-muted py-4">Belum ada siswa</div>';
+                }
+                
+                // Update subject list
+                const subjectList = document.getElementById('subjectList');
+                subjectList.innerHTML = '';
+                
+                if (data.subjects && data.subjects.length > 0) {
+                    data.subjects.forEach(subject => {
+                        subjectList.innerHTML += `
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-book-open me-2 text-primary"></i>
+                                        ${escapeHtml(subject.name)}
+                                    </div>
+                                    <span class="badge text-white bg-primary rounded-pill">
+                                        ${subject.count} sesi
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    subjectList.innerHTML = '<div class="list-group-item text-center text-muted py-4">Belum ada mata pelajaran</div>';
+                }
+                
+                new bootstrap.Modal(document.getElementById('sessionDetailModal')).show();
+            } catch (error) {
+                console.error('Error fetching session details:', error);
+                alert('Gagal memuat detail sesi');
+            }
+        }
+
+        function exportToPDF() {
+            const monthSelect = document.querySelector('select[name="month"]');
+            const yearSelect = document.querySelector('select[name="year"]');
+            const month = monthSelect ? monthNames[monthSelect.value - 1] : '';
+            const year = yearSelect ? yearSelect.value : '';
+            const tentorName = document.getElementById('detail-nama').textContent;
+            
+            // Initialize jsPDF with landscape orientation
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            
+            // Add header with logo and title
+            doc.setFillColor(189, 89, 47);
+            doc.rect(0, 0, 297, 25, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            const img = new Image();
+            img.src = '/assets/img/5.png'; // Path to the image
+            img.onload = function() {
+                doc.addImage(img, 'PNG', 247, 5, 50, 50); // Positioning the image at the top right
+            };
+            doc.text(`Sesi Mengajar ${month} ${year} - Brits Edu Center`, 148, 15, { align: 'center' });
+            
+            // Reset text color
+            doc.setTextColor(0, 0, 0);
+            
+            // Add tentor info in a styled box
+            doc.setDrawColor(189, 89, 47);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(10, 30, 277, 25, 3, 3);
+            
+            doc.setFontSize(12);
+            doc.text(`Nama Tentor: ${tentorName}`, 15, 40);
+            doc.text(`Periode: ${month} ${year}`, 15, 47);
+            const earnings = document.getElementById('monthlyEarnings').textContent;
+            doc.text(`Total Pendapatan: ${earnings}`, 150, 40);
+            
+            // Get all student sessions with fees
+            const studentSessions = [];
+            const studentSummary = new Map();
+            
+            document.querySelectorAll('#studentList .list-group-item').forEach(item => {
+                const studentName = item.querySelector('h6').textContent;
+                const type = item.querySelector('.badge').textContent;
+                
+                // Initialize student summary
+                if (!studentSummary.has(studentName)) {
+                    studentSummary.set(studentName, {
+                        totalSessions: 0,
+                        completedSessions: 0,
+                        totalFee: 0,
+                        type: type
+                    });
+                }
+                
+                const sessionsTable = item.querySelector('table');
+                if (sessionsTable) {
+                    const rows = sessionsTable.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        const dateStr = cells[0].textContent;
+                        const status = cells[2].textContent.trim();
+                        
+                        // Get the actual fee from the data
+                        const fee = type.trim() === 'Privat' ? 
+                            parseInt(item.getAttribute('data-fee')) || 0 : 
+                            parseInt(item.getAttribute('data-class-fee')) || 0;
+                        
+                        // Add console.log for debugging
+                        console.log('Processing session:', {
+                            name: studentName,
+                            type: type.trim(),
+                            fee: fee,
+                            dataFee: item.getAttribute('data-fee'),
+                            dataClassFee: item.getAttribute('data-class-fee'),
+                            isPrivat: type.trim() === 'Privat',
+                            status: status,
+                            date: dateStr
+                        });
+                        
+                        const summary = studentSummary.get(studentName);
+                        summary.totalSessions++;
+                        if (status === 'Selesai') {
+                            summary.completedSessions++;
+                            summary.totalFee += fee;
+                        }
+                        
+                        studentSessions.push([
+                            formatDateToIndonesian(dateStr), // Format the date
+                            studentName,
+                            cells[1].textContent, // Subject
+                            type.trim(), // Ensure no extra spaces
+                            `Rp ${fee.toLocaleString('id-ID')}`,
+                            status
+                        ]);
+                    });
+                }
+            });
+            
+            // Add sessions table with improved styling
+            doc.autoTable({
+                startY: 60,
+                head: [['Tanggal', 'Nama Siswa', 'Mata Pelajaran', 'Tipe', 'Fee', 'Status']],
+                body: studentSessions.map(row => {
+                    // Add strike-through for non-completed sessions
+                    const isCompleted = row[5] === 'Selesai';
+                    return row.map((cell, index) => ({
+                        content: cell,
+                        styles: {
+                            // Add strike-through for fee column if not completed
+                            textDecoration: (index === 4 && !isCompleted) ? 'line-through' : 'none',
+                            // Make fee red if not completed
+                            textColor: (index === 4 && !isCompleted) ? [220, 53, 69] : [0, 0, 0]
+                        }
+                    }));
+                }),
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [189, 89, 47],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    autoSize: true,
+                    fontSize: 10,  // Decreased from 10
+                    cellPadding: 5  // Decreased from 3
+                },
+                styles: {
+                    fontSize: 10,    // Decreased from 9
+                    cellPadding: 5, // Decreased from 3
+                    valign: 'middle'
+                },
+                columnStyles: {
+                    0: { cellWidth: 30, halign: 'center' },  // Increased width
+                    1: { cellWidth: 40, halign: 'center' },  // Increased width
+                    2: { cellWidth: 40, halign: 'center' },  // Increased width
+                    3: { cellWidth: 25, halign: 'center' },  // Increased width
+                    4: { cellWidth: 30, halign: 'center' },   // Increased width
+                    5: { cellWidth: 30, halign: 'center' }   // Increased width
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                },
+                didDrawCell: function(data) {
+                    // Add conditional styling for status
+                    if (data.section === 'body' && data.column.index === 5) {
+                        const status = data.cell.raw;
+                        if (status === 'Selesai') {
+                            data.cell.styles.textColor = [40, 167, 69]; // green
+                        } else if (status === 'Dibatalkan') {
+                            data.cell.styles.textColor = [220, 53, 69]; // red
+                        }
+                    }
+                }
+            });
+            
+            // Add student summary table with improved styling
+            const summaryData = Array.from(studentSummary.entries()).map(([name, data]) => [
+                name,
+                data.type.trim(), // Ensure no extra spaces
+                data.completedSessions,
+                data.totalSessions,
+                `Rp ${data.totalFee.toLocaleString('id-ID')}`
+            ]);
+            
+            // Add a new page before the summary section
+            doc.addPage(); // This line ensures the summary starts on a new page
+            
+            const finalY = 10; // Reset Y position for the new page
+            
+            // Add summary title with styling
+            doc.setFillColor(189, 89, 47);
+            doc.rect(10, finalY - 6, 277, 8, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.text('Ringkasan Per Siswa', 148, finalY, { align: 'center' });
+            doc.setTextColor(0, 0, 0);
+            
+            // Add summary table with improved styling
+            doc.autoTable({
+                startY: finalY + 5,
+                head: [['Nama Siswa', 'Tipe', 'Sesi Selesai', 'Total Sesi', 'Total Fee']],
+                body: summaryData,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [189, 89, 47],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    fontSize: 10,  // Decreased from 10
+                    cellPadding: 5 // Decreased from 3
+                },
+                styles: {
+                    fontSize: 10,    // Decreased from 9
+                    cellPadding: 5, // Decreased from 3
+                    valign: 'middle'
+                },
+                columnStyles: {
+                    0: { cellWidth: 45, halign: 'center' },  // Increased width
+                    1: { cellWidth: 30, halign: 'center' },  // Increased width
+                    2: { cellWidth: 30, halign: 'center' },  // Increased width
+                    3: { cellWidth: 30, halign: 'center' },  // Increased width
+                    4: { cellWidth: 35, halign: 'right' }    // Increased width
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 245]
+                }
+            });
+            
+            // Add footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.text(
+                    `Halaman ${i} dari ${pageCount} - Dicetak pada ${new Date().toLocaleDateString('id-ID')}`,
+                    148,
+                    205,
+                    { align: 'center' }
+                );
+            }
+            
+            // Save the PDF
+            const filename = `Payroll_${tentorName.replace(/\s+/g, '_')}-${month}_${year}.pdf`;
+            doc.save(filename);
+        }
+    </script>
+</body>
+</html> 

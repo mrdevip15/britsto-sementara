@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Jadwal & Daftar Hadir Tentor</title>
+    <%- include('../../partials/head') %>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Add FullCalendar and Tippy.js -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            window.calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                events: <%- JSON.stringify((typeof schedules !== 'undefined' ? schedules : []).map(schedule => ({
+                    id: schedule.id,
+                    title: `${schedule.tentor.nama} - ${schedule.type === 'class' ? schedule.class?.name : schedule.siswa?.nama} - ${schedule.mataPelajaran}`,
+                    start: `${schedule.date}T${schedule.timeStart}`,
+                    end: `${schedule.date}T${schedule.timeEnd}`,
+                    backgroundColor: schedule.colors.backgroundColor,
+                    borderColor: schedule.colors.borderColor,
+                    textColor: '#ffffff',
+                    extendedProps: {
+                        tentorNama: schedule.tentor.nama,
+                        studentInfo: schedule.type === 'class' ? schedule.class?.name : schedule.siswa?.nama,
+                        mataPelajaran: schedule.mataPelajaran,
+                        status: schedule.isAttendanceMarked ? 'completed' : 
+                                schedule.status === 'canceled' ? 'canceled' : 'scheduled',
+                        type: schedule.type
+                    }
+                }))) %>,
+                eventDidMount: function(info) {
+                    const event = info.event;
+                    const props = event.extendedProps;
+                    
+                    let tooltipContent = `
+                        <strong>Tentor:</strong> ${props.tentorNama}<br>
+                        <strong>${props.type === 'class' ? 'Kelas' : 'Siswa'}:</strong> ${props.studentInfo}<br>
+                        <strong>Mata Pelajaran:</strong> ${props.mataPelajaran}<br>
+                        <strong>Status:</strong> ${
+                            props.status === 'completed' ? 'Hadir' :
+                            props.status === 'canceled' ? 'Dibatalkan' : 'Belum Hadir'
+                        }
+                    `;
+
+                    tippy(info.el, {
+                        content: tooltipContent,
+                        allowHTML: true,
+                    });
+                },
+                eventContent: function(arg) {
+                    let statusIcon = '';
+                    const isMonthView = arg.view.type === 'dayGridMonth';
+                    
+                    switch(arg.event.extendedProps.status) {
+                        case 'completed':
+                            statusIcon = feather.icons['check'].toSvg({ 
+                                class: 'me-1',
+                                width: 12,
+                                height: 12,
+                                stroke: 'white'
+                            });
+                            break;
+                        case 'canceled':
+                            statusIcon = feather.icons['x'].toSvg({ 
+                                class: 'me-1',
+                                width: 12,
+                                height: 12,
+                                stroke: 'white'
+                            });
+                            break;
+                        case 'scheduled':
+                            statusIcon = feather.icons['clock'].toSvg({ 
+                                class: 'me-1',
+                                width: 12,
+                                height: 12,
+                                stroke: 'white'
+                            });
+                            break;
+                    }
+
+                    const tempContainer = document.createElement('div');
+                    
+                    if (isMonthView) {
+                        tempContainer.innerHTML = `
+                            <div class="fc-content" style="
+                                font-size: 11px;
+                                background-color: ${arg.event.backgroundColor || '#0d6efd'};
+                                color: white;
+                                padding: 4px;
+                                border-radius: 4px;
+                                line-height: 1.3;
+                            ">
+                                <div style="display: flex; align-items: center;">
+                                    ${statusIcon}
+                                    <span style="font-weight: bold;">${arg.timeText}</span>
+                                </div>
+                                <div style="
+                                    margin-top: 2px;
+                                    ${arg.event.extendedProps.status === 'canceled' ? 'text-decoration: line-through;' : ''}
+                                ">
+                                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${arg.event.title}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        tempContainer.innerHTML = `
+                            <div class="fc-content">
+                                ${statusIcon}
+                                <span style="
+                                    color: white;
+                                    font-weight: ${arg.event.extendedProps.status === 'canceled' ? '300' : '500'}; 
+                                    ${arg.event.extendedProps.status === 'canceled' ? 'text-decoration: line-through;' : ''}
+                                ">
+                                    ${arg.event.title}
+                                </span>
+                            </div>
+                        `;
+                    }
+                    
+                    return { html: tempContainer.innerHTML };
+                },
+                editable: false,
+                selectable: false,
+                eventStartEditable: false,
+                eventDurationEditable: false,
+                slotMinTime: '09:00:00',
+                slotMaxTime: '23:00:00',
+                allDaySlot: false,
+                slotDuration: '00:30:00',
+                locale: 'id',
+                firstDay: 1,
+                timeZone: 'local',
+                displayEventEnd: true,
+                nextDayThreshold: '00:00:00'
+            });
+
+            window.calendar.render();
+
+            // Add fullscreen functionality
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const calendarCard = document.querySelector('.card');
+            
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    calendarCard.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                    fullscreenBtn.innerHTML = '<i class="fas fa-compress me-1"></i>Exit Fullscreen';
+                } else {
+                    document.exitFullscreen();
+                    fullscreenBtn.innerHTML = '<i class="fas fa-expand me-1"></i>Fullscreen';
+                }
+            });
+
+            // Handle fullscreen change event
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) {
+                    fullscreenBtn.innerHTML = '<i class="fas fa-expand me-1"></i>Fullscreen';
+                }
+            });
+
+            // Move form event listeners inside DOMContentLoaded
+            const codeForm = document.getElementById('codeForm');
+            const attendanceForm = document.getElementById('attendanceForm');
+
+            codeForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const submitBtn = e.target.querySelector('button');
+                const code = document.getElementById('attendanceCode').value;
+                
+                try {
+                    submitBtn.classList.add('loading');
+                    const response = await fetch(`/daftar-hadir/verify/${code}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        await Swal.fire({
+                            icon: 'error',
+                            title: 'Kode Tidak Valid',
+                            text: data.error,
+                            confirmButtonColor: '#2c3e50'
+                        });
+                        return;
+                    }
+
+                    // Check if attendance is already marked
+                    if (data.schedule.isAttendanceMarked) {
+                        await Swal.fire({
+                            icon: 'warning',
+                            title: 'Daftar Hadir Sudah Diisi',
+                            text: 'Jadwal ini sudah ditandai hadir dan tidak dapat diisi ulang.',
+                            confirmButtonColor: '#2c3e50'
+                        });
+                        return;
+                    }
+
+                    // Check if schedule is already completed
+                    if (data.schedule.status === 'completed') {
+                        await Swal.fire({
+                            icon: 'warning',
+                            title: 'Jadwal Sudah Selesai',
+                            text: 'Jadwal ini sudah ditandai selesai dan tidak dapat diubah.',
+                            confirmButtonColor: '#2c3e50'
+                        });
+                        return;
+                    }
+
+                    // Show schedule details with animation
+                    const scheduleDetails = document.getElementById('scheduleDetails');
+                    scheduleDetails.style.display = 'block';
+                    scheduleDetails.style.opacity = '0';
+                    setTimeout(() => {
+                        scheduleDetails.style.transition = 'opacity 0.3s ease';
+                        scheduleDetails.style.opacity = '1';
+                    }, 10);
+
+                    document.getElementById('tentorName').textContent = data.schedule.tentor.nama;
+                    document.getElementById('studentInfo').textContent = data.schedule.type === 'class' ? 
+                        data.schedule.class.name : data.schedule.siswa.nama;
+                    document.getElementById('scheduleDate').textContent = new Date(data.schedule.date).toLocaleDateString('id-ID');
+                    document.getElementById('scheduleTime').textContent = `${data.schedule.timeStart} - ${data.schedule.timeEnd}`;
+                    document.getElementById('subject').textContent = data.schedule.mataPelajaran;
+                    
+                    // Set the current mataPelajaran as the selected value in the dropdown
+                    const mataPelajaranSelect = document.getElementById('updatedMataPelajaran');
+                    const currentMataPelajaran = data.schedule.mataPelajaran;
+                    
+                    // Find and select the option with the matching value
+                    for (let i = 0; i < mataPelajaranSelect.options.length; i++) {
+                        if (mataPelajaranSelect.options[i].value === currentMataPelajaran) {
+                            mataPelajaranSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+
+                    // Store schedule data
+                    window.currentSchedule = data.schedule;
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi Kesalahan',
+                        text: 'Gagal memeriksa kode hadir',
+                        confirmButtonColor: '#2c3e50'
+                    });
+                } finally {
+                    submitBtn.classList.remove('loading');
+                }
+            });
+
+            attendanceForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitBtn = e.target.querySelector('button');
+                const code = document.getElementById('attendanceCode').value;
+                const updatedMataPelajaran = document.getElementById('updatedMataPelajaran').value;
+                const materi = document.getElementById('materiYangDiajarkan').value;
+                
+                try {
+                    submitBtn.classList.add('loading');
+
+                    // Mark attendance
+                    const response = await fetch(`/daftar-hadir/${code}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            updatedMataPelajaran: updatedMataPelajaran,
+                            materiYangDiajarkan: materi
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        throw new Error(data.message || 'Gagal mengisi daftar hadir');
+                    }
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Daftar hadir telah diisi dan jadwal telah diselesaikan',
+                        confirmButtonColor: '#27ae60',
+                        confirmButtonText: 'Isi Daftar Hadir Lainnya'
+                    });
+
+                    // Reset the forms and hide schedule details
+                    codeForm.reset();
+                    attendanceForm.reset();
+                    document.getElementById('scheduleDetails').style.display = 'none';
+                    window.currentSchedule = null;
+
+                    // Refresh the calendar to show updated status
+                    window.calendar.refetchEvents();
+                } catch (error) {
+                    console.error('Error:', error);
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Terjadi Kesalahan',
+                        text: error.message || 'Gagal mengisi daftar hadir',
+                        confirmButtonColor: '#2c3e50'
+                    });
+                } finally {
+                    submitBtn.classList.remove('loading');
+                }
+            });
+        });
+    </script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .card-title {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.15);
+            border-color: #2c3e50;
+        }
+        .btn {
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #2c3e50;
+            border-color: #2c3e50;
+        }
+        .btn-primary:hover {
+            background-color: #34495e;
+            border-color: #34495e;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background-color: #27ae60;
+            border-color: #27ae60;
+        }
+        .btn-success:hover {
+            background-color: #2ecc71;
+            border-color: #2ecc71;
+            transform: translateY(-2px);
+        }
+        .detail-item {
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            margin-bottom: 10px;
+        }
+        .detail-item i {
+            width: 20px;
+            color: #2c3e50;
+        }
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+        .loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid #ffffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Calendar Styles */
+        .fc-event {
+            cursor: default !important;
+        }
+        .calendar-container {
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .fc-daygrid-event {
+            padding: 0 !important;
+            margin: 1px 2px !important;
+            background: none !important;
+            border: none !important;
+        }
+        .fc-daygrid-day-frame {
+            min-height: 120px !important;
+        }
+        .fc-daygrid-event-harness {
+            margin: 2px 0 !important;
+        }
+        .fc-daygrid-day-events {
+            margin-bottom: 0 !important;
+        }
+        .fc-h-event {
+            background: none !important;
+            border: none !important;
+        }
+        .fc-day-today {
+            background-color: rgba(44, 62, 80, 0.05) !important;
+        }
+        .fc-button-primary {
+            background-color: #2c3e50 !important;
+            border-color: #2c3e50 !important;
+        }
+        .fc-button-primary:hover {
+            background-color: #34495e !important;
+            border-color: #34495e !important;
+        }
+        /* Add mobile-specific styles */
+        @media (max-width: 768px) {
+            .calendar-section {
+                display: none;
+            }
+            .mobile-message {
+                display: block;
+                text-align: center;
+                padding: 20px;
+                margin-bottom: 20px;
+                background-color: #f8f9fa;
+                border-radius: 10px;
+                color: #6c757d;
+            }
+        }
+        @media (min-width: 769px) {
+            .mobile-message {
+                display: none;
+            }
+            .calendar-section {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-orange" style="color: #be592e;">Jadwal & Daftar Hadir Tentor</h1>
+        
+        </div>
+
+        <!-- Mobile message -->
+        <div class="mobile-message">
+            <i class="fas fa-mobile-alt fa-2x mb-3" style="color: #6c757d;"></i>
+            <p class="mb-0">Untuk melihat kalender jadwal, silakan gunakan perangkat desktop atau laptop.</p>
+        </div>
+
+        <!-- Add Calendar Section with calendar-section class -->
+        <div class="card mb-5 calendar-section">
+            <div class="card-body">
+                <div class="d-flex justify-content-end mb-3">
+                    <button id="fullscreenBtn" class="btn btn-sm btn-primary">
+                        <i class="fas fa-expand me-1"></i>Fullscreen
+                    </button>
+                </div>
+                <div id="calendar"></div>
+            </div>
+        </div>
+  
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-body p-4">
+                        <p class="fw-bold mb-0">Silakan masukkan kode jadwal untuk mengisi daftar hadir</p>
+                        <p class="text-muted" style="font-style: italic;">Kode jadwal dapat ditemukan pada jadwal yang sudah dikirimkan melalui email</p>
+                        <form id="codeForm" class="mb-4" method="POST" onsubmit="return false;">
+                            <div class="mb-4">
+                                <label for="attendanceCode" class="form-label fw-bold">
+                                    <i class="fas fa-key me-2"></i>Kode Jadwal
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-lg" 
+                                           id="attendanceCode" 
+                                           placeholder="Masukkan kode 6 digit" 
+                                           maxlength="6"
+                                           required>
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fas fa-search me-2"></i>Cek Kode
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div id="scheduleDetails" style="display: none;">
+                            <h5 class="card-title mb-4">
+                                <i class="fas fa-calendar-check me-2"></i>Detail Jadwal
+                            </h5>
+                            <div class="detail-item">
+                                <p class="mb-2">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i>
+                                    <strong>Tentor:</strong> <span id="tentorName"></span>
+                                </p>
+                                <p class="mb-2">
+                                    <i class="fas fa-user-graduate me-2"></i>
+                                    <strong>Siswa/Kelas:</strong> <span id="studentInfo"></span>
+                                </p>
+                                <p class="mb-2">
+                                    <i class="fas fa-calendar me-2"></i>
+                                    <strong>Tanggal:</strong> <span id="scheduleDate"></span>
+                                </p>
+                                <p class="mb-2">
+                                    <i class="fas fa-clock me-2"></i>
+                                    <strong>Waktu:</strong> <span id="scheduleTime"></span>
+                                </p>
+                                <p class="mb-2">
+                                    <i class="fas fa-book me-2"></i>
+                                    <strong>Mata Pelajaran:</strong> <span id="subject"></span>
+                                </p>
+                            </div>
+
+                            <form id="attendanceForm" class="mt-4">
+                                <div class="mb-4">
+                                    <label for="updatedMataPelajaran" class="form-label fw-bold">
+                                        <i class="fas fa-edit me-2"></i>Update Mata Pelajaran (Jika Perlu)
+                                    </label>
+                                    <select class="form-control" id="updatedMataPelajaran">
+                                        <option value="MTK">Matematika</option>
+                                        <option value="IPA">IPA</option>
+                                        <option value="IPAS">IPAS</option>
+                                        <option value="KIMIA">Kimia</option>
+                                        <option value="FISIKA">Fisika</option>
+                                        <option value="BIOLOGI">Biologi</option>
+                                        <option value="BINDO">Bahasa Indonesia</option>
+                                        <option value="BING">Bahasa Inggris</option>
+                                        <option value="IPS">IPS</option>
+                                        <option value="PPKN">PPKN</option>
+                                        <option value="PAI">PAI</option>
+                                        <option value="PBM">PBM</option>
+                                        <option value="PPU">PPU</option>
+                                        <option value="PU">PU</option>
+                                        <option value="PK">PK</option>
+                                        <option value="LBI">LBI</option>
+                                        <option value="LBE">LBE</option>
+                                        <option value="PM">PM</option>
+                                        <option value="English">English</option>
+                                        <option value="Sosiologi">Sosiologi</option>
+                                        <option value="Ekonomi">Ekonomi</option>
+                                        <option value="Geografi">Geografi</option>
+                                        <option value="Sejarah">Sejarah</option>
+                                        <option value="TIU">TIU</option>
+                                        <option value="TWK">TWK</option>
+                                        <option value="TKP">TKP</option>
+                                        <option value="TIK">TIK</option>
+                                    </select>
+                                    <small class="form-text text-muted">Pilih hanya jika mata pelajaran berubah dari yang dijadwalkan</small>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="materiYangDiajarkan" class="form-label fw-bold">
+                                        <i class="fas fa-book-open me-2"></i>Materi yang Diajarkan
+                                    </label>
+                                    <textarea class="form-control" 
+                                              id="materiYangDiajarkan" 
+                                              rows="4" 
+                                              required 
+                                              placeholder="Tuliskan materi yang diajarkan pada pertemuan ini"></textarea>
+                                </div>
+                                <button class="btn btn-success w-100" type="submit">
+                                    <i class="fas fa-check-circle me-2"></i>Submit Daftar Hadir
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>

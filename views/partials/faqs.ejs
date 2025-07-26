@@ -1,0 +1,20 @@
+<div class="row mb-2">
+    <div class="col-md-8 mx-auto">
+        <div class="accordion text-muted" role="tablist" id="accordion-1">
+            <% faqs.forEach((faq, index) => { %>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" role="tab">
+                        <button class="accordion-button <%= index !== 0 ? 'collapsed' : '' %>" type="button" data-bs-toggle="collapse" data-bs-target="#accordion-1 .item-<%= index %>" aria-expanded="<%= index === 0 ? 'true' : 'false' %>" aria-controls="accordion-1 .item-<%= index %>">
+                            <%= faq.question %>
+                        </button>
+                    </h2>
+                    <div class="accordion-collapse collapse <%= index === 0 ? 'show' : '' %> item-<%= index %>" role="tabpanel" data-bs-parent="#accordion-1">
+                        <div class="accordion-body">
+                            <p><%= faq.answer %></p>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title><%= tentor ? 'Edit' : 'Tambah' %> Tentor - Admin Dashboard</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+    <style>
+        .color-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .color-option.selected {
+            border-color: #000;
+            transform: scale(1.1);
+        }
+        .custom-color-input {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body class="nav-fixed">
+    <%- include('partials/topNav') %>
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="user"></i></div>
+                                        <%= tentor ? 'Edit' : 'Tambah' %> Tentor
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div class="card mb-4">
+                                <div class="card-header">Form <%= tentor ? 'Edit' : 'Input' %> Tentor</div>
+                                <div class="card-body">
+                                    <div class="alert-container" style="display: none;">
+                                        <%- include('./partials/alert') %>
+                                    </div>
+                                    <form action="<%= tentor ? `/admin/tentor/edit/${tentor.id}` : '/admin/tentor/tambah' %>" method="POST">
+                                        <div class="row gx-3 mb-3">
+                                            <div class="col-md-6">
+                                                <label class="small mb-1" for="nama">Nama Panggilan</label>
+                                                <input class="form-control" id="nama" name="nama" type="text" value="<%= tentor ? tentor.nama : '' %>" required />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="small mb-1" for="namaLengkap">Nama Lengkap</label>
+                                                <input class="form-control" id="namaLengkap" name="namaLengkap" type="text" value="<%= tentor ? tentor.namaLengkap : '' %>" />
+                                                <small class="text-muted">Nama lengkap sesuai dokumen resmi</small>
+                                            </div>
+                                        </div>
+                                        <div class="row gx-3 mb-3">
+                                            <div class="col-md-6">
+                                                <label class="small mb-1" for="email">Email</label>
+                                                <input class="form-control" id="email" name="email" type="email" value="<%= tentor ? tentor.email : '' %>" required />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="small mb-1" for="noHp">No. HP</label>
+                                                <input class="form-control" id="noHp" name="noHp" type="text" value="<%= tentor ? tentor.noHp : '' %>" required />
+                                            </div>
+                                        </div>
+                                        <div class="row gx-3 mb-3">
+                                            <div class="col-md-6">
+                                                <label class="small mb-1" for="noRekening">No. Rekening</label>
+                                                <input class="form-control" id="noRekening" name="noRekening" type="text" value="<%= tentor ? tentor.noRekening : '' %>" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="small mb-1" for="mataPelajaran">Mata Pelajaran</label>
+                                                <select class="form-select" id="mataPelajaran" name="mataPelajaran" multiple>
+                                                    <option value="MTK" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('MTK') ? 'selected' : '' %>>Matematika</option>
+                                                    <option value="IPA" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('IPA') ? 'selected' : '' %>>IPA</option>
+                                                    <option value="IPAS" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('IPAS') ? 'selected' : '' %>>IPAS</option>
+                                                    <option value="KIMIA" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('KIMIA') ? 'selected' : '' %>>Kimia</option>
+                                                    <option value="FISIKA" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('FISIKA') ? 'selected' : '' %>>Fisika</option>
+                                                    <option value="BIOLOGI" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('BIOLOGI') ? 'selected' : '' %>>Biologi</option>
+                                                    <option value="BINDO" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('BINDO') ? 'selected' : '' %>>Bahasa Indonesia</option>
+                                                    <option value="BING" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('BING') ? 'selected' : '' %>>Bahasa Inggris</option>
+                                                    <option value="IPS" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('IPS') ? 'selected' : '' %>>IPS</option>
+                                                    <option value="PPKN" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('PPKN') ? 'selected' : '' %>>PPKN</option>
+                                                    <option value="PAI" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('PAI') ? 'selected' : '' %>>PAI</option>
+                                                    <option value="PBM" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('PBM') ? 'selected' : '' %>>PBM</option>
+                                                    <option value="PPU" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('PPU') ? 'selected' : '' %>>PPU</option>
+                                                    <option value="PU" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('PU') ? 'selected' : '' %>>PU</option>
+                                                    <option value="PK" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('PK') ? 'selected' : '' %>>PK</option>
+                                                    <option value="LBI" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('LBI') ? 'selected' : '' %>>LBI</option>
+                                                    <option value="LBE" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('LBE') ? 'selected' : '' %>>LBE</option>
+                                                    <option value="PM" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('PM') ? 'selected' : '' %>>PM</option>
+                                                    <option value="English" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('English') ? 'selected' : '' %>>English</option>
+                                                    <option value="Sosiologi" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('Sosiologi') ? 'selected' : '' %>>Sosiologi</option>
+                                                    <option value="Ekonomi" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('Ekonomi') ? 'selected' : '' %>>Ekonomi</option>
+                                                    <option value="Geografi" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('Geografi') ? 'selected' : '' %>>Geografi</option>
+                                                    <option value="Sejarah" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('Sejarah') ? 'selected' : '' %>>Sejarah</option>
+                                                    <option value="TIU" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('TIU') ? 'selected' : '' %>>TIU</option>
+                                                    <option value="TWK" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('TWK') ? 'selected' : '' %>>TWK</option>
+                                                    <option value="TKP" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('TKP') ? 'selected' : '' %>>TKP</option>
+                                                    <option value="TIK" <%= tentor && tentor.mataPelajaran && tentor.mataPelajaran.includes('TIK') ? 'selected' : '' %>>TIK</option>
+                                                </select>
+                                                <small class="text-muted">Pilih mata pelajaran yang bisa diajar</small>
+                                            </div>
+                                        </div>
+                                        <div class="row gx-3 mb-3">
+                                            <div class="col-md-12">
+                                                <label class="small mb-1" for="color">Warna Tentor</label>
+                                                <input type="hidden" id="colorValue" name="color" value="<%= tentor && tentor.color ? tentor.color : '' %>">
+                                                <div class="color-container" id="colorOptions">
+                                                    <!-- Color options will be populated by JavaScript -->
+                                                </div>
+                                                <div class="custom-color-input">
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" id="customColor" placeholder="Kode warna (mis. #FF5733)" 
+                                                            value="<%= tentor && tentor.color ? tentor.color : '' %>">
+                                                        <button class="btn btn-outline-secondary" type="button" id="applyCustomColor">Terapkan</button>
+                                                    </div>
+                                                    <small class="text-muted">Masukkan kode hex warna kustom (contoh: #FF5733)</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <% if (tentor) { %>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="isActive" name="isActive" <%= tentor.isActive ? 'checked' : '' %>>
+                                                <label class="form-check-label" for="isActive">
+                                                    Aktif
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                                        <button class="btn btn-primary" type="submit">Simpan</button>
+                                        <a href="/admin/tentor" class="btn btn-secondary">Batal</a>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const error = urlParams.get('error');
+            const alertContainer = document.querySelector('.alert-container');
+
+            if (message || error) {
+                alertContainer.style.display = 'block';
+            }
+            
+            // Initialize Select2 for mataPelajaran select
+            $('#mataPelajaran').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Pilih mata pelajaran...',
+                allowClear: true
+            });
+
+            // Color picker functionality
+            const colors = [
+                // Reds to Pinks
+                '#b33b44', '#d65f69', '#c14a78', '#e57b97', '#a73c61',
+                
+                // Purples
+                '#8d4b96', '#b06fbc', '#6c3f8b', '#9a6cb5', '#573172',
+                
+                // Blues
+                '#4a5fd9', '#6d83c8', '#3a6fb9', '#5a8bdb', '#2c4485',
+                
+                // Teals and Turquoise
+                '#38a6a6', '#5ec6c6', '#2d8094', '#46b3d1', '#1d6070',
+                
+                // Greens
+                '#47a362', '#6fc589', '#3b8c4f', '#5fb275', '#2c6e3e',
+                
+                // Lime and Yellow-Greens
+                '#8bb037', '#acd157', '#738f2d', '#bcd550', '#5e7423',
+                
+                // Yellows and Amber
+                '#d9b03a', '#f2ca60', '#bd8a2a', '#e6b347', '#9c6c1e',
+                
+                // Oranges
+                '#e67a38', '#ff9b5e', '#c65a28', '#f87b48', '#9e451e',
+                
+                // Brown tones
+                '#9b6b4a', '#bc8c6c', '#7f543a', '#a6795b', '#67422e',
+                
+                // Slate and Steel Blues
+                '#567686', '#7897a7', '#435b6a', '#6a8897', '#344756'
+            ];
+
+            const colorOptionsContainer = document.getElementById('colorOptions');
+            const colorValueInput = document.getElementById('colorValue');
+            const customColorInput = document.getElementById('customColor');
+            const applyCustomColorBtn = document.getElementById('applyCustomColor');
+
+            // Populate color options
+            colors.forEach(color => {
+                const colorOption = document.createElement('div');
+                colorOption.className = 'color-option';
+                colorOption.style.backgroundColor = color;
+                colorOption.dataset.color = color;
+                
+                // Check if this is the selected color
+                if (colorValueInput.value === color) {
+                    colorOption.classList.add('selected');
+                }
+                
+                colorOption.addEventListener('click', () => {
+                    // Update selected color
+                    document.querySelectorAll('.color-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    colorOption.classList.add('selected');
+                    
+                    // Update hidden input value
+                    colorValueInput.value = color;
+                    
+                    // Update custom color input to match
+                    customColorInput.value = color;
+                });
+                
+                colorOptionsContainer.appendChild(colorOption);
+            });
+
+            // Apply custom color
+            applyCustomColorBtn.addEventListener('click', () => {
+                const customColorValue = customColorInput.value.trim();
+                
+                // Basic validation for hex color
+                if (/^#[0-9A-F]{6}$/i.test(customColorValue)) {
+                    // Update hidden input value
+                    colorValueInput.value = customColorValue;
+                    
+                    // Update selected state
+                    document.querySelectorAll('.color-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                        if (opt.dataset.color === customColorValue) {
+                            opt.classList.add('selected');
+                        }
+                    });
+                } else {
+                    alert('Mohon masukkan kode warna hex yang valid (contoh: #FF5733)');
+                }
+            });
+        });
+    </script>
+    
+    <!-- Load essential scripts for layout functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+</body>
+</html> 

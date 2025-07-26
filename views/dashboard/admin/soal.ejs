@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en"> 
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Dashboard GG</title>
+        <%- include('../../partials/head') %>
+        <script>
+            window.MathJax = {
+                tex: {
+                    inlineMath: [['$', '$']], // Enable $...$ for inline math
+                    displayMath: [['$$', '$$']], // Enable $$...$$ for display math
+                },
+                options: {
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'], // Skip these HTML tags
+                }
+            }; 
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+        <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+
+        <style>
+            #layoutSidenav_content > main > div > div:nth-child(1) > div.card-body > div {
+                overflow-x:auto;
+            }
+        </style>
+    </head>
+    <%
+    function formatDate(date) {
+        // Days of the week in Bahasa Indonesia
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    
+        // Get day, month, year
+        const dayName = days[date.getDay()]; // Get the day name
+        const day = String(date.getDate()).padStart(2, '0'); // Format day as 2 digits
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Format month as 2 digits (months are 0-based)
+        const year = String(date.getFullYear()).slice(-2); // Get last 2 digits of the year
+    
+        return `${day}-${month}-${year}`;
+    }
+    %>
+    <body class="nav-fixed">
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Confirm Delete</h5>
+                        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Yakin hapus subtest "<span id="subtestName"></span> - <span id="owner"></span>"? Aksi ini tidak dapat dibatalkan.
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                        <a href="#" id="confirmDelete" class="btn btn-danger">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+       <%- include('partials/topNav') %> 
+        <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+                
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                   
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="alert-circle"></i></div>
+                                        Welcome, Master!
+                                    </h1>
+                                    <div class="page-header-subtitle">Brits Edu Center, <span style="font-style: italic;">Teman belajarmu</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <!-- Main page content-->
+                <div class="container-xl px-4">
+                    <!-- Breadcrumbs navigation -->
+                    <nav class="mt-n10 mb-4" aria-label="breadcrumb">
+                        <ol class="breadcrumb bg-white rounded-3 p-3 shadow-sm">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="/admin/manajemen-soal/daftar-subtest">Manajemen Soal</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                                <% if (locals.kategoriInfo) { %>
+                                    <%= kategoriInfo.name %> (<%= kategoriInfo.owner %>)
+                                <% } else { %>
+                                    Daftar Soal
+                                <% } %>
+                            </li>
+                        </ol>
+                    </nav>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0">Daftar Soal</h5>
+                                    <% if (locals.kategoriInfo) { %>
+                                        <small class="badge bg-primary text-white">
+                                            Mata Pelajaran: <strong><%= kategoriInfo.name %></strong> | 
+                                            Paket: <strong><%= kategoriInfo.owner %></strong>
+                                        </small>
+                                    <% } %>
+                                </div>
+                                <div>
+                                    <span class="badge text-white bg-success"><%= datas.length %> Soal</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                              
+                                <% var lengthSoal = datas.length + 1 %>
+                             
+                              
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 text-nowrap">
+                                    <form action="/admin/importSoal" method="post" enctype="multipart/form-data">
+                                        <div class="form-group">
+                                            <span for="file">Pilih file csv</span>
+                                            <input type="hidden" name="kodekategori" value="<%= kodekategori %>">
+                                            <input type="file" required class="form-control" id="file" name="file" accept=".csv">
+                                            <div class="mt-2">
+                                                <a class="btn btn-success" href="/admin/exportSoal/<%= kodekategori %>">
+                                                    <i class="fa fa-download me-2"></i>Export CSV
+                                                </a>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fa fa-upload me-2"></i>Import CSV
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-md-end dataTables_filter" id="dataTable_filter">
+                                        <!-- <a  class="btn btn-primary btn-sm" href="<%= "/reset-materi/" + kodekategori %>" ><i class="fa fa-rotate-right" data-bs-toggle="tooltip" title="Reset materi"></i></a>  -->
+                                        <a  class="btn btn-primary btn-sm" href="<%= "/admin/manajemen-soal/mapel/" + kodekategori + "/" + lengthSoal %>"><i class="fa fa-plus" style="margin-right: 10px;"></i>Tambah soal</a> 
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-12">
+                                    <%- include('./partials/alert') %>
+                                    <table id="datatablesSimple">
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Soal</th>
+                                                <th>Jawaban</th>                                   
+                                                <th style="width: 150px">Jenis Soal</th>
+                                                <th>Edit</th>
+                                                <th>Hapus</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% datas.forEach(data => { %>
+                                            <tr>
+                                                <td><%= data.no %></td>
+                                                <td><%- data.content %></td>
+                                                <td><%= data.answer.toUpperCase() %></td>
+                                                <!-- <td><%= data.materi %></td> -->
+                                                <td><%= data.tipeSoal %></td>                                                          
+                                                <td>
+                                                    <a href="/admin/manajemen-soal/mapel/<%= kodekategori %>/<%= data.no %>"><i class="fa fa-edit" style="color: rgb(250, 219, 42);"></i></a>                                            
+                                                </td>
+                                                <td>
+                                                    <a href="#" onclick="deleteItem(event, '/admin/manajemen-soal/mapel/<%= kodekategori %>/<%= data.no %>')"><i class="fa fa-trash" style="color: rgb(221, 47, 85);"></i></a>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+    
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            
+                            
+                         
+                        </div>
+                    </div>                   
+                </div>
+
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>     
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+    // Get the URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message'); // Get the 'message' parameter
+
+    if (message) {
+        // Determine the type of alert (success or danger)
+        const isDelete = message.toLowerCase().includes('hapus'); // Check if the message indicates a delete
+        const alertClass = isDelete ? 'alert-danger' : 'alert-success'; // Set the class accordingly
+        const iconClass = 'fa-check-circle'; // Set the Font Awesome icon
+
+        // Get the existing alert element
+        const alertDiv = document.querySelector('.alert');
+
+        if (alertDiv) {
+            // Update the alert's class and content
+            alertDiv.className = `alert ${alertClass} alert-icon`; // Update class
+            alertDiv.innerHTML = `
+                <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="alert-icon-aside">
+                    <i class="far ${iconClass}"></i>
+                </div>
+                <div class="alert-icon-content">
+                   
+                    ${message}
+                </div>
+            `; // Update the content
+        }
+    } else {
+        // Hide the alert if no message is present in the URL
+        const alertDiv = document.querySelector('.alert');
+        if (alertDiv) {
+            alertDiv.style.display = 'none';
+        }
+    }
+});
+
+        </script>
+        <script>
+function deleteItem(event, url) {
+
+    event.preventDefault(); // Prevent the default link behavior
+
+    const userConfirmed = confirm('Are you sure you want to delete this item?');
+    if (userConfirmed) {
+        fetch(url, {
+            method: 'DELETE',
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to delete item');
+                }
+                return response.json(); // Parse the JSON response
+            })
+            .then(data => {
+             
+                // Redirect or update UI as needed
+                window.location.href = `/admin/manajemen-soal/mapel/${data.kodekategori}?message=${encodeURIComponent(data.message)}`;
+            })
+            .catch(error => console.error('Error:', error));
+    }
+}
+
+
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
+        <script defer>
+window.addEventListener('load', () => {
+    // Select all delete buttons
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+
+    // Get modal elements
+    const confirmDelete = document.getElementById('confirmDelete');
+    const subtestNameElement = document.getElementById('subtestName');
+    const ownerElement = document.getElementById('owner');
+
+    // Add click event listener to each delete button
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            // Get data attributes from the clicked button
+            const kodekategori = button.getAttribute('data-kodekategori');
+            const subtestName = button.getAttribute('data-subtest');
+            const owner = button.getAttribute('data-owner');
+
+            // Update modal content dynamically
+            subtestNameElement.textContent = subtestName;
+            ownerElement.textContent = owner;
+            confirmDelete.setAttribute('href', `/admin/manajemen-soal/hapus-subtest/${kodekategori}`);
+        });
+    });
+});
+
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+    // Get the URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const message = urlParams.get('message'); // Get the 'message' parameter
+
+    if (message) {
+        // Determine the type of alert (success or danger)
+        const isDelete = message.toLowerCase().includes('hapus'); // Check if the message indicates a delete
+        const alertClass = isDelete ? 'alert-danger' : 'alert-success'; // Set the class accordingly
+        const iconClass = 'fa-check-circle'; // Set the Font Awesome icon
+
+        // Get the existing alert element
+        const alertDiv = document.querySelector('.alert');
+
+        if (alertDiv) {
+            // Update the alert's class and content
+            alertDiv.className = `alert ${alertClass} alert-icon`; // Update class
+            alertDiv.innerHTML = `
+                <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="alert-icon-aside">
+                    <i class="far ${iconClass}"></i>
+                </div>
+                <div class="alert-icon-content">
+                    <h6 class="alert-heading">${isDelete ? 'Delete Action' : 'Success!'}</h6>
+                    ${message}
+                </div>
+            `; // Update the content
+        }
+    } else {
+        // Hide the alert if no message is present in the URL
+        const alertDiv = document.querySelector('.alert');
+        if (alertDiv) {
+            alertDiv.style.display = 'none';
+        }
+    }
+});
+
+        </script>
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.feather) {
+    feather.replace();
+  }
+});
+</script>
+    </body>
+</html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Nilai <%= owner %> - GG</title>
+    <%- include('../../partials/head') %>
+    <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        /* Increased specificity */
+        table .sticky-col {
+            position: sticky;
+            left: 0;
+            background-color: white; /* Ensure white background */
+            z-index: 1;
+        }
+        table .sticky-col-2 {
+            position: sticky;
+            left: 150px;
+            background-color: white; /* Ensure white background */
+            z-index: 1;
+        }
+    </style>
+    <script>
+        function exportTableToCSV(filename) {
+            const csv = [];
+            const rows = document.querySelectorAll("table tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = [];
+                const cols = rows[i].querySelectorAll("td, th");
+
+                for (let j = 0; j < cols.length; j++) {
+                    row.push(cols[j].innerText);
+                }
+
+                csv.push(row.join(",")); // Join columns with commas
+            }
+
+            // Create a CSV file and trigger download
+            const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+            const downloadLink = document.createElement("a");
+            downloadLink.href = URL.createObjectURL(csvFile);
+            downloadLink.download = filename;
+            downloadLink.click();
+        }
+
+        function exportStudentToPDF(nama, scoresJson, rataRata) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Parse scores JSON
+            const scores = JSON.parse(scoresJson);
+            
+            // Add title
+            doc.setFontSize(20);
+            doc.text('Hasil Nilai Siswa', 20, 20);
+            
+            // Add owner info
+            doc.setFontSize(14);
+            doc.text(`Paket: <%= owner %>`, 20, 35);
+            
+            // Add student info
+            doc.setFontSize(12);
+            doc.text(`Nama: ${nama}`, 20, 50);
+            doc.text(`Rata-rata: ${rataRata}`, 20, 60);
+            
+            // Prepare table data for individual scores
+            const tableData = scores.map(score => [
+                score.mapel,
+                score.score
+            ]);
+            
+            // Add table
+            doc.autoTable({
+                head: [['Mata Pelajaran', 'Nilai']],
+                body: tableData,
+                startY: 70,
+                margin: { top: 70 },
+                styles: {
+                    fontSize: 10,
+                    cellPadding: 3
+                },
+                headStyles: {
+                    fillColor: [108, 92, 231], // Purple color matching theme
+                    textColor: 255
+                }
+            });
+            
+            // Add date at bottom
+            const now = new Date();
+            const finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(10);
+            doc.text(`Dicetak pada: ${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')}`, 20, finalY);
+            
+            // Save the PDF
+            doc.save(`Nilai_${nama.replace(/\s+/g, '_')}_<%= owner %>.pdf`);
+        }
+
+        function exportAllToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape'); // Use landscape for wider table
+            
+            // Add title
+            doc.setFontSize(20);
+            doc.text('Daftar Nilai Siswa', 20, 20);
+            
+            // Add owner info
+            doc.setFontSize(14);
+            doc.text(`Paket: <%= owner %>`, 20, 35);
+            
+            // Prepare table headers
+            const headers = ['Nama'];
+            <% mapels.forEach(mapel => { %>
+                headers.push('<%= mapel.mapel %>');
+            <% }); %>
+            headers.push('Rata-rata');
+            
+            // Prepare table data
+            const tableData = [];
+            const rows = document.querySelectorAll("table tbody tr");
+            
+            rows.forEach(row => {
+                const cols = row.querySelectorAll("td");
+                if (cols.length > 1) { // Skip if not enough columns
+                    const rowData = [];
+                    // Skip the last column (action buttons)
+                    for (let i = 0; i < cols.length - 1; i++) {
+                        rowData.push(cols[i].innerText);
+                    }
+                    tableData.push(rowData);
+                }
+            });
+            
+            // Add table
+            doc.autoTable({
+                head: [headers],
+                body: tableData,
+                startY: 50,
+                margin: { top: 50 },
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 2
+                },
+                headStyles: {
+                    fillColor: [108, 92, 231], // Purple color matching theme
+                    textColor: 255
+                },
+                columnStyles: {
+                    0: { cellWidth: 40 } // Make name column wider
+                }
+            });
+            
+            // Add date at bottom
+            const now = new Date();
+            const finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(10);
+            doc.text(`Dicetak pada: ${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')}`, 20, finalY);
+            
+            // Save the PDF
+            doc.save(`Daftar_Nilai_<%= owner %>.pdf`);
+        }
+
+        function exportAllToExcel() {
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            
+            // Prepare data array
+            const data = [];
+            
+            // Add header info
+            data.push(['LAPORAN NILAI SISWA - PAKET <%= owner %>']);
+            data.push(['Tanggal:', new Date().toLocaleDateString('id-ID')]);
+            data.push([]); // Empty row
+            
+            // Prepare table headers
+            const headers = ['No', 'Nama'];
+            <% mapels.forEach(mapel => { %>
+                headers.push('<%= mapel.mapel %>');
+            <% }); %>
+            headers.push('Rata-rata');
+            
+            data.push(headers);
+            
+            // Add table data
+            const rows = document.querySelectorAll("table tbody tr");
+            let rowIndex = 1;
+            
+            rows.forEach(row => {
+                const cols = row.querySelectorAll("td");
+                if (cols.length > 1) { // Skip if not enough columns
+                    const rowData = [rowIndex++]; // Start with row number
+                    // Skip the last column (action buttons)
+                    for (let i = 0; i < cols.length - 1; i++) {
+                        let cellValue = cols[i].innerText;
+                        // Convert numeric values
+                        if (i > 0 && cellValue !== '-') { // Skip name column
+                            const numValue = parseInt(cellValue);
+                            if (!isNaN(numValue)) {
+                                cellValue = numValue;
+                            }
+                        }
+                        rowData.push(cellValue);
+                    }
+                    data.push(rowData);
+                }
+            });
+            
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            // Set column widths
+            const colWidths = [
+                { width: 5 },   // No
+                { width: 25 }   // Nama
+            ];
+            // Add widths for each subject
+            <% mapels.forEach(() => { %>
+                colWidths.push({ width: 12 });
+            <% }); %>
+            colWidths.push({ width: 12 }); // Rata-rata
+            
+            ws['!cols'] = colWidths;
+            
+            // Style the header rows
+            const headerStyle = {
+                font: { bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "6C5CE7" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+            
+            // Apply styles to header cells
+            if (ws['A1']) ws['A1'].s = { font: { bold: true, size: 16 }, alignment: { horizontal: "center" } };
+            
+            // Style the table headers (row 4)
+            const headerRowIndex = 4;
+            const headerCells = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
+            for (let i = 0; i < headers.length && i < headerCells.length; i++) {
+                const cellRef = headerCells[i] + headerRowIndex;
+                if (ws[cellRef]) ws[cellRef].s = headerStyle;
+            }
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Nilai Siswa');
+            
+            // Save the file
+            XLSX.writeFile(wb, `Nilai_Paket_<%= owner %>.xlsx`);
+        }
+    </script>
+</head>
+<body class="nav-fixed">
+    <%- include('partials/topNav') %> 
+    <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="file-text"></i></div>
+                                        Nilai <%= owner %>
+                                    </h1>
+                                  
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-xl px-4 mt-n10">
+                    <div class="card">
+                        <div class="card-header">Daftar Nilai</div>
+                        <div class="card-body">
+                            <div class="table-wrapper">
+                                <button class="btn btn-sm btn-success" onclick="exportTableToCSV()">
+                                    <i data-feather="share" style="margin-right: 5px;"></i>Export CSV
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="exportAllToPDF()">
+                                    <i data-feather="file-text" style="margin-right: 5px;"></i>Export PDF
+                                </button>
+                                <button class="btn btn-sm btn-primary" onclick="exportAllToExcel()">
+                                    <i data-feather="download" style="margin-right: 5px;"></i>Export Excel
+                                </button>
+                                <table class="table" id="datatablesSimple">
+                                    <thead>
+                                        <tr>
+                                            <th class="sticky-col" style="background-color: white;">Nama</th>
+                                
+                                            <% mapels.forEach(mapel => { %>
+                                                <th><%= mapel.mapel %></th>
+                                            <% }); %>
+                                            <th>Rata-rata</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% scores.forEach(score => { %>
+                                        <tr>
+                                            <td class="sticky-col" style="background-color: white;"><%= score.nama %></td>
+                                     
+                                            <% 
+                                            let total = 0;
+                                            let count = 0;
+                                            score.scores.forEach(subScore => { 
+                                                if (subScore.score !== '-') {
+                                                    total += subScore.score;
+                                                    count++;
+                                                }
+                                            %>
+                                                <td><%= subScore.score %></td>
+                                            <% }); %>
+                                            <td><%= count > 0 ? Math.round(total / count) : '-' %></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="exportStudentToPDF('<%= score.nama %>', '<%= JSON.stringify(score.scores) %>', '<%= count > 0 ? Math.round(total / count) : '-' %>')">
+                                                    <i data-feather="file-text"></i> PDF
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', event => {
+            const datatablesSimple = document.getElementById('datatablesSimple');
+            if (datatablesSimple) {
+                new simpleDatatables.DataTable(datatablesSimple, {
+                    perPage: 10,
+                    searchable: true,
+                    sortable: true
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

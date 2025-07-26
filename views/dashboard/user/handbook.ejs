@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Dashboard GG</title>
+        <%- include('../../partials/head') %>
+        <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
+        <link rel="icon" type="image/x-icon" href="assets/img/5.png" />
+        <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+
+    </head>
+    <body class="nav-fixed">
+       <%- include('partials/topNav') %> 
+        <div id="layoutSidenav">
+        <%- include('partials/sideNav') %>   
+        <div id="layoutSidenav_content">
+            <main>
+                <header class="page-header page-header-dark bg-gradient-primary-to-secondary pb-10">
+                    <div class="container-xl px-4">
+                        <div class="page-header-content pt-4">
+                            <div class="row align-items-center justify-content-between">
+                                <div class="col-auto mt-4">
+                                    <h1 class="page-header-title">
+                                        <div class="page-header-icon"><i data-feather="alert-circle"></i></div>
+                                        Halo, Sobat GG
+                                    </h1>
+                                    <div class="page-header-subtitle">Brits Edu Center, <span style="font-style: italic;">Teman belajarmu</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <!-- Main page content-->
+                <div class="container-xl px-4">
+                   <div class="card mt-n10">
+                    <div class="card-header d-none d-md-block">
+    
+                        <div class="btn-group mt-2" role="group">
+                            <a href="/user/handbook/bahasa-indonesia" class="btn btn-outline-primary <%= (currentRoute === '/user/handbook/bahasa-indonesia') ? 'active' : '' %>">Bahasa Indonesia</a>
+                            <a href="/user/handbook/bahasa-inggris" class="btn btn-outline-primary <%= (currentRoute === '/user/handbook/bahasa-inggris') ? 'active' : '' %>">Bahasa Inggris</a>
+                            <a href="/user/handbook/matematika" class="btn btn-outline-primary <%= (currentRoute === '/user/handbook/matematika') ? 'active' : '' %>">Matematika</a>
+                        </div>
+                        <div class="btn-group mt-2" role="group">
+                            <a href="/user/handbook/lbe" class="btn btn-outline-secondary <%= (currentRoute === '/user/handbook/lbe') ? 'active' : '' %>">LBE</a>
+                            <a href="/user/handbook/lbi" class="btn btn-outline-secondary <%= (currentRoute === '/user/handbook/lbi') ? 'active' : '' %>">LBI</a>
+                            <a href="/user/handbook/pbm" class="btn btn-outline-secondary <%= (currentRoute === '/user/handbook/pbm') ? 'active' : '' %>">PBM</a>
+                            <a href="/user/handbook/pk" class="btn btn-outline-secondary <%= (currentRoute === '/user/handbook/pk') ? 'active' : '' %>">PK</a>
+                            <a href="/user/handbook/pm" class="btn btn-outline-secondary <%= (currentRoute === '/user/handbook/pm') ? 'active' : '' %>">PM</a>
+                            <a href="/user/handbook/ppu" class="btn btn-outline-secondary <%= (currentRoute === '/user/handbook/ppu') ? 'active' : '' %>">PPU</a>
+                            <a href="/user/handbook/pu" class="btn btn-outline-secondary <%= (currentRoute === '/user/handbook/pu') ? 'active' : '' %>">PU</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <iframe id="handbookIframe" src="<%= handbookLink %>" style="max-width: 768px; width: 100%;" height="768px" sandbox="allow-scripts allow-same-origin"></iframe>
+                        <button id="fullscreenButton" class="btn btn-primary mt-2" style="max-width: 768px; width: 100%; display: block">Fullscreen</button>
+                    </div>  
+                   
+                    </div>    
+                </div>
+            </main>
+            <%- include('../../partials/footer-dashboard') %>
+        </div>     
+        </div>
+        <script>
+            // Disable right-click on the iframe content
+            document.getElementById('pdfIframe').oncontextmenu = function(e) {
+                e.preventDefault(); // Disable right-click menu
+                return false; // Optional: prevents the default context menu
+            };
+    
+            // Optionally, disable user interactions with the iframe (e.g., no clicking or dragging)
+            document.getElementById('pdfIframe').addEventListener('load', function () {
+                const iframeDocument = this.contentWindow.document;
+    
+                // Disable text selection in the iframe content (if accessible)
+                iframeDocument.body.style.userSelect = 'none';
+                iframeDocument.body.style.webkitUserSelect = 'none';
+                iframeDocument.body.style.mozUserSelect = 'none';
+                iframeDocument.body.style.msUserSelect = 'none';
+            });
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+        <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
+        <script>
+            document.getElementById('fullscreenButton').addEventListener('click', function() {
+                const iframe = document.getElementById('handbookIframe');
+                if (iframe.requestFullscreen) {
+                    iframe.requestFullscreen();
+                } else if (iframe.mozRequestFullScreen) { // Firefox
+                    iframe.mozRequestFullScreen();
+                } else if (iframe.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                    iframe.webkitRequestFullscreen();
+                } else if (iframe.msRequestFullscreen) { // IE/Edge
+                    iframe.msRequestFullscreen();
+                }
+            });
+        </script>
+    </body>
+</html>
