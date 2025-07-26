@@ -156,7 +156,7 @@ function generatePasswordResetEmail(userName, newPassword, hostname) {
 
             <!-- Action Button -->
             <div style="text-align: center; margin-bottom: 25px;">
-                <a href="${hostname}/signin" 
+                <a href="${hostname}/login" 
                    style="display: inline-block; padding: 12px 24px; background-color: #1976d2; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold; margin-right: 10px;">
                     Login Sekarang
                 </a>
