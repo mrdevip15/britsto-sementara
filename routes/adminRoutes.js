@@ -1687,7 +1687,7 @@ router.post('/jadwal/send-reminders', async (req, res) => {
                 const emailContent = generateScheduleReminderEmail(
                     schedule, 
                     studentInfo,
-                    "https://britsedu.id",
+                    "https://britseducenter.com",
                     schedule.type === 'individual' 
                         ? schedule.siswa.alamat 
                         : 'BritsEdu'
@@ -1826,7 +1826,7 @@ router.post('/jadwal/send-individual-reminder/:id', async (req, res) => {
         const emailContent = generateScheduleReminderEmail(
             schedule, 
             studentInfo,
-            "https://britsedu.id",
+            "https://britseducenter.com",
             schedule.type === 'individual' 
                 ? schedule.siswa.alamat 
                 : 'BritsEdu'

@@ -10,7 +10,7 @@ const uploadImage = (req, res) => {
         }
 
         // Create the URL for the uploaded file
-        const imageUrl = process.env.NODE_ENV === 'development' ? `/uploads/${req.file.filename}` : `https://britsedu.id/uploads/${req.file.filename}`;
+        const imageUrl = process.env.NODE_ENV === 'development' ? `/uploads/${req.file.filename}` : `https://britseducenter.com/uploads/${req.file.filename}`;
 
         // Respond with the image location
         res.json({ location: imageUrl });
