@@ -4,589 +4,134 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Complete Your Profile - Brits Edu Center</title>
+    <title>Genius Gate</title>
     <%- include('./partials/head') %>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800&amp;display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     <link rel="stylesheet" href="<%= hostname %>assets/css/form.css">
-    <style>
-        :root {
-            --primary-color: #6C5CE7;
-            --secondary-color: #00D4FF;
-            --success-color: #00b894;
-            --warning-color: #fdcb6e;
-            --danger-color: #e17055;
-            --dark-color: #2d3436;
-            --light-color: #f8f9fa;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px 0;
-        }
-        
-        #msform {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: 0 auto;
-            overflow: hidden;
-        }
-        
-        #progressbar {
-            background: var(--light-color);
-            margin: 0;
-            padding: 30px 0;
-            list-style: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        #progressbar li {
-            position: relative;
-            color: #999;
-            font-size: 14px;
-            font-weight: 500;
-            padding: 10px 20px;
-            border-radius: 25px;
-            background: #e9ecef;
-            transition: all 0.3s ease;
-        }
-        
-        #progressbar li.active {
-            background: var(--primary-color);
-            color: white;
-        }
-        
-        fieldset {
-            padding: 40px;
-            border: none;
-            display: none;
-        }
-        
-        fieldset:first-of-type {
-            display: block;
-        }
-        
-        .fs-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--dark-color);
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        
-        .fs-subtitle {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-label {
-            display: block;
-            font-weight: 600;
-            color: var(--dark-color);
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        input[type="text"], input[type="password"], input[type="email"], select {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            box-sizing: border-box;
-        }
-        
-        input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
-        }
-        
-        input:disabled {
-            background-color: #f8f9fa;
-            color: #6c757d;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        .action-button {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px 5px;
-        }
-        
-        .action-button:hover {
-            background: #5b4cdb;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
-        }
-        
-        .previous {
-            background: #6c757d;
-        }
-        
-        .previous:hover {
-            background: #5a6268;
-        }
-        
-        .submit {
-            background: var(--success-color);
-        }
-        
-        .submit:hover {
-            background: #00a085;
-        }
-        
-        .error-message {
-            color: var(--danger-color);
-            font-size: 14px;
-            display: block;
-            margin-bottom: 10px;
-            min-height: 20px;
-        }
-        
-        .success-icon {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .success-icon i {
-            font-size: 60px;
-            color: var(--success-color);
-        }
-        
-        #programDetails {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        
-        #programDetails ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-        
-        #programDetails li {
-            margin-bottom: 5px;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 20px;
-            background: var(--dark-color);
-            color: white;
-            margin-top: 40px;
-        }
-        
-        .footer a {
-            color: var(--secondary-color);
-            text-decoration: none;
-        }
-        
-        @media (max-width: 768px) {
-            #msform {
-                margin: 0 10px;
-            }
-            
-            fieldset {
-                padding: 20px;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            #progressbar {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            #progressbar li {
-                padding: 8px 16px;
-                font-size: 12px;
-            }
-        }
-    </style>
 </head>
 <body>
     <!-- multistep form -->
-    <form id="msform" method="POST" action="/signup-complete">
-        <!-- progressbar -->
-        <ul id="progressbar">
-            <li class="active">Welcome</li>
-            <li>Parent Info</li>
-            <li>Personal Details</li>
-        </ul>
-        
-        <!-- fieldsets -->
-        <fieldset>
-            <div class="success-icon">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h2 class="fs-title">Welcome to Brits Edu Center!</h2>
-            <h3 class="fs-subtitle">Complete your profile to get started</h3>
-            
-            <% if (message) { %>
-                <div class="alert alert-info">
-                    <%= message %>
-                </div>
-            <% } %>
-            
-            <div class="form-group">
-                <label class="form-label">Email Address</label>
-                <input type="email" name="email" value="<%= user.email %>" disabled/>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Password</label>
-                <span class="error-message" id="pass-error"></span>
-                <input type="password" name="password" placeholder="Enter your password" />
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Confirm Password</label>
-                <span class="error-message" id="cpass-error"></span>
-                <input type="password" name="cpass" placeholder="Confirm your password" />
-            </div>
-            
-            <input type="button" name="next" class="next action-button" value="Continue" />
-        </fieldset>
-        
-        <fieldset>
-            <h2 class="fs-title">Parent/Guardian Information</h2>
-            <h3 class="fs-subtitle">We need this information for communication</h3>
-            
-            <div class="form-group">
-                <label class="form-label">Parent/Guardian Full Name</label>
-                <span class="error-message" id="namaOrtu-error"></span>
-                <input type="text" name="nama_ortu" placeholder="Enter parent/guardian full name" value="<%= user.nama_ortu || '' %>" />
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Parent/Guardian Phone Number</label>
-                <span class="error-message" id="noHpOrtu-error"></span>
-                <input type="text" name="no_hp_ortu" placeholder="Enter parent/guardian phone number" value="<%= user.no_hp_ortu || '' %>" />
-            </div>
-            
-            <input type="button" name="previous" class="previous action-button" value="Previous" />
-            <input type="button" name="next" class="next action-button" value="Continue" />
-        </fieldset>
-        
-        <!-- Personal Details Step -->
-        <fieldset>
-            <h2 class="fs-title">Personal Information</h2>
-            <h3 class="fs-subtitle">Tell us about yourself</h3>
+<form id="msform" method="POST" action="/user/updateUser">
+    <!-- progressbar -->
+    <ul id="progressbar">
+      <li class="active">Buat Akun</li>
+      <li>Data Orang Tua/ Wali</li>
+      <li>Data Diri</li>
+    </ul>
+    <!-- fieldsets -->
+    <fieldset>        
+    <h2 class="fs-title">DAFTAR BERHASIL</h2>
+      <h3 id="subtitle"  class="fs-subtitle">Tapi lengkapi data berikut dulu ya</h3>
+      <span class="error-message" id="email-error"></span>
+      <input type="text" name="email" placeholder="Email" value="<%= user.email %>" disabled/>
+     
+      <span class="error-message" id="pass-error"></span>
+      <input type="password" name="password" placeholder="Password" />
+     
+      <span class="error-message" id="cpass-error"></span>
+      <input type="password" name="cpass" placeholder="Confirm Password" />
+     
+      <input type="button" name="next" class="next action-button" value="Selanjutnya" />
+    </fieldset>
+    <fieldset>
+      <h2 class="fs-title">Data Orang Tua/ Wali</h2>
+      <h3 class="fs-subtitle">Jangan sampai salah isi ya</h3>
+      <span class="error-message" id="namaOrtu-error"></span>
+      <input type="text" name="nama_ortu" placeholder="Nama Lengkap Orang Tua/ Wali" />
+     
+      <span class="error-message" id="noHpOrtu-error"></span>
+      <input type="text" name="no_hp_ortu" placeholder="No Hp Orang Tua/ Wali" />
+    
+      <input type="button" name="previous" class="previous action-button" value="Sebelumnya" />
+      <input type="button" name="next" class="next action-button" value="Selanjutnya" />
+    </fieldset>
+<!-- Personal Details Step -->
+<fieldset>
+    <h2 class="fs-title">Data Diri</h2>
+    <h3 class="fs-subtitle">Isi data dirimu dengan benar</h3>
 
-            <div class="form-group">
-                <label class="form-label">Full Name</label>
-                <span class="error-message" id="nama-error"></span>
-                <input type="text" name="nama" placeholder="Enter your full name" value="<%= user.nama || '' %>">
-            </div>
+    <div class="form-container">
+        <div class="form-group">
+            <label class="form-label">Nama Lengkap</label>
+            <span class="error-message" id="nama-error"></span>
+            <input type="text" id="name" name="nama" placeholder="Nama" value="<%= user.nama %>">
             
+        </div>
+        <div class="form-group">
+            <label class="form-label">Asal Sekolah</label>
+            <span class="error-message" id="asalSekolah-error"></span>
+            <input type="text" id="asal_sekolah" name="asal_sekolah" placeholder="Asal Sekolah">
+        </div>
+        <div class="form-row">
             <div class="form-group">
-                <label class="form-label">School Origin</label>
-                <span class="error-message" id="asalSekolah-error"></span>
-                <input type="text" name="asal_sekolah" placeholder="Enter your school name" value="<%= user.asal_sekolah || '' %>">
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Package</label>
-                    <select name="paket" id="jenisPaket" onchange="updateProgramOptions()">
-                        <option value="privat" <%= user.paket === 'privat' ? 'selected' : '' %>>Private Learning</option>
-                        <option value="snbt" <%= user.paket === 'snbt' ? 'selected' : '' %>>SNBT 2025</option>
-                        <option value="tryout" <%= user.paket === 'tryout' ? 'selected' : '' %>>Try Out</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Education Level</label>
-                    <select name="jenjang" id="jenjang">
-                        <option value="sd" <%= user.jenjang === 'sd' ? 'selected' : '' %>>Elementary School</option>
-                        <option value="smp" <%= user.jenjang === 'smp' ? 'selected' : '' %>>Junior High School</option>
-                        <option value="sma" <%= user.jenjang === 'sma' ? 'selected' : '' %>>Senior High School</option>
-                        <option value="alumni" <%= user.jenjang === 'alumni' ? 'selected' : '' %>>Alumni & Gap Year</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Program</label>
-                <select name="program" id="program" onchange="showProgramDetails()">
-                    <option value="gg-lite" <%= user.program === 'gg-lite' ? 'selected' : '' %>>GG Lite</option>
-                    <option value="gg-pro" <%= user.program === 'gg-pro' ? 'selected' : '' %>>GG Pro</option>
-                    <option value="gg-plus" <%= user.program === 'gg-plus' ? 'selected' : '' %>>GG Plus</option>
-                    <option value="gg-promax" <%= user.program === 'gg-promax' ? 'selected' : '' %>>GG Pro Max</option>
+                <label class="form-label">Paket</label>
+                <select class="form-control" name="paket" id="jenisPaket" onchange="updateProgramOptions()">
+                    <option value="privat">Belajar Privat</option>
+                    <option value="snbt">SNBT 2025</option>
+                    <option value="tryout">Try Out</option>
                 </select>
-                <div id="programDetails">
-                    <ul>
-                        <li>Description: 1-month package, 12 sessions total (3x per week), for 1 subject of choice.</li>
-                        <li>Payment: Can be paid at the end of the month with 50% down payment.</li>
-                        <li>Price: Rp 1.5 Million</li>
-                    </ul>
-                </div>
             </div>
-
             <div class="form-group">
-                <label class="form-label">Phone Number</label>
-                <span class="error-message" id="phone-error"></span>
-                <input type="text" name="phone" placeholder="Enter your phone number (e.g., 0853...)" value="<%= user.phone || '' %>"> 
+                <label class="form-label">Jenjang</label>
+                <select class="form-control" name="jenjang" id="jenjang">
+                    <option value="sd">SD </option>
+                    <option value="smp">SMP</option>
+                    <option value="sma">SMA</option>
+                    <option value="alumni">Alumni & Gap Year</option>
+                </select>
             </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Program yang dipilih</label>
+            <select class="form-control" name="program" id="program" onchange="showProgramDetails()" style="margin-bottom: 3px;">
+                <option value="gg-lite">GG Lite</option>
+                <option value="gg-pro">GG Pro</option>
+                <option value="gg-plus">GG Plus</option>
+                <option value="gg-promax">GG Pro Max</option>
 
-            <input type="button" name="previous" class="previous action-button" value="Previous" />
-            <input type="submit" value="Complete Profile" class="submit action-button">
-        </fieldset>
-    </form>
-    
-    <footer class="footer">
-        <p>Copyright © <a href="<%= hostname %>">Brits Edu Center</a> 2024</p> 
-    </footer>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <script>
-        // Multi-step form functionality
-        $(document).ready(function(){
-            var current_fs, next_fs, previous_fs;
-            var left, opacity, scale;
-            var animating;
-
-            $(".next").click(function(){
-                if(animating) return false;
-                animating = true;
-                
-                current_fs = $(this).parent();
-                next_fs = $(this).parent().next();
-                
-                // Validate current step
-                if(!validateStep(current_fs)) {
-                    animating = false;
-                    return false;
-                }
-                
-                // Activate next step on progressbar
-                $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
-                
-                // Show next fieldset
-                next_fs.show();
-                current_fs.animate({opacity: 0}, {
-                    step: function(now, mx) {
-                        scale = 1 - (1 - now) * 0.2;
-                        left = (now * 50)+"%";
-                        opacity = 1 - now;
-                        current_fs.css({
-                            'transform': 'scale('+scale+')',
-                            'position': 'absolute'
-                        });
-                        next_fs.css({'left': left, 'opacity': opacity});
-                    }, 
-                    duration: 800, 
-                    complete: function(){
-                        current_fs.hide();
-                        animating = false;
-                    }, 
-                    easing: 'easeInOutBack'
-                });
-            });
-
-            $(".previous").click(function(){
-                if(animating) return false;
-                animating = true;
-                
-                current_fs = $(this).parent();
-                previous_fs = $(this).parent().prev();
-                
-                // Deactivate current step on progressbar
-                $("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
-                
-                // Show previous fieldset
-                previous_fs.show();
-                current_fs.animate({opacity: 0}, {
-                    step: function(now, mx) {
-                        scale = 0.8 + (1 - now) * 0.2;
-                        left = ((1-now) * 50)+"%";
-                        opacity = 1 - now;
-                        current_fs.css({'left': left});
-                        previous_fs.css({'transform': 'scale('+scale+')', 'opacity': opacity});
-                    }, 
-                    duration: 800, 
-                    complete: function(){
-                        current_fs.hide();
-                        animating = false;
-                    }, 
-                    easing: 'easeInOutBack'
-                });
-            });
-        });
-
-        // Validation function
-        function validateStep(step) {
-            var isValid = true;
-            
-            // Clear previous errors
-            step.find('.error-message').text('');
-            
-            // Validate based on current step
-            var stepIndex = $("fieldset").index(step);
-            
-            if (stepIndex === 0) {
-                // Validate password fields
-                var password = step.find('input[name="password"]').val();
-                var confirmPassword = step.find('input[name="cpass"]').val();
-                
-                if (!password) {
-                    $('#pass-error').text('Password is required');
-                    isValid = false;
-                }
-                
-                if (password !== confirmPassword) {
-                    $('#cpass-error').text('Passwords do not match');
-                    isValid = false;
-                }
-                
-                if (password && password.length < 6) {
-                    $('#pass-error').text('Password must be at least 6 characters');
-                    isValid = false;
-                }
-            } else if (stepIndex === 1) {
-                // Validate parent info
-                var namaOrtu = step.find('input[name="nama_ortu"]').val();
-                var noHpOrtu = step.find('input[name="no_hp_ortu"]').val();
-                
-                if (!namaOrtu.trim()) {
-                    $('#namaOrtu-error').text('Parent/Guardian name is required');
-                    isValid = false;
-                }
-                
-                if (!noHpOrtu.trim()) {
-                    $('#noHpOrtu-error').text('Parent/Guardian phone number is required');
-                    isValid = false;
-                }
-            } else if (stepIndex === 2) {
-                // Validate personal info
-                var nama = step.find('input[name="nama"]').val();
-                var asalSekolah = step.find('input[name="asal_sekolah"]').val();
-                var phone = step.find('input[name="phone"]').val();
-                
-                if (!nama.trim()) {
-                    $('#nama-error').text('Full name is required');
-                    isValid = false;
-                }
-                
-                if (!asalSekolah.trim()) {
-                    $('#asalSekolah-error').text('School origin is required');
-                    isValid = false;
-                }
-                
-                if (!phone.trim()) {
-                    $('#phone-error').text('Phone number is required');
-                    isValid = false;
-                }
-            }
-            
-            return isValid;
-        }
-
-        // Program details update
-        function showProgramDetails() {
-            var program = document.getElementById('program').value;
-            var details = document.getElementById('programDetails');
-            
-            var programInfo = {
-                'gg-lite': {
-                    description: '1-month package, 12 sessions total (3x per week), for 1 subject of choice.',
-                    payment: 'Can be paid at the end of the month with 50% down payment.',
-                    price: 'Rp 1.5 Million'
-                },
-                'gg-pro': {
-                    description: '2-month package, 24 sessions total (3x per week), for 2 subjects of choice.',
-                    payment: 'Can be paid in installments with 40% down payment.',
-                    price: 'Rp 2.8 Million'
-                },
-                'gg-plus': {
-                    description: '3-month package, 36 sessions total (3x per week), for 3 subjects of choice.',
-                    payment: 'Can be paid in installments with 35% down payment.',
-                    price: 'Rp 4.0 Million'
-                },
-                'gg-promax': {
-                    description: '6-month package, 72 sessions total (3x per week), unlimited subjects.',
-                    payment: 'Can be paid in installments with 30% down payment.',
-                    price: 'Rp 7.5 Million'
-                }
-            };
-            
-            var info = programInfo[program];
-            details.innerHTML = `
+            </select>
+            <div id="programDetails" style="text-align: start; margin-bottom: 10px; font-size: 12px; padding-left:20px ;">
                 <ul>
-                    <li>Description: ${info.description}</li>
-                    <li>Payment: ${info.payment}</li>
-                    <li>Price: ${info.price}</li>
+                    <li>Deskripsi: Paket 1 bulan, total 12 sesi (3x seminggu), khusus 1 mata pelajaran pilihan.</li>
+                    <li>Pembayaran: Bisa dilunasi di akhir bulan dengan DP 50%.</li>
+                    <li>Harga: Rp1.5 JT</li>
                 </ul>
-            `;
-        }
+    
+            </div>
+        </div>
 
-        function updateProgramOptions() {
-            showProgramDetails();
-        }
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">No HP</label>
+                <span class="error-message" id="phone-error"></span>
+                <input type="text" id="phone" name="phone" placeholder="0853..."> 
+            </div>
+        </div>
+        
+        
+       
 
-        // Initialize program details on page load
-        showProgramDetails();
-        
-        // Test if jQuery is working
-        console.log('jQuery loaded:', typeof $ !== 'undefined');
-        console.log('Form element:', $('#msform').length);
-        
-        // Form submission handler
-        $('#msform').on('submit', function(e) {
-            console.log('Form submission triggered');
-            
-            // Validate the current step
-            var currentStep = $('.fieldset:visible');
-            var stepIndex = $("fieldset").index(currentStep);
-            console.log('Current step index:', stepIndex);
-            
-            // Temporarily bypass validation for testing
-            console.log('Bypassing validation for testing');
-            
-            console.log('Validation passed, allowing submission');
-            // Show loading state
-            $('.submit').prop('disabled', true).text('Submitting...');
-            return true; // Allow form to submit
-        });
-        
-        // Also add click handler to submit button for debugging
-        $('.submit').on('click', function(e) {
-            console.log('Submit button clicked');
-        });
-    </script>
+    </div>
+
+    <input type="button" name="previous" class="previous action-button" value="Sebelumnya" />
+    <input type="submit" value="Kirim" class="submit action-button">
+</fieldset>
+
+  </form>
+  <footer class="footer">
+    <p>Copyright © <a style="color: white;" href="<%= hostname %>">Genius Gate</a> 2024 | mr.d</p> 
+  </footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+ 
+  <script src="<%= hostname %>assets/js/form-validation.js"></script>
+  <script src="<%= hostname %>assets/js/form-programUpdate.js"></script>
+  <script src="<%= hostname %>assets/js/form.js"></script>
+  <script src="<%= hostname %>assets/js/urlParseOrder.js"></script>
+  <!-- script to update program and its description -->
+  <script>
+   
+</script>
 </body>
 </html>

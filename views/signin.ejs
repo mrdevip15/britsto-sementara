@@ -195,18 +195,6 @@
             text-decoration: underline;
         }
         
-        /* Google OAuth Button Styles */
-        .btn-google:hover {
-            border-color: #6C5CE7;
-            background: #f8f9ff;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
-        }
-        
-        .oauth-section {
-            text-align: center;
-        }
-        
         @media (max-width: 768px) {
             .auth-container {
                 flex-direction: column;
@@ -298,20 +286,6 @@
             </div>
             
             <form method="POST" action="/login">
-                <!-- Google OAuth Button -->
-                <div class="oauth-section" style="margin-bottom: 1.5rem;">
-                    <a href="/auth/google" class="btn-google" style="display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px; background: white; border: 2px solid #E9ECEF; border-radius: 12px; color: #2D3436; font-weight: 600; text-decoration: none; transition: all 0.3s ease; margin-bottom: 1rem;">
-                        <img src="assets/img/google-logo.png" alt="Google" style="width: 20px; height: 20px; margin-right: 12px;">
-                        Masuk dengan Google
-                    </a>
-                    
-                    <div class="divider" style="display: flex; align-items: center; margin: 1.5rem 0;">
-                        <div style="flex: 1; height: 1px; background: #E9ECEF;"></div>
-                        <span style="padding: 0 1rem; color: #74757A; font-size: 0.9rem;">atau</span>
-                        <div style="flex: 1; height: 1px; background: #E9ECEF;"></div>
-                    </div>
-                </div>
-                
                 <div class="form-group">
                     <label class="form-label">Email Address</label>
                     <input type="email" name="email" class="form-control" placeholder="Enter your email address" required />

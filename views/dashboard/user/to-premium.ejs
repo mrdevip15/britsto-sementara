@@ -28,7 +28,7 @@
                                         <div class="page-header-icon"><i data-feather="alert-circle"></i></div>
                                         Halo, Sobat GG
                                     </h1>
-                                    <div class="page-header-subtitle">Brits Edu Center, <span style="font-style: italic;">Teman belajarmu</span></div>
+                                    <div class="page-header-subtitle">Genius gate, <span style="font-style: italic;">your key to excel</span></div>
                                 </div>
                             </div>
                         </div>
@@ -156,19 +156,11 @@
                                             </span>
                                           </td>
                                           <td>
-                                            <% 
-                                            // Check if user has answered this subtest
-                                            const hasAnswered = answeredSubtests.includes(mapel.kodekategori);
-                                            %>
-                                            <% if (status.buttonDisabled && hasAnswered) { %>
+                                            <% if (status.buttonDisabled) { %>
                                               <a href="/user/to-premium/<%= token.token %>/<%= mapel.kodekategori %>/pembahasan" 
                                                    class="btn btn-sm btn-info">
                                                     Lihat Pembahasan
                                                 </a>
-                                            <% } else if (status.buttonDisabled && !hasAnswered) { %>
-                                              <span class="btn btn-sm btn-secondary disabled">
-                                                Belum Dikerjakan
-                                              </span>
                                             <% } else { %>
                                               <a href="/ujian/<%= token.token %>/<%= mapel.kodekategori %>" 
                                                  class="btn btn-sm btn-<%= status.buttonClass %>" 

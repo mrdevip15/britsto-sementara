@@ -59,16 +59,9 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'your_session_secret',
   resave: false,
   saveUninitialized: false,
-  rolling: true, // Force a session identifier cookie to be set on every response
-  genid: function() {
-    // Generate a unique session ID for better security
-    return require('crypto').randomBytes(32).toString('hex');
-  },
   cookie: { 
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: 'lax'
+    secure: false
   }
 }));
 

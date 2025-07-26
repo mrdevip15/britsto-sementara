@@ -6,23 +6,16 @@ const { generatePasswordResetEmail } = require('../utilities/emailTemplates');
 
 // controllers/userController.js
 async function dashboard(req, res) {
-  // Get fresh user data from database to ensure we have the latest information
-  const User = require('../models/User');
-  const user = await User.findByPk(req.user.id);
+  // Assuming user data is stored in req.user
+  const user = req.user;
 
   // Check if any of the required fields are missing or null
-  const requiredFields = ['nama_ortu', 'no_hp_ortu', 'nama', 'asal_sekolah', 'phone'];
-  const missingFields = requiredFields.filter(field => !user[field] || user[field].trim() === '');
+  const requiredFields = ['nama_ortu', 'no_hp_ortu', 'nama', 'asal_sekolah', 'paket', 'jenjang', 'program', 'phone'];
+  const missingFields = requiredFields.filter(field => !user[field]);
 
   if (missingFields.length > 0) {
     // If any required field is missing, render the signup view
-    return res.render('signup-complete', { 
-      user, 
-      hostname: process.env.NODE_ENV === 'production' 
-        ? "https://geniusgate.id/" 
-        : "http://localhost:3972/",
-      message: "Please complete your profile by filling in all required fields." 
-    });
+    return res.render('signup-complete', { user, message: "Please complete your profile by filling in all required fields." });
   }
   // Get tokens data for the user
   let tokens = [];
@@ -55,10 +48,6 @@ async function topremium(req, res) {
     // Convert examCompleted to array if it's a single object
     examCompleted = examCompleted ? [examCompleted] : [];
 
-    // Check which subtests the user has answered
-    const userAnswers = req.user.answers || [];
-    const answeredSubtests = userAnswers.map(answer => answer.kodekategori);
-
     if (mapelsToken.length === 0) {
       return res.status(404).json({ message: 'No Mapel found for this token or the token does not exist' });
     }
@@ -69,7 +58,6 @@ async function topremium(req, res) {
       examTaken,     // Pass examTaken data
       examCompleted, // Pass examCompleted as array
       disqualifiedExams, // Pass disqualified exams
-      answeredSubtests, // Pass list of subtests user has answered
       ...mapelsToken
     });
 

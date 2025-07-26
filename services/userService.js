@@ -29,13 +29,7 @@ async function updateUser(userId, userData) {
     returning: true,
   });
 
-  // Handle different Sequelize return formats
-  if (updatedUser && updatedUser[1] && updatedUser[1][0]) {
-    return updatedUser[1][0];
-  }
-  
-  // Fallback: fetch the updated user
-  return await User.findByPk(userId);
+  return updatedUser[1][0];
 }
 
 async function saveUser(userData) {

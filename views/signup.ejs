@@ -20,7 +20,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow-x: hidden;
         }
         
         .auth-container {
@@ -31,6 +30,7 @@
             width: 100%;
             max-width: 1200px;
             min-height: 80vh;
+            max-height: 90vh;
             display: flex;
         }
         
@@ -251,42 +251,38 @@
             text-decoration: underline;
         }
         
-        /* Google OAuth Button Styles */
-        .btn-google:hover {
-            border-color: #6C5CE7;
-            background: #f8f9ff;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
-        }
-        
-        .oauth-section {
-            text-align: center;
-        }
-        
         @media (max-width: 768px) {
             body {
-                padding: 10px;
-                align-items: flex-start;
+                padding: 0;
+                display: block;
                 min-height: 100vh;
-                overflow-y: auto;
+                overflow-x: hidden;
             }
             
             .auth-container {
                 flex-direction: column;
-                max-width: 100%;
+                max-width: none;
+                width: 100%;
                 min-height: auto;
-                margin: 10px 0;
+                max-height: none;
+                display: block;
+                border-radius: 0;
             }
             
             .auth-brand {
-                padding: 30px 20px;
+                padding: 20px;
+                flex: none;
                 min-height: auto;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
             }
             
             .auth-form {
-                padding: 20px 15px;
+                padding: 20px;
                 max-height: none;
                 overflow-y: visible;
+                flex: none;
                 min-height: auto;
             }
             
@@ -307,44 +303,6 @@
             .brand-stats {
                 grid-template-columns: 1fr 1fr;
                 gap: 1rem;
-            }
-            
-            .form-header {
-                position: static;
-                padding-bottom: 1rem;
-            }
-            
-            .form-title {
-                font-size: 1.5rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            body {
-                padding: 5px;
-            }
-            
-            .auth-container {
-                border-radius: 16px;
-                margin: 5px 0;
-            }
-            
-            .auth-form {
-                padding: 15px 10px;
-            }
-            
-            .form-section {
-                padding: 0.8rem;
-            }
-            
-            .form-control {
-                padding: 8px 10px;
-                font-size: 0.85rem;
-            }
-            
-            .brand-stats {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
             }
         }
     </style>
@@ -385,20 +343,6 @@
             </div>
             
             <form method="POST" action="/signup">
-                <!-- Google OAuth Button - Outside of sections -->
-                <div class="oauth-section" style="margin-bottom: 2rem;">
-                    <a href="/auth/google" class="btn-google" style="display: flex; align-items: center; justify-content: center; width: 100%; padding: 14px; background: white; border: 2px solid #E9ECEF; border-radius: 12px; color: #2D3436; font-weight: 600; text-decoration: none; transition: all 0.3s ease; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <img src="assets/img/google-logo.png" alt="Google" style="width: 20px; height: 20px; margin-right: 12px;">
-                        Daftar dengan Google
-                    </a>
-                    
-                    <div class="divider" style="display: flex; align-items: center; margin: 1.5rem 0;">
-                        <div style="flex: 1; height: 1px; background: #E9ECEF;"></div>
-                        <span style="padding: 0 1rem; color: #74757A; font-size: 0.9rem; background: white; font-weight: 500;">atau daftar manual</span>
-                        <div style="flex: 1; height: 1px; background: #E9ECEF;"></div>
-                    </div>
-                </div>
-
                 <!-- Account Information Section -->
                 <div class="form-section">
                     <h4 class="section-title">Informasi Akun</h4>

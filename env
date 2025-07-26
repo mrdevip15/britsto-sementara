@@ -1,7 +1,7 @@
-GOOGLE_CLIENT_ID=912405097719-c0vb95g2em9gj3j5jlrvq12u1e94a4hd.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
-GOOGLE_CALLBACK_URL_DEV=http://localhost:3972/auth/google/callback
-GOOGLE_CALLBACK_URL_PROD=https://britseducenter.com/auth/google/callback
+GOOGLE_CLIENT_ID=860344747341-f0es3offdmi3pb0csq8huos94um20ns3.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+GOOGLE_CALLBACK_URL_DEV=http://localhost:3000/auth/google/callback
+GOOGLE_CALLBACK_URL_PROD=https://geniusgate.id/auth/google/callback
 ADMIN_EMAIL=super-admin@togg.secret
 ADMIN_PASSWORD=Topsecret123?
 ADMIN_SECRET=hehehehe

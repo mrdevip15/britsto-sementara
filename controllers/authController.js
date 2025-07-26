@@ -47,41 +47,8 @@ async function signup(req, res) {
         console.error("Error during automatic login after signup:", err);
         return res.status(500).json({ message: "An error occurred during login." });
       }
-      
-      // Store user data temporarily
-      const userData = { ...newUser.get() };
-      
-      // Regenerate session ID
-      req.session.regenerate(async (err) => {
-        if (err) {
-          console.error("Error regenerating session:", err);
-          return res.status(500).json({ message: "An error occurred during login." });
-        }
-        
-        // Re-authenticate the user after session regeneration
-        req.login(userData, async (loginErr) => {
-          if (loginErr) {
-            console.error("Error re-authenticating after session regeneration:", loginErr);
-            return res.status(500).json({ message: "An error occurred during login." });
-          }
-          
-          // Update user's active session ID
-          await User.update(
-            { activeSessionId: req.sessionID },
-            { where: { id: newUser.id } }
-          );
-          
-          // Set the session verification cookie
-          res.cookie('session_verify', req.sessionID, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-          });
-          
-          // Redirect to the user dashboard or another page
-          return res.redirect('/user/dashboard');
-        });
-      });
+      // Redirect to the user dashboard or another page
+      return res.redirect('/user/dashboard');
     });
   } catch (error) {
     console.error("Error during signup:", error);
@@ -102,9 +69,6 @@ async function logout(req, res) {
       console.error('Error clearing session:', error);
     }
   }
-  
-  // Clear session verification cookie
-  res.clearCookie('session_verify');
   
   req.logout(err => {
     if (err) return next(err);
@@ -148,40 +112,14 @@ async function login(req, res, next) {
         console.error(err);
         return res.status(500).json({ message: "An error occurred during login." });
       }
-      
-      // Store user data temporarily
-      const userData = { ...user.get() };
-      
-      // Regenerate session ID to prevent session fixation attacks
-      req.session.regenerate(async (err) => {
-        if (err) {
-          console.error("Error regenerating session:", err);
-          return res.status(500).json({ message: "An error occurred during login." });
-        }
-        
-        // Re-authenticate the user after session regeneration
-        req.login(userData, async (loginErr) => {
-          if (loginErr) {
-            console.error("Error re-authenticating after session regeneration:", loginErr);
-            return res.status(500).json({ message: "An error occurred during login." });
-          }
-          
-          // Set the new session
-          await User.update(
-            { activeSessionId: req.sessionID },
-            { where: { id: user.id } }
-          );
-          
-          // Set the session verification cookie
-          res.cookie('session_verify', req.sessionID, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-          });
-          
-          return res.redirect('/user/dashboard');
-        });
-      });
+
+      // Set the new session
+      await User.update(
+        { activeSessionId: req.sessionID },
+        { where: { id: user.id } }
+      );
+
+      return res.redirect('/user/dashboard');
     });
   } catch (error) {
     console.error(error);

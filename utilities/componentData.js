@@ -3,14 +3,14 @@
 const faqsprivat = [
     {
         question: "Anak saya ingin request tutor apa boleh?",
-        answer: "Kami sangat menjunjung tinggi kenyamanan dan kepuasan adik-adik selama belajar di Brits Edu Center. Selama requestnya tidak aneh-aneh seperti meminta tutor harus berubah jadi Power Rangers Hitam, kami akan penuhi 😀."
+        answer: "Kami sangat menjunjung tinggi kenyamanan dan kepuasan adik-adik selama belajar di Genius Gate. Selama requestnya tidak aneh-aneh seperti meminta tutor harus berubah jadi Power Rangers Hitam, kami akan penuhi 😀."
     },
     {
-        question: "Kenapa harus belajar di Brits Edu Center?",
-        answer: "Dengan pengajar profesional dan berpengalaman, kami di Brits Edu Center memastikan bahwa siswa tidak hanya memahami materi tetapi juga mampu mengaplikasikannya dengan baik. Kami berkomitmen untuk mendukung pencapaian akademik terbaik bagi setiap siswa"
+        question: "Kenapa harus belajar di Genius Gate?",
+        answer: "Dengan pengajar profesional dan berpengalaman, kami di Genius Gate memastikan bahwa siswa tidak hanya memahami materi tetapi juga mampu mengaplikasikannya dengan baik. Kami berkomitmen untuk mendukung pencapaian akademik terbaik bagi setiap siswa"
     },
     {
-        question: "Apa fasilitas yang anak saya akan dapatkan jika belajar di Brits Edu Center?",
+        question: "Apa fasilitas yang anak saya akan dapatkan jika belajar di Genius Gate?",
         answer: "Pengajar profesional dengan metode belajar yang dipersonalisasi serta latihan soal yang beragam menjamin pemahaman siswa terhadap materi. Kami juga menyediakan program belajar intensif untuk persiapan ulangan harian secara mendadak."
     }
 ];
@@ -22,7 +22,7 @@ const faqssnbt = [
     },
     {
         question: "Kenapa harus belajar di GG?",
-        answer: "Dengan pengajar profesional dan berpengalaman, kami di Brits Edu Center memastikan bahwa siswa tidak hanya memahami materi tetapi juga mampu mengaplikasikannya dengan baik. Kami berkomitmen untuk mendukung pencapaian akademik terbaik bagi setiap siswa"
+        answer: "Dengan pengajar profesional dan berpengalaman, kami di Genius Gate memastikan bahwa siswa tidak hanya memahami materi tetapi juga mampu mengaplikasikannya dengan baik. Kami berkomitmen untuk mendukung pencapaian akademik terbaik bagi setiap siswa"
     },
     {
         question: "Apa fasilitas yang akan saya dapatkan jika bergabung di GG?",
