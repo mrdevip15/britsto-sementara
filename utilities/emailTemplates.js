@@ -100,7 +100,7 @@ function generateScheduleReminderEmail(schedule, studentInfo, hostname, studentA
                     Terima kasih atas kerjasamanya.
                 </p>
                 <p style="margin: 10px 0 0; color: #666; font-size: 12px;">
-                    Email ini dikirim secara otomatis oleh sistem Genius Gate.
+                    Email ini dikirim secara otomatis oleh sistem BritsEdu.
                 </p>
             </div>
         </div>

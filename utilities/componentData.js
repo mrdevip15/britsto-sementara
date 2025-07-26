@@ -3,14 +3,14 @@
 const faqsprivat = [
     {
         question: "Anak saya ingin request tutor apa boleh?",
-        answer: "Kami sangat menjunjung tinggi kenyamanan dan kepuasan adik-adik selama belajar di Genius Gate. Selama requestnya tidak aneh-aneh seperti meminta tutor harus berubah jadi Power Rangers Hitam, kami akan penuhi 😀."
+        answer: "Kami sangat menjunjung tinggi kenyamanan dan kepuasan adik-adik selama belajar di BritsEdu. Selama requestnya tidak aneh-aneh seperti meminta tutor harus berubah jadi Power Rangers Hitam, kami akan penuhi 😀."
     },
     {
-        question: "Kenapa harus belajar di Genius Gate?",
-        answer: "Dengan pengajar profesional dan berpengalaman, kami di Genius Gate memastikan bahwa siswa tidak hanya memahami materi tetapi juga mampu mengaplikasikannya dengan baik. Kami berkomitmen untuk mendukung pencapaian akademik terbaik bagi setiap siswa"
+        question: "Kenapa harus belajar di BritsEdu?",
+        answer: "Dengan pengajar profesional dan berpengalaman, kami di BritsEdu memastikan bahwa siswa tidak hanya memahami materi tetapi juga mampu mengaplikasikannya dengan baik. Kami berkomitmen untuk mendukung pencapaian akademik terbaik bagi setiap siswa"
     },
     {
-        question: "Apa fasilitas yang anak saya akan dapatkan jika belajar di Genius Gate?",
+        question: "Apa fasilitas yang anak saya akan dapatkan jika belajar di BritsEdu?",
         answer: "Pengajar profesional dengan metode belajar yang dipersonalisasi serta latihan soal yang beragam menjamin pemahaman siswa terhadap materi. Kami juga menyediakan program belajar intensif untuk persiapan ulangan harian secara mendadak."
     }
 ];
@@ -18,20 +18,20 @@ const faqsprivat = [
 const faqssnbt = [
     {
         question: "Apa dijamin pasti lulus?",
-        answer: "Kami tidak bisa menjamin kelulusan 100%, tetapi kami memberikan 100% metode yang telah berhasil membawa alumni GG ke universitas impiannya. Kami yakin dengan semangat belajar dan strategi yang efektif tidak ada yang tidak bisa diwujudkan."
+        answer: "Kami tidak bisa menjamin kelulusan 100%, tetapi kami memberikan 100% metode yang telah berhasil membawa alumni BritsEdu ke universitas impiannya. Kami yakin dengan semangat belajar dan strategi yang efektif tidak ada yang tidak bisa diwujudkan."
     },
     {
-        question: "Kenapa harus belajar di GG?",
-        answer: "Dengan pengajar profesional dan berpengalaman, kami di Genius Gate memastikan bahwa siswa tidak hanya memahami materi tetapi juga mampu mengaplikasikannya dengan baik. Kami berkomitmen untuk mendukung pencapaian akademik terbaik bagi setiap siswa"
+        question: "Kenapa harus belajar di BritsEdu?",
+        answer: "Dengan pengajar profesional dan berpengalaman, kami di BritsEdu memastikan bahwa siswa tidak hanya memahami materi tetapi juga mampu mengaplikasikannya dengan baik. Kami berkomitmen untuk mendukung pencapaian akademik terbaik bagi setiap siswa"
     },
     {
-        question: "Apa fasilitas yang akan saya dapatkan jika bergabung di GG?",
+        question: "Apa fasilitas yang akan saya dapatkan jika bergabung di BritsEdu?",
         answer: "Pengajar profesional, Metode belajar yang dipersonalisasi, Tryout mingguan untuk mengukur perkembangan siswa, konsultasi jurusan, tempat tinggal gratis bagi siswa yang datang dari daerah luar Makassar*."
     }
 ];
 const cardPrivat = [
     {
-        title: "GG Lite",
+        title: "BritsEdu Lite",
         price: "1 Juta",
         features: [
             { text: "12 kali sesi belajar", included: true },
@@ -39,10 +39,10 @@ const cardPrivat = [
             { text: "1 Mata Pelajaran", included: true }
         ],
         borderClass: "border-0",
-        link : "/daftar?paket=privat&program=gg-lite"
+        link : "/daftar?paket=privat&program=britsedu-lite"
     },
     {
-        title: "GG Pro",
+        title: "BritsEdu Pro",
         price: "1.5 Juta",
         features: [
             { text: "12 kali sesi belajar", included: true },
@@ -50,10 +50,10 @@ const cardPrivat = [
             { text: "3 Mata Pelajaran", included: true }
         ],
         borderClass: "border-0",
-         link : "/daftar?paket=privat&program=gg-pro"
+         link : "/daftar?paket=privat&program=britsedu-pro"
     },
     {
-        title: "GG Pro Max",
+        title: "BritsEdu Pro Max",
         price: "4 Juta",
         features: [
             { text: "36 kali sesi belajar", included: true },
@@ -64,10 +64,10 @@ const cardPrivat = [
         badgeColor: "var(--bs-primary)",
         style: "border-color: var(--bs-primary)",
         borderClass: "border-2",
-        link : "/daftar?paket=privat&program=gg-promax"
+        link : "/daftar?paket=privat&program=britsedu-promax"
     },
     {
-        title: "GG Plus",
+        title: "BritsEdu Plus",
         price: "3 Juta",
         features: [
             { text: "36 kali sesi belajar", included: true },
@@ -76,7 +76,7 @@ const cardPrivat = [
         ],
         extraClass: "offset-lg-4",
         borderClass: "border-0",
-        link : "/daftar?paket=privat&program=gg-plus"
+        link : "/daftar?paket=privat&program=britsedu-plus"
     }
 ];
 

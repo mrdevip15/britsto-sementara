@@ -453,7 +453,7 @@ input[type=text] {
 }
 .watermark-container::after {
     content : "";
-    background-image: url('https://i.ibb.co.com/jTFqHWz/5.png');
+    background-image: url('https://i.ibb.co/TxcMPp2m/images.jpg');
     background-repeat: no-repeat;
     background-position: center;
     background-size: 600px; /* Adjust size */

@@ -1687,17 +1687,17 @@ router.post('/jadwal/send-reminders', async (req, res) => {
                 const emailContent = generateScheduleReminderEmail(
                     schedule, 
                     studentInfo,
-                    "https://geniusgate.id",
+                    "https://britsedu.id",
                     schedule.type === 'individual' 
                         ? schedule.siswa.alamat 
-                        : 'Genius Gate'
+                        : 'BritsEdu'
                 );
 
             try {
                 console.log(`Attempting to send email to ${schedule.tentor.email}`);
                 const info = await transporter.sendMail({
                     from: {
-                        name: 'Genius Gate',
+                        name: 'BritsEdu',
                         address: process.env.EMAIL_USER
                     },
                     to: schedule.tentor.email,
@@ -1826,16 +1826,16 @@ router.post('/jadwal/send-individual-reminder/:id', async (req, res) => {
         const emailContent = generateScheduleReminderEmail(
             schedule, 
             studentInfo,
-            "https://geniusgate.id",
+            "https://britsedu.id",
             schedule.type === 'individual' 
                 ? schedule.siswa.alamat 
-                : 'Genius Gate'
+                : 'BritsEdu'
         );
 
         try {
             const info = await transporter.sendMail({
                 from: {
-                    name: 'Genius Gate',
+                    name: 'BritsEdu',
                     address: process.env.EMAIL_USER
                 },
                 to: schedule.tentor.email,

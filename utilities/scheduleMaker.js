@@ -36,7 +36,7 @@ const scheduleInput = {
     ],
     // "weekLong": [
     //     { subject: "Tidur", time: "01:00 - 07:00" },
-    //     { subject: "Makan siang di GG", time: "12:00 - 12:50" } // Entry spanning all days
+            //     { subject: "Makan siang di BritsEdu", time: "12:00 - 12:50" } // Entry spanning all days
     // ]
 };
 

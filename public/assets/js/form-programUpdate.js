@@ -8,10 +8,10 @@ function updateProgramOptions() {
     
     if (paket === "privat") {
         options = [
-            { value: "gg-lite", text: "GG Lite" },
-            { value: "gg-pro", text: "GG Pro" },
-            { value: "gg-plus", text: "GG Plus" },
-            { value: "gg-promax", text: "GG Pro Max"}
+                    { value: "britsedu-lite", text: "BritsEdu Lite" },
+        { value: "britsedu-pro", text: "BritsEdu Pro" },
+        { value: "britsedu-plus", text: "BritsEdu Plus" },
+        { value: "britsedu-promax", text: "BritsEdu Pro Max"}
         ];
     } else if (paket === "snbt") {
         options = [
