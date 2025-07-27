@@ -1,0 +1,167 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    # Warm-up phase: Start with light load
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 50
+      name: "Warm-up Phase"
+    # Ramp-up phase: Increase to moderate load
+    - duration: 120
+      arrivalRate: 50
+      rampTo: 200
+      name: "Ramp-up Phase"
+    # Peak load phase: Maximum concurrent users
+    - duration: 300
+      arrivalRate: 200
+      rampTo: 1000
+      name: "Peak Load Phase (1000 concurrent users)"
+    # Sustained load phase: Maintain high load
+    - duration: 600
+      arrivalRate: 1000
+      name: "Sustained Peak Load"
+    # Cool-down phase: Gradual decrease
+    - duration: 120
+      arrivalRate: 1000
+      rampTo: 100
+      name: "Cool-down Phase"
+
+  # Enable plugins for enhanced functionality
+  plugins:
+    fake-data: {}
+    metrics-by-endpoint: {}
+    
+  # Custom processor for dynamic data generation
+  processor: "./processor.js"
+  
+  # Global headers and settings
+  defaults:
+    headers:
+      'User-Agent': 'Artillery Stress Test'
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+      'Accept-Language': 'en-US,en;q=0.5'
+      'Accept-Encoding': 'gzip, deflate'
+      'Connection': 'keep-alive'
+
+# Test scenarios simulating different user behaviors
+scenarios:
+  # Scenario 1: User authentication and dashboard access (40% of traffic)
+  - name: "User Login and Dashboard Access"
+    weight: 40
+    flow:
+      - get:
+          url: "/"
+          capture:
+            - json: "$.csrf"
+              as: "csrfToken"
+      - think: 2
+      - get:
+          url: "/signin"
+      - think: 3
+      - post:
+          url: "/auth/signin"
+          beforeRequest: "generateUserCredentials"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - header: "set-cookie"
+              as: "sessionCookie"
+      - get:
+          url: "/user/dashboard"
+          headers:
+            Cookie: "{{ sessionCookie }}"
+
+  # Scenario 2: Tryout exam flow - complete user journey (35% of traffic)
+  - name: "Complete Tryout Exam Flow"
+    weight: 35
+    flow:
+      # Login first
+      - post:
+          url: "/auth/signin"
+          beforeRequest: "generateUserCredentials"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - header: "set-cookie"
+              as: "sessionCookie"
+      
+      # Access tryout page
+      - get:
+          url: "/user/to-premium/{{ token }}"
+          headers:
+            Cookie: "{{ sessionCookie }}"
+      
+      # Start exam
+      - get:
+          url: "/to/ujian/{{ token }}/{{ kodekategori }}"
+          headers:
+            Cookie: "{{ sessionCookie }}"
+          beforeRequest: "generateExamData"
+      
+      # Simulate answering questions (multiple answer submissions)
+      - loop:
+          - post:
+              url: "/user/save-answers"
+              headers:
+                Cookie: "{{ sessionCookie }}"
+                Content-Type: "application/json"
+              json:
+                kodekategori: "{{ kodekategori }}"
+                no: "{{ questionNumber }}"
+                answer: "{{ answer }}"
+              beforeRequest: "generateAnswerData"
+          - think: 5
+        count: 10
+      
+      # Complete exam
+      - get:
+          url: "/to/selesai/{{ token }}/{{ kodekategori }}"
+          headers:
+            Cookie: "{{ sessionCookie }}"
+
+  # Scenario 3: High-frequency answer saving (20% of traffic)
+  - name: "Intensive Answer Saving"
+    weight: 20
+    flow:
+      # Quick login
+      - post:
+          url: "/auth/signin"
+          beforeRequest: "generateUserCredentials"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - header: "set-cookie"
+              as: "sessionCookie"
+      
+      # Rapid answer submissions (simulating active exam taking)
+      - loop:
+          - post:
+              url: "/user/save-answers"
+              headers:
+                Cookie: "{{ sessionCookie }}"
+                Content-Type: "application/json"
+              json:
+                kodekategori: "{{ kodekategori }}"
+                no: "{{ questionNumber }}"
+                answer: "{{ answer }}"
+              beforeRequest: "generateAnswerData"
+          - think: 1
+        count: 20
+
+  # Scenario 4: Static resource loading and API calls (5% of traffic)
+  - name: "Static Resources and API Calls"
+    weight: 5
+    flow:
+      - get:
+          url: "/public/assets/css/styles.min.css"
+      - get:
+          url: "/public/assets/js/script.min.js"
+      - get:
+          url: "/public/dashboard/css/styles.css"
+      - get:
+          url: "/public/tryout/css/style.css"
+      - get:
+          url: "/public/tryout/js/script.js" 

@@ -1,0 +1,39 @@
+{
+  "name": "britsto-tryout-stress-test",
+  "version": "1.0.0",
+  "description": "Stress testing suite for Britsto tryout system with 1000 concurrent users",
+  "main": "processor.js",
+  "scripts": {
+    "test": "artillery run artillery-config.yml",
+    "test-quick": "artillery quick --count 100 --num 10 http://localhost:3000",
+    "test-report": "artillery run artillery-config.yml --output results/stress-test-report.json",
+    "generate-html-report": "artillery report results/stress-test-report.json --output results/stress-test-report.html",
+    "test-with-monitoring": "artillery run artillery-config.yml --output results/stress-test-report.json && npm run generate-html-report",
+    "test-scenarios": "artillery run scenarios/",
+    "monitor-system": "node monitoring/system-monitor.js",
+    "analyze-results": "node analysis/result-analyzer.js"
+  },
+  "keywords": [
+    "stress-testing",
+    "load-testing",
+    "artillery",
+    "performance",
+    "tryout",
+    "concurrent-users"
+  ],
+  "author": "Britsto Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "artillery": "^2.0.15",
+    "artillery-plugin-metrics-by-endpoint": "^1.7.0",
+    "artillery-plugin-ensure": "^1.13.0"
+  },
+  "devDependencies": {
+    "systeminformation": "^5.21.20",
+    "fs-extra": "^11.1.1",
+    "csv-writer": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+} 
