@@ -18,7 +18,15 @@ PROD_DB_PASSWORD=;pK@dwg}PMDN
 PROD_DB_NAME=tyogfxma_ggweb
 PROD_DB_HOST=127.0.0.1
 PROD_DB_PORT=5432
-EMAIL_USER=	jadwal@britseducenter.com
-EMAIL_PASS=Topsecret123?
-IMAP_HOST=mail.britseducenter.com
-IMAP_PORT=465  # or your IMAP port
+# Old email configuration - no longer needed as we now use Mailtrap
+# EMAIL_USER=	jadwal@britseducenter.com
+# EMAIL_PASS=Topsecret123?
+# IMAP_HOST=mail.britseducenter.com
+# IMAP_PORT=465  # or your IMAP port
+
+# Mailtrap configuration is now hardcoded in services/emailService.js
+# If you need to make it configurable, you can add these environment variables:
+# MAILTRAP_HOST=live.smtp.mailtrap.io
+# MAILTRAP_PORT=587
+# MAILTRAP_USER=api
+# MAILTRAP_PASS=b7f383cf8efbfdbb2d40f7ce81ff2974

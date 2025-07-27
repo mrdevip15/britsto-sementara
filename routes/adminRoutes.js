@@ -56,7 +56,7 @@ const colorManager = require('../utilities/colorManager');
 const Token = require('../models/Token');
 const { getTentorSessions } = require('../controllers/adminController');
 
-const nodemailer = require('nodemailer');
+const emailService = require('../services/emailService');
 const { generateScheduleReminderEmail } = require('../utilities/emailTemplates');
 
 const router = express.Router();
@@ -1638,42 +1638,7 @@ router.post('/jadwal/send-reminders', async (req, res) => {
             ]
         });
 
-        console.log('Creating transporter with config:', {
-            host: process.env.IMAP_HOST,
-            port: process.env.IMAP_PORT,
-            secure: true,
-            auth: {
-                user: process.env.EMAIL_USER
-                // password omitted for security
-            }
-        });
-
-        // Create email transporter using IMAP configuration
-        const transporter = nodemailer.createTransport({
-            host: process.env.IMAP_HOST,
-            port: process.env.IMAP_PORT,
-            secure: true,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            },
-            tls: {
-                rejectUnauthorized: false
-            },
-            debug: true // Enable debug logging
-        });
-
-        // Verify transporter configuration
-        try {
-            await transporter.verify();
-            console.log('Transporter verification successful');
-        } catch (verifyError) {
-            console.error('Transporter verification failed:', verifyError);
-            return res.status(500).json({
-                success: false,
-                message: 'Email configuration error: ' + verifyError.message
-            });
-        }
+        console.log('Using Mailtrap email service for sending reminders');
 
         const successfulEmails = [];
         const failedEmails = [];
@@ -1695,21 +1660,11 @@ router.post('/jadwal/send-reminders', async (req, res) => {
 
             try {
                 console.log(`Attempting to send email to ${schedule.tentor.email}`);
-                const info = await transporter.sendMail({
-                    from: {
-                        name: 'BritsEdu',
-                        address: process.env.EMAIL_USER
-                    },
-                    to: schedule.tentor.email,
-                    subject: `Pengingat Jadwal Mengajar Besok - ${studentInfo}`,
-                    html: emailContent
-                });
-
-                console.log('Email sent successfully:', {
-                    messageId: info.messageId,
-                    response: info.response,
-                    recipient: schedule.tentor.email
-                });
+                const result = await emailService.sendScheduleReminderEmail(
+                    schedule.tentor.email,
+                    `Pengingat Jadwal Mengajar Besok - ${studentInfo}`,
+                    emailContent
+                );
                 
                 // Mark the schedule as email sent
                 await schedule.update({ emailSent: true });
@@ -1717,7 +1672,7 @@ router.post('/jadwal/send-reminders', async (req, res) => {
                 successfulEmails.push({
                     email: schedule.tentor.email,
                     tentor: schedule.tentor.nama,
-                    messageId: info.messageId
+                    messageId: result.messageId
                 });
             } catch (emailError) {
                 console.error('Failed to send email:', {
@@ -1805,20 +1760,6 @@ router.post('/jadwal/send-individual-reminder/:id', async (req, res) => {
             });
         }
 
-        // Create email transporter
-        const transporter = nodemailer.createTransport({
-            host: process.env.IMAP_HOST,
-            port: process.env.IMAP_PORT,
-            secure: true,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
-
         const studentInfo = schedule.type === 'class' ? 
             schedule.class.name : 
             schedule.siswa.nama;
@@ -1833,15 +1774,11 @@ router.post('/jadwal/send-individual-reminder/:id', async (req, res) => {
         );
 
         try {
-            const info = await transporter.sendMail({
-                from: {
-                    name: 'BritsEdu',
-                    address: process.env.EMAIL_USER
-                },
-                to: schedule.tentor.email,
-                subject: `Pengingat Jadwal Mengajar - ${studentInfo}`,
-                html: emailContent
-            });
+            const result = await emailService.sendScheduleReminderEmail(
+                schedule.tentor.email,
+                `Pengingat Jadwal Mengajar - ${studentInfo}`,
+                emailContent
+            );
 
             // Mark the schedule as email sent
             await schedule.update({ emailSent: true });
@@ -1850,7 +1787,7 @@ router.post('/jadwal/send-individual-reminder/:id', async (req, res) => {
                 success: true, 
                 message: `Email berhasil dikirim ke ${schedule.tentor.nama}`,
                 details: {
-                    messageId: info.messageId,
+                    messageId: result.messageId,
                     recipient: schedule.tentor.email
                 }
             });

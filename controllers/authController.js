@@ -2,7 +2,7 @@
 const bcrypt = require('bcrypt');
 const userService = require('../services/userService');
 const User = require('../models/User');
-const nodemailer = require('nodemailer');
+const emailService = require('../services/emailService');
 const { generatePasswordResetEmail } = require('../utilities/emailTemplates');
 
 // Sign-up function
@@ -159,53 +159,17 @@ async function forgotPassword(req, res) {
         
         // Send email with the new password
         try {
-            const transporter = nodemailer.createTransport({
-                host: process.env.IMAP_HOST,
-                port: process.env.IMAP_PORT,
-                secure: true,
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                },
-                tls: {
-                    rejectUnauthorized: false
-                }
-            });
-            
-            // Verify transporter configuration
-            try {
-                await transporter.verify();
-                console.log('Email transporter verification successful');
-            } catch (verifyError) {
-                console.error('Email configuration error:', verifyError.message);
-                return res.json({ 
-                    success: false, 
-                    message: 'Email service is currently unavailable. Please try again later.' 
-                });
-            }
-            
             // Get hostname for email links
             const hostname = req.get('host').includes('localhost') ? 
                 `http://${req.get('host')}` : 
                 `https://${req.get('host')}`;
             
-            const emailContent = generatePasswordResetEmail(
-                user.nama || 'User', 
-                newPassword, 
+            await emailService.sendPasswordResetEmail(
+                user.email,
+                user.nama || 'User',
+                newPassword,
                 hostname
             );
-            
-            const mailOptions = {
-                from: {
-                    name: 'BritsEdu Support',
-                    address: process.env.EMAIL_USER
-                },
-                to: user.email,
-                subject: '🔐 Password Reset - BritsEdu',
-                html: emailContent
-            };
-            
-            await transporter.sendMail(mailOptions);
             
             return res.json({ 
                 success: true, 
