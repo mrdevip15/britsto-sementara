@@ -155,18 +155,8 @@
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
     <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
     <script>
-        let errorCount = 0; // Initialize error counter
-        const maxErrors = 15; // Set the maximum number of allowed errors
-
         document.getElementById('tokenForm').addEventListener('submit', async function(event) {
             event.preventDefault(); // Prevent the default form submission
-
-            // Check if the error count has exceeded the limit
-            if (errorCount >= maxErrors) {
-                alert('Melebihi batas percobaan, akun akan logout...');
-                setTimeout(() => window.location.href = "/logout", 3000);
-                return; // Stop further submissions
-            }
 
             const tokenInput = document.getElementById('token').value;
             const previousToken = document.getElementById('token').getAttribute('data-previous-value') || 'kosong';
@@ -174,7 +164,6 @@
             // Check if token has actually changed
             if (tokenInput === previousToken) {
                 showAlert('Token tidak boleh sama', false, "#tokenCard")
-                errorCount+=1
                 return;
             }
 
@@ -184,11 +173,9 @@
             // Basic validation
             if (!tokenInput || tokenInput.trim() === '') {
                 showAlert('Token tidak boleh kosong', false, "#tokenCard")
-                errorCount+=1
                 return;
             }
             if (tokenInput.trim().length < 10) {
-                errorCount+=1
                 showAlert('Token minimal 10 huruf', false, "#tokenCard")
                 return;
             }
@@ -203,8 +190,7 @@
                 const data = await response.json();
                 showAlert(data.message, response.ok, "#tokenCard");
             } catch (error) {
-                showAlert('Terlalu banyak percobaan, coba lagi 24 jam kemudian', false, "#tokenCard");
-                errorCount++; // Increment error count on catch
+                showAlert('Terjadi kesalahan pada server', false, "#tokenCard");
             }
         });
 

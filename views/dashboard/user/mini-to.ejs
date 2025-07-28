@@ -69,21 +69,8 @@
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
         <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
         <script>
-            let errorCount = 0; // Initialize error counter
-            const maxErrors = 15; // Set the maximum number of allowed errors
-        
             document.getElementById('tokenForm').addEventListener('submit', async function(event) {
                 event.preventDefault(); // Prevent the default form submission
-        
-                // Check if the error count has exceeded the limit
-                if (errorCount >= maxErrors) {
-                    setTimeout(() => {
-                        window.location.href = "/logout"
-                    }, 3000);
-                    alert('Melebihi batas percobaan, akun akan logout...');
-                    
-                    return; // Stop further submissions
-                }
         
                 const tokenInput = document.getElementById('token').value;
         
@@ -127,7 +114,6 @@
                         alertMessage.classList.add('alert-success'); // Bootstrap success alert
                     } else {
                         alertMessage.classList.add('alert-danger'); // Bootstrap danger alert
-                        errorCount++; // Increment error count on failure
                     }
         
                 } catch (error) {
@@ -138,7 +124,7 @@
         
                     const alertContent = document.createElement('div');
                     alertContent.id = 'alertContent';
-                    alertContent.textContent = 'Terlalu banyak percobaan, coba lagi 24 jam kemudian';
+                    alertContent.textContent = 'Terjadi kesalahan pada server';
         
                     const closeButton = document.createElement('button');
                     closeButton.className = 'btn-close';
@@ -149,8 +135,6 @@
                     alertMessage.appendChild(alertContent);
                     alertMessage.appendChild(closeButton);
                     document.querySelector('#tokenCard').appendChild(alertMessage);
-        
-                    errorCount++; // Increment error count on catch
                 }
             });
         </script>

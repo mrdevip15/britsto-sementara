@@ -1,0 +1,9 @@
+=== System Resources === 
+CPU Info: 
+Name=12th Gen Intel(R) Core(TM) i5-12400F
+ 
+Memory Info: 
+TotalPhysicalMemory=68543082496
+ 
+Network Connections: 
+6
