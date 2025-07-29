@@ -36,8 +36,11 @@
         const examId = "<%= examId %>";
         const durasi = "<%= durasi %>";
         const token = "<%= user.tokens[0] %>";
-        let questions = JSON.parse(`<%- JSON.stringify(questions).replace(/\\/g, '\\\\').replace(/'/g, "\\'") %>`);
-        const ANSWER = JSON.parse(`<%- JSON.stringify(answer).replace(/\\/g, '\\\\').replace(/'/g, "\\'") %>`);
+        // Use base64 encoding to safely pass JSON data with LaTeX content
+        const questionsData = "<%= Buffer.from(JSON.stringify(questions)).toString('base64') %>";
+        const answerData = "<%= Buffer.from(JSON.stringify(answer)).toString('base64') %>";
+        let questions = JSON.parse(atob(questionsData));
+        const ANSWER = JSON.parse(atob(answerData));
         const examStartDate = "<%= mapel.tanggalMulai %>";
         const examEndDate = "<%= mapel.tanggalBerakhir %>";
 

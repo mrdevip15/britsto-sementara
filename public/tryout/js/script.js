@@ -371,7 +371,13 @@ function updateSoal(num) {
 
     // Set the question content
     let questionContainer = document.querySelector(`#question-container`);
-    questionContainer.innerHTML = question.content;
+    try {
+        questionContainer.innerHTML = question.content;
+    } catch (error) {
+        console.log("Error setting question content:", error.message);
+        // Fallback to text content if innerHTML fails
+        questionContainer.textContent = question.content || "Error loading question content";
+    }
  
     // Update options and highlight the current question
     updateOpsi(num);
@@ -379,7 +385,8 @@ function updateSoal(num) {
     try {
         MathJax.typeset(); 
     } catch (error) {
-        console.log("Ada error di mathjax nih")
+        console.log("MathJax rendering error:", error.message);
+        // Continue execution even if MathJax fails
     }
  
     // Update the hint after setting the question content
