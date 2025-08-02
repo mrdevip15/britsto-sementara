@@ -1182,8 +1182,10 @@ async function resetUserExams(req, res) {
 async function getDetailedNilai(req, res) {
     try {
         const { kodekategori } = req.params;
-        
-        // Get the mapel details
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const offset = (page - 1) * limit;
+
         const mapel = await Mapel.findOne({
             where: { kodekategori },
             include: [{
@@ -1194,36 +1196,31 @@ async function getDetailedNilai(req, res) {
             }]
         });
 
-        // Sort the soals after fetching
         if (mapel && mapel.soals) {
             mapel.soals.sort((a, b) => a.no - b.no);
         }
 
-        // Prepare soal data with correct answers
         const soalData = mapel.soals.map(soal => ({
             no: soal.no,
             answer: [soal.answer],
             tipeSoal: soal.tipeSoal
         }));
 
-        // Get all users who have answered this test
-        const users = await User.findAll({
+        const { count, rows: users } = await User.findAndCountAll({
             where: {
                 answers: {
                     [Op.contains]: [{ kodekategori }]
                 }
-            }
+            },
+            limit,
+            offset
         });
 
-        // Prepare user data with answers
         const userData = [];
         for (const user of users) {
             const userAnswerSet = user.answers.find(ans => ans.kodekategori === kodekategori);
             if (userAnswerSet) {
-                // Create an array of length equal to number of questions, filled with 'F'
                 const normalizedAnswers = new Array(mapel.soals.length).fill('F');
-                
-                // Fill in actual answers where they exist
                 if (userAnswerSet.answer && Array.isArray(userAnswerSet.answer)) {
                     userAnswerSet.answer.forEach((ans, idx) => {
                         if (idx < normalizedAnswers.length) {
@@ -1250,7 +1247,9 @@ async function getDetailedNilai(req, res) {
             user: adminData,
             mapel,
             userData,
-            soalData
+            soalData,
+            currentPage: page,
+            totalPages: Math.ceil(count / limit)
         });
 
     } catch (error) {
