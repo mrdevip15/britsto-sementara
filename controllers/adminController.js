@@ -1182,6 +1182,9 @@ async function resetUserExams(req, res) {
 async function getDetailedNilai(req, res) {
     try {
         const { kodekategori } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50; // Default 50 users per page
+        const offset = (page - 1) * limit;
         
         // Get the mapel details
         const mapel = await Mapel.findOne({
@@ -1206,13 +1209,25 @@ async function getDetailedNilai(req, res) {
             tipeSoal: soal.tipeSoal
         }));
 
-        // Get all users who have answered this test
-        const users = await User.findAll({
+        // Get total count of users who have answered this test
+        const totalUsers = await User.count({
             where: {
                 answers: {
                     [Op.contains]: [{ kodekategori }]
                 }
             }
+        });
+
+        // Get paginated users who have answered this test
+        const users = await User.findAll({
+            where: {
+                answers: {
+                    [Op.contains]: [{ kodekategori }]
+                }
+            },
+            limit: limit,
+            offset: offset,
+            order: [['nama', 'ASC']] // Order by name for consistent pagination
         });
 
         // Prepare user data with answers
@@ -1246,11 +1261,26 @@ async function getDetailedNilai(req, res) {
             }
         }
 
+        // Calculate pagination info
+        const totalPages = Math.ceil(totalUsers / limit);
+        const hasNextPage = page < totalPages;
+        const hasPrevPage = page > 1;
+
         res.render('dashboard/admin/fullDetailedNilai', {
             user: adminData,
             mapel,
             userData,
-            soalData
+            soalData,
+            pagination: {
+                currentPage: page,
+                totalPages: totalPages,
+                totalUsers: totalUsers,
+                limit: limit,
+                hasNextPage: hasNextPage,
+                hasPrevPage: hasPrevPage,
+                startIndex: offset + 1,
+                endIndex: Math.min(offset + limit, totalUsers)
+            }
         });
 
     } catch (error) {
