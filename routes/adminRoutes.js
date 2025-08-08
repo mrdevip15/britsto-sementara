@@ -32,6 +32,7 @@ const {
     importSoal,
     resetUserExams,
     getDetailedNilai,
+    exportDetailedNilai,
     resetUserSession,
     acceptMember,
     cancelMember,
@@ -178,6 +179,9 @@ router.get('/manajemen-soal/nilai-by-owner/:owner', getNilaiByOwner);
 
 // Add this route with the other protected routes
 router.get('/manajemen-soal/nilai-detail/:kodekategori', getDetailedNilai);
+
+// Add this route with the other protected routes
+router.get('/manajemen-soal/export-nilai-detail/:kodekategori', exportDetailedNilai);
 
 // Add this route with the other protected routes
 router.get('/manajemen-soal/preview/:kodekategori', async (req, res) => {

@@ -1271,6 +1271,7 @@ async function getDetailedNilai(req, res) {
             mapel,
             userData,
             soalData,
+            kodekategori,
             pagination: {
                 currentPage: page,
                 totalPages: totalPages,
@@ -1285,6 +1286,266 @@ async function getDetailedNilai(req, res) {
 
     } catch (error) {
         console.error('Error fetching detailed scores:', error);
+        res.status(500).send('Internal Server Error');
+    }
+}
+
+async function exportDetailedNilai(req, res) {
+    try {
+        const { kodekategori } = req.params;
+        
+        // Get the mapel details
+        const mapel = await Mapel.findOne({
+            where: { kodekategori },
+            include: [{
+                model: ContentSoal,
+                as: 'soals',
+                separate: true,
+                order: [['no', 'ASC']]
+            }]
+        });
+
+        // Sort the soals after fetching
+        if (mapel && mapel.soals) {
+            mapel.soals.sort((a, b) => a.no - b.no);
+        }
+
+        // Prepare soal data with correct answers
+        const soalData = mapel.soals.map(soal => ({
+            no: soal.no,
+            answer: [soal.answer],
+            tipeSoal: soal.tipeSoal
+        }));
+
+        // Get all users who have answered this test (no pagination for export)
+        const users = await User.findAll({
+            where: {
+                answers: {
+                    [Op.contains]: [{ kodekategori }]
+                }
+            },
+            order: [['nama', 'ASC']]
+        });
+
+        // Prepare user data with answers
+        const userData = [];
+        for (const user of users) {
+            const userAnswerSet = user.answers.find(ans => ans.kodekategori === kodekategori);
+            if (userAnswerSet) {
+                // Create an array of length equal to number of questions, filled with 'F'
+                const normalizedAnswers = new Array(mapel.soals.length).fill('F');
+                
+                // Fill in actual answers where they exist
+                if (userAnswerSet.answer && Array.isArray(userAnswerSet.answer)) {
+                    userAnswerSet.answer.forEach((ans, idx) => {
+                        if (idx < normalizedAnswers.length) {
+                            normalizedAnswers[idx] = ans || 'F';
+                        }
+                    });
+                }
+
+                // Calculate scores for each question
+                const questionScores = [];
+                let totalBenar = 0;
+                let totalSalah = 0;
+
+                for (let idx = 0; idx < mapel.soals.length; idx++) {
+                    const userAns = normalizedAnswers[idx] || 'F';
+                    const correctAnswer = soalData[idx]?.answer[0] || '';
+                    let isCorrect = false;
+                    let score = 'S';
+
+                    if (soalData[idx].tipeSoal === 'pgkompleks1' || soalData[idx].tipeSoal === 'pgkompleks2') {
+                        // Parse answers for complex questions
+                        const correctParts = correctAnswer.match(/[A-E][1-2]/g) || [];
+                        const userParts = userAns.match(/[A-E][1-2]/g) || [];
+                        
+                        const matchingCount = correctParts.filter(part => userParts.includes(part)).length;
+                        
+                        if (matchingCount === correctParts.length) {
+                            isCorrect = true;
+                            score = 'B';
+                            totalBenar++;
+                        } else if (matchingCount > 0) {
+                            // Partial credit
+                            score = 'P';
+                            totalBenar += matchingCount / correctParts.length;
+                        } else {
+                            totalSalah++;
+                        }
+                    } else {
+                        // For regular questions
+                        if (userAns.toUpperCase() === correctAnswer.toString().toUpperCase()) {
+                            isCorrect = true;
+                            score = 'B';
+                            totalBenar++;
+                        } else {
+                            totalSalah++;
+                        }
+                    }
+
+                    questionScores.push({
+                        questionNo: idx + 1,
+                        userAnswer: userAns,
+                        correctAnswer: correctAnswer,
+                        isCorrect: isCorrect,
+                        score: score
+                    });
+                }
+
+                userData.push({
+                    nama: user.nama,
+                    email: user.email,
+                    noHp: user.noHp || '-',
+                    jawaban: normalizedAnswers,
+                    questionScores: questionScores,
+                    totalBenar: Math.floor(totalBenar),
+                    totalSalah: Math.ceil(mapel.soals.length - totalBenar),
+                    nilai: Math.round((totalBenar / mapel.soals.length) * 1000)
+                });
+            }
+        }
+
+        // Set response headers for Excel download
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="Detail_Nilai_${mapel.mapel}_${new Date().toISOString().split('T')[0]}.xlsx"`);
+
+        // Create Excel workbook
+        const XLSX = require('xlsx');
+        const wb = XLSX.utils.book_new();
+
+        // Create detailed worksheet
+        const detailedData = [];
+        
+        // Add header info
+        detailedData.push(['DETAIL NILAI SISWA - JAWABAN BENAR/SALAH PER NOMOR']);
+        detailedData.push(['Mata Pelajaran:', mapel.mapel]);
+        detailedData.push(['Jumlah Soal:', mapel.soals.length]);
+        detailedData.push(['Durasi:', mapel.durasi + ' menit']);
+        detailedData.push(['Tanggal Export:', new Date().toLocaleDateString('id-ID')]);
+        detailedData.push(['Total Peserta:', userData.length]);
+        detailedData.push([]); // Empty row
+
+                                       // Create headers for detailed data
+                const headers = ['No', 'Nama', 'Email', 'No HP'];
+                for (let i = 1; i <= mapel.soals.length; i++) {
+                    headers.push(`${i}`);
+                }
+                headers.push('Total Benar', 'Total Salah', 'Nilai');
+
+               detailedData.push(headers);
+
+               // Add user data
+               userData.forEach((user, index) => {
+                   const row = [
+                       index + 1,
+                       user.nama,
+                       user.email,
+                       user.noHp
+                   ];
+
+                   // Add question status only
+                   user.questionScores.forEach(score => {
+                       row.push(score.score);
+                   });
+
+            // Add totals
+            row.push(user.totalBenar);
+            row.push(user.totalSalah);
+            row.push(user.nilai);
+
+            detailedData.push(row);
+        });
+
+        // Create summary worksheet
+        const summaryData = [];
+        
+        // Add header info
+        summaryData.push(['RINGKASAN NILAI SISWA']);
+        summaryData.push(['Mata Pelajaran:', mapel.mapel]);
+        summaryData.push(['Jumlah Soal:', mapel.soals.length]);
+        summaryData.push(['Durasi:', mapel.durasi + ' menit']);
+        summaryData.push(['Tanggal Export:', new Date().toLocaleDateString('id-ID')]);
+        summaryData.push(['Total Peserta:', userData.length]);
+        summaryData.push([]); // Empty row
+
+        // Summary headers
+        summaryData.push(['No', 'Nama', 'Email', 'No HP', 'Benar', 'Salah', 'Nilai', 'Persentase']);
+
+        // Add summary data
+        userData.forEach((user, index) => {
+            const persentase = Math.round((user.totalBenar / mapel.soals.length) * 100);
+            summaryData.push([
+                index + 1,
+                user.nama,
+                user.email,
+                user.noHp,
+                user.totalBenar,
+                user.totalSalah,
+                user.nilai,
+                persentase + '%'
+            ]);
+        });
+
+        // Add statistics
+        summaryData.push([]);
+        summaryData.push(['STATISTIK']);
+        summaryData.push(['Total Peserta:', userData.length]);
+        
+        // Calculate averages
+        let totalNilai = 0;
+        let totalBenar = 0;
+        userData.forEach(user => {
+            totalNilai += user.nilai;
+            totalBenar += user.totalBenar;
+        });
+        
+        summaryData.push(['Rata-rata Nilai:', Math.round(totalNilai / userData.length)]);
+        summaryData.push(['Rata-rata Benar:', Math.round(totalBenar / userData.length)]);
+        summaryData.push(['Rata-rata Persentase:', Math.round((totalBenar / userData.length / mapel.soals.length) * 100) + '%']);
+
+        // Create worksheets
+        const detailedWs = XLSX.utils.aoa_to_sheet(detailedData);
+        const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+
+                       // Set column widths for detailed sheet
+               const detailedColWidths = [
+                   { width: 5 },   // No
+                   { width: 20 },  // Nama
+                   { width: 25 },  // Email
+                   { width: 15 }   // No HP
+               ];
+
+               // Add widths for question columns (1 column per question)
+               for (let i = 0; i < mapel.soals.length; i++) {
+                   detailedColWidths.push({ width: 8 });  // Status
+               }
+
+               detailedColWidths.push({ width: 10 }, { width: 10 }, { width: 10 }); // Total B, S, Nilai
+        detailedWs['!cols'] = detailedColWidths;
+
+        // Set column widths for summary sheet
+        summaryWs['!cols'] = [
+            { width: 5 },   // No
+            { width: 20 },  // Nama
+            { width: 25 },  // Email
+            { width: 15 },  // No HP
+            { width: 8 },   // Benar
+            { width: 8 },   // Salah
+            { width: 10 },  // Nilai
+            { width: 12 }   // Persentase
+        ];
+
+        // Add worksheets to workbook
+        XLSX.utils.book_append_sheet(wb, detailedWs, 'Detail Jawaban');
+        XLSX.utils.book_append_sheet(wb, summaryWs, 'Ringkasan');
+
+        // Write to response
+        const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        res.send(buffer);
+
+    } catch (error) {
+        console.error('Error exporting detailed scores:', error);
         res.status(500).send('Internal Server Error');
     }
 }
@@ -1471,5 +1732,6 @@ module.exports = {
     pesertaUjian,
     exportUsersCSV,
     exportUsersBasicCSV,
-    importUsersCSV
+    importUsersCSV,
+    exportDetailedNilai
 };
