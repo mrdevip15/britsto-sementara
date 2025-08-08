@@ -61,6 +61,11 @@ const { generateScheduleReminderEmail } = require('../utilities/emailTemplates')
 
 const router = express.Router();
 
+// Lightweight maintenance toggle endpoints (admin-only)
+const fs = require('fs');
+const path = require('path');
+const { MAINTENANCE_LOCK_FILE } = require('../middleware/maintenanceMode');
+
 // Apply navAdmin middleware to all admin routes
 router.use(navAdmin);
 
@@ -84,6 +89,36 @@ router.post('/login', adminLogin); // Use the new adminLogin method
 
 // Protected routes
 router.use(adminAuth); // Apply admin authentication to all routes below
+
+// Toggle maintenance (create/delete lock file)
+router.post('/maintenance/enable', (req, res) => {
+    try {
+        // Ensure temp directory exists
+        const tempDir = path.dirname(MAINTENANCE_LOCK_FILE);
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+        }
+        fs.writeFileSync(MAINTENANCE_LOCK_FILE, new Date().toISOString());
+        return req.headers['content-type'] === 'application/json'
+            ? res.json({ success: true, enabled: true })
+            : res.redirect('/admin/dashboard');
+    } catch (err) {
+        console.error('Enable maintenance failed:', err);
+        return res.status(500).send('Failed to enable maintenance');
+    }
+});
+
+router.post('/maintenance/disable', (req, res) => {
+    try {
+        if (fs.existsSync(MAINTENANCE_LOCK_FILE)) fs.unlinkSync(MAINTENANCE_LOCK_FILE);
+        return req.headers['content-type'] === 'application/json'
+            ? res.json({ success: true, enabled: false })
+            : res.redirect('/admin/dashboard');
+    } catch (err) {
+        console.error('Disable maintenance failed:', err);
+        return res.status(500).send('Failed to disable maintenance');
+    }
+});
 
 // Dashboard and User Management
 router.get('/dashboard', dashboard);

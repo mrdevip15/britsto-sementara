@@ -13,6 +13,7 @@ const toRoutes = require('./routes/toRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const cookieParser = require('cookie-parser');
 const checkActiveSession = require('./middleware/sessionMiddleware');
+const maintenanceMode = require('./middleware/maintenanceMode');
 const pgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
 const Session = require('./models/Session'); // Adjust the path as necessary
@@ -35,6 +36,10 @@ app.use(express.static('public'));
 
 // Custom middleware
 app.use(setHostname);
+// Parse cookies before maintenance so admin bypass works
+app.use(cookieParser());
+// Maintenance mode (before heavy middlewares and routes, after static + cookies)
+app.use(maintenanceMode);
 
 // Parsing middleware
 app.use(express.json());
@@ -72,8 +77,7 @@ app.use(passport.session());
 // Set up Passport configuration
 require('./config/passport')(passport);
 
-// Add this before your routes
-app.use(cookieParser());
+// Cookies already parsed above
 
 // Add after passport middleware and before routes
 app.use(checkActiveSession);
