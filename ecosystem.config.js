@@ -15,17 +15,23 @@ module.exports = {
         '*.svg', // Ignore all SVG images
       ],
       env: {
-        NODE_ENV: 'production', // default env
+        NODE_ENV: 'development', // default env
         PORT: 3972,
+        DB_HOST: '127.0.0.1',
+        DB_PORT: 5433,
+        DB_USERNAME: 'postgres',
+        DB_PASSWORD: 'topsecret',
+        DB_NAME: 'geniusgate_development',
+        REDIS_URL: 'redis://127.0.0.1:6379',
       },
       env_production: {
         NODE_ENV: 'production',
         PORT: 3972,
         PROD_DB_HOST: '127.0.0.1',
-        PROD_DB_PORT: 5433,
-        PROD_DB_USERNAME: 'postgres',
-        PROD_DB_PASSWORD: 'topsecret',
-        PROD_DB_NAME: 'geniusgate_development',
+        PROD_DB_PORT: 5432,
+        PROD_DB_USERNAME: 'bqlwitzo_yyt',
+        PROD_DB_PASSWORD: 'Topsecret123?',
+        PROD_DB_NAME: 'bqlwitzo_britsto',
         REDIS_URL: 'redis://127.0.0.1:6379',
       },
     },
