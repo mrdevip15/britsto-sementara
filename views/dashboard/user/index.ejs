@@ -302,34 +302,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
     <script src="<%= hostname %>dashboard/js/scripts.js"></script>
-    <script>
-        // Initialize Feather icons and functionality after page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize icons
-            feather.replace();
-            
-            // Initialize gtag conversion after gtag is loaded
-            if (typeof gtag !== 'undefined') {
-                gtag('event', 'conversion', {'send_to': 'AW-16766807882/A9ZJCPmRxPIZEMrehLs-'});
-            }
-            
-            // Ensure sidebar toggle works
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    document.body.classList.toggle('sidenav-toggled');
-                    localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sidenav-toggled'));
-                });
-            }
-
-            // Debug: Check if Bootstrap is loaded
-            if (typeof bootstrap === 'undefined') {
-                console.error('Bootstrap is not loaded!');
-            } else {
-                console.log('Bootstrap loaded successfully');
-            }
-        });
-    </script>
+ 
 </body>
 </html>

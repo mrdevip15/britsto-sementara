@@ -22,5 +22,5 @@ EMAIL_USER=	jadwal@britseducenter.com
 EMAIL_PASS=Topsecret123?
 IMAP_HOST=mail.britseducenter.com
 IMAP_PORT=465  # or your IMAP port
-MAINTENANCE_MODE=false
+MAINTENANCE_MODE=true
 MAINTENANCE_MESSAGE=Website sedang dalam perawatan. Silakan kembali beberapa saat lagi.
