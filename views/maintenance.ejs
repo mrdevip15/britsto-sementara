@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Sedang Perawatan • BritsEdu</title>
+    <%- include('./partials/head') %>
+    <link href="/dashboard/css/styles.css" rel="stylesheet" />
+    <link rel="icon" type="image/x-icon" href="/assets/img/5.png" />
+    <style>
+      :root { --glass-bg: rgba(255,255,255,0.08); --glass-brd: rgba(255,255,255,0.18); }
+      body, html { height: 100%; }
+      .gradient-bg {
+        position: relative;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #6a11cb, #2575fc, #20e3b2, #ff758c);
+        background-size: 400% 400%;
+        animation: gradientShift 18s ease infinite;
+        overflow: hidden;
+      }
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      .blob { position: absolute; filter: blur(40px); opacity: 0.35; border-radius: 50%; }
+      .blob.b1 { width: 360px; height: 360px; background: #ffffff; top: -80px; left: -80px; animation: float1 12s ease-in-out infinite; }
+      .blob.b2 { width: 260px; height: 260px; background: #ffd166; bottom: -60px; right: 10%; animation: float2 10s ease-in-out infinite; }
+      .blob.b3 { width: 300px; height: 300px; background: #06d6a0; top: 20%; right: -80px; animation: float3 14s ease-in-out infinite; }
+      @keyframes float1 { 0%,100%{ transform: translateY(0) translateX(0);} 50%{ transform: translateY(25px) translateX(15px);} }
+      @keyframes float2 { 0%,100%{ transform: translateY(0) translateX(0);} 50%{ transform: translateY(-20px) translateX(-10px);} }
+      @keyframes float3 { 0%,100%{ transform: translateY(0) translateX(0);} 50%{ transform: translateY(18px) translateX(-12px);} }
+
+      .glass-card {
+        position: relative;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-brd);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px;
+        padding: 32px 28px;
+        color: #fff;
+      }
+      .brand-logo { width: 56px; height: 56px; border-radius: 14px; background: rgba(255,255,255,0.18); display: inline-flex; align-items: center; justify-content: center; }
+      .gear { font-size: 28px; animation: slowSpin 8s linear infinite; }
+      @keyframes slowSpin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }
+      .headline { font-weight: 800; letter-spacing: 0.2px; }
+      .muted { color: rgba(255,255,255,0.8); }
+      .progress-wrap { height: 6px; background: rgba(255,255,255,0.18); border-radius: 999px; overflow: hidden; }
+      .progress-bar { height: 100%; width: 40%; background: linear-gradient(90deg, #fff, rgba(255,255,255,0.6)); animation: indet 1.2s ease-in-out infinite; border-radius: 999px; }
+      @keyframes indet {
+        0% { transform: translateX(-100%); }
+        50% { transform: translateX(15%); }
+        100% { transform: translateX(100%); }
+      }
+      .chip { display:inline-flex; gap:8px; align-items:center; border-radius:999px; padding:8px 12px; background: rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); color:#fff; font-weight:600; }
+      .footer-note { font-size: 0.9rem; color: rgba(255,255,255,0.85); }
+      a.link-white { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
+    </style>
+  </head>
+  <body>
+    <div class="gradient-bg d-flex align-items-center justify-content-center p-3">
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="blob b3"></div>
+
+      <div class="container" style="max-width: 760px;">
+        <div class="glass-card text-center">
+          <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
+            <div class="brand-logo"><i class="fas fa-gear gear"></i></div>
+            <div class="text-start">
+              <div class="chip"><i class="fas fa-circle-notch fa-spin"></i> Maintenance</div>
+            </div>
+          </div>
+
+          <h1 class="headline display-6 mb-2">Sedang Perawatan</h1>
+          <p class="muted mb-4"><%= message %></p>
+
+          <div class="progress-wrap mb-4">
+            <div class="progress-bar"></div>
+          </div>
+
+          <p class="footer-note mb-0">
+            Terima kasih atas pengertiannya. Ikuti update kami di
+            <a class="link-white" href="https://instagram.com/britseducenter" target="_blank" rel="noopener">Instagram</a>
+            atau kembali lagi nanti.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="<%= hostname %>dashboard/js/scripts.js"></script>
+  </body>
+</html>

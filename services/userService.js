@@ -283,13 +283,9 @@ async function getExamCompleted(userId, tokenValue) {
 
 async function calculateScore(userId, kodekategori) {
   try {
-
-
     const user = await User.findByPk(userId);
-   
 
     if (!user || !user.answers) {
-    
       return {
         success: false,
         message: 'No answers found'
@@ -299,9 +295,7 @@ async function calculateScore(userId, kodekategori) {
     // Find user's answers for this specific kodekategori
     const userAnswerSet = user.answers.find(ans => ans.kodekategori === kodekategori);
 
-
     if (!userAnswerSet) {
-   
       return {
         success: false,
         message: 'No answers found for this test'
@@ -316,117 +310,71 @@ async function calculateScore(userId, kodekategori) {
         where: { kodekategori },
         attributes: []
       }]
-      
     });
 
-
-
     if (!contentSoals.length) {
-
       return {
         success: false,
         message: 'No questions found for this test'
       };
     }
 
-    let totalPoints = 0;
-    const totalQuestions = contentSoals.length;
-    const pointsPerQuestion = 1000 / totalQuestions; // Each question's base value
-  
-
-    // Log the full list of user answers and key answers for comparison
-    const userAnswers = userAnswerSet.answer;  // User answers
-    const keyAnswers = contentSoals.sort((a, b) => a.no - b.no).map(soal => soal.answer); // Correct answers
-
-    contentSoals.forEach((soal, index) => {
-      const userAnswer = userAnswers[index] ? userAnswers[index].trim().toLowerCase() : 'f';  // Trim and normalize answer, set to null if undefined
-
-      // Log the key (correct) answer for this question
-      const correctAnswer = keyAnswers[index].trim().toLowerCase();
-
-      if (!userAnswer) return; // Skip if no answer
-
-      let isCorrect = false;
-
-      // Check tipeSoal for each question
-      if (soal.tipeSoal === 'pgkompleks1' || soal.tipeSoal === 'pgkompleks2') {
-
-
-        // Parse correct answer pattern
-        const correctAnswerParts = soal.answer.toLowerCase().match(/[a-e][1-2]/g) || [];
-        const correctAnswerMap = new Map(
-          correctAnswerParts.map(part => [part.charAt(0), part.charAt(1)])
-        );
-
-        // Parse user answer
-        const userAnswerParts = userAnswer.match(/[a-e][1-2]/g) || [];
-        const userAnswerMap = new Map(
-          userAnswerParts.map(part => [part.charAt(0), part.charAt(1)])
-        );
-   
-
-        // Calculate partial points for this complex question
-        let correctParts = 0;
-        const totalParts = correctAnswerMap.size;
-
-        correctAnswerMap.forEach((expectedValue, option) => {
-          const userValue = userAnswerMap.get(option);
-          if (userValue === expectedValue) {
-            correctParts++;
-          }
-        });
-
-        // Add proportional points for partial correct answers
-        if (totalParts > 0) {
-          const questionPoints = (correctParts / totalParts) * pointsPerQuestion;
-          totalPoints += questionPoints;
-          isCorrect = correctParts === totalParts;
-      
-        }
-      } else if (soal.tipeSoal === 'isian') {
-    
-
-        // For isian type, it's all or nothing
-        if (userAnswer === soal.answer.trim().toLowerCase()) {  // Normalize the comparison
-          totalPoints += pointsPerQuestion;
-          isCorrect = true;
-        
-        } else {
-          isCorrect = false;
-        
-        }
-      } else if (soal.tipeSoal === 'pgbiasa') {  // Regular multiple-choice question type
-    
-
-        // For regular PG questions, it's all or nothing
-        if (userAnswer === soal.answer.trim().toLowerCase()) {  // Normalize the comparison
-          totalPoints += pointsPerQuestion;
-          isCorrect = true;
-       
-        } else {
-          isCorrect = false;
-    
-        }
-      }
-
-      // Log the final score after each question
-      const finalScore = Math.round(totalPoints);
- 
+    // Sort contentSoals by question number
+    contentSoals.sort((a, b) => {
+      const numA = parseInt(a.no);
+      const numB = parseInt(b.no);
+      return numA - numB;
     });
 
-    // Round the final score to avoid floating point issues
-    const finalScore = Math.round(totalPoints);
+    const totalQuestions = contentSoals.length;
+    let correctAnswers = 0;
+    let skippedAnswers = 0;
+
+    // Get user answers
+    const userAnswers = userAnswerSet.answer;
+
+    contentSoals.forEach((soal, index) => {
+      const userAns = userAnswers[index]?.toUpperCase() || '-';
+      const correctAnswer = soal.answer.toUpperCase();
+      let isCorrect = false;
+
+      if (soal.tipeSoal === 'pgkompleks1' || soal.tipeSoal === 'pgkompleks2') {
+        const correctParts = correctAnswer.match(/[A-E][1-2]/g) || [];
+        const userParts = userAns.match(/[A-E][1-2]/g) || [];
+
+        if (userAns === '-') {
+          skippedAnswers++;
+        } else {
+          const matchingCount = correctParts.filter(part => userParts.includes(part)).length;
+          isCorrect = matchingCount === correctParts.length;
+          if (isCorrect) correctAnswers++;
+        }
+      } else {
+        if (userAns === '-') {
+          skippedAnswers++;
+        } else {
+          isCorrect = userAns === correctAnswer;
+          if (isCorrect) correctAnswers++;
+        }
+      }
+    });
+
+    // Calculate score using the same logic as pembahasan
+    const scorePercentage = Math.round((correctAnswers / totalQuestions) * 100);
+    const finalScore = scorePercentage * 10; // Each question worth 10 points (1000/100)
 
     return {
       success: true,
       data: {
         score: finalScore,
-        totalPoints,
         totalQuestions,
-        pointsPerQuestion,
+        correctAnswers,
+        skippedAnswers,
+        wrongAnswers: totalQuestions - correctAnswers - skippedAnswers,
+        scorePercentage,
         details: {
           userAnswers: userAnswers,
-          correctAnswers: keyAnswers
+          correctAnswers: contentSoals.map(soal => soal.answer)
         }
       }
     };

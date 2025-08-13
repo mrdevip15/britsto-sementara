@@ -26,6 +26,7 @@
     "pg": "^8.13.1",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.5",
-    "svg-to-pdfkit": "^0.1.8"
+    "svg-to-pdfkit": "^0.1.8",
+    "xlsx": "^0.18.5"
   }
 }
