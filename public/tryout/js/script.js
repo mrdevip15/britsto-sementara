@@ -287,6 +287,29 @@ function resetToNextButton() {
     buttonNext.onclick = nextSoal; // Reset to call nextSoal function
 }
 
+function renderMathWithRetry(retries = 10, delay = 100) {
+    let attempt = 0;
+    function tryRender() {
+        attempt++;
+        try {
+            if (typeof MathJax !== 'undefined' && MathJax.typeset) {
+                MathJax.typeset();
+                console.log(`MathJax typeset successful on attempt ${attempt}`);
+            } else {
+                throw new Error('MathJax not ready');
+            }
+        } catch (error) {
+            if (attempt < retries) {
+                console.warn(`MathJax typeset failed on attempt ${attempt}, retrying...`);
+                setTimeout(tryRender, delay);
+            } else {
+                console.error(`MathJax typeset failed after ${retries} attempts.`, error);
+            }
+        }
+    }
+    tryRender();
+}
+
 function updateSoal(num) {
     // Update the question number display
     document.getElementById("noSoal").innerHTML = num + 1;
@@ -382,12 +405,7 @@ function updateSoal(num) {
     // Update options and highlight the current question
     updateOpsi(num);
     highlightCurrentNumber(num);
-    try {
-        MathJax.typeset(); 
-    } catch (error) {
-        console.log("MathJax rendering error:", error.message);
-        // Continue execution even if MathJax fails
-    }
+    renderMathWithRetry()
  
     // Update the hint after setting the question content
    
