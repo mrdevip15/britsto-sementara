@@ -146,7 +146,7 @@
                 </div>
             </div>
         </div>
-       <%- include('partials/topNav') %> 
+        <%- include('partials/topNav') %> 
         <div id="layoutSidenav">
         <%- include('partials/sideNav') %>   
         <div id="layoutSidenav_content">
@@ -250,14 +250,16 @@
         </div>     
         </div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
         <script src="<%= hostname %>dashboard/js/scripts.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
         <script src="<%= hostname %>dashboard/js/datatables/datatables-simple-demo.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js" crossorigin="anonymous"></script>
         <script defer>
 // Initialize Feather icons
 document.addEventListener('DOMContentLoaded', function() {
-    feather.replace();
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
     
     // Reinitialize icons after DataTable operations
     const datatablesSimple = document.getElementById('datatablesSimple');
@@ -265,9 +267,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const dataTable = new simpleDatatables.DataTable(datatablesSimple);
         
         // Reinitialize icons after DataTable events
-        dataTable.on('datatable.search', () => feather.replace());
-        dataTable.on('datatable.page', () => feather.replace());
-        dataTable.on('datatable.sort', () => feather.replace());
+        dataTable.on('datatable.search', () => {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+        dataTable.on('datatable.page', () => {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+        dataTable.on('datatable.sort', () => {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
     }
 });
 

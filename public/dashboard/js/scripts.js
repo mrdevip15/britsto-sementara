@@ -7,6 +7,19 @@
     // Activate feather icons if library is loaded
     if (typeof feather !== 'undefined') {
         feather.replace();
+    } else {
+        // If feather is not loaded yet, try again after a short delay
+        setTimeout(() => {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            } else {
+                // Show fallback icons if feather is still not available
+                const fallbackIcons = document.querySelectorAll('.fallback-icon');
+                fallbackIcons.forEach(icon => {
+                    icon.style.display = 'inline';
+                });
+            }
+        }, 100);
     }
 
     // Enable tooltips globally
@@ -33,15 +46,38 @@
     // Toggle the side navigation
     const sidebarToggle = document.body.querySelector('#sidebarToggle');
     if (sidebarToggle) {
+        console.log('Sidebar toggle button found:', sidebarToggle);
+        
+        // Ensure the button is visible and clickable
+        sidebarToggle.style.display = 'block';
+        sidebarToggle.style.visibility = 'visible';
+        
         // Uncomment Below to persist sidebar toggle between refreshes
         if (localStorage.getItem('sb|sidebar-toggle') === 'true') {
             document.body.classList.toggle('sidenav-toggled');
         }
         sidebarToggle.addEventListener('click', event => {
             event.preventDefault();
+            console.log('Sidebar toggle clicked');
             document.body.classList.toggle('sidenav-toggled');
             localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sidenav-toggled'));
+            console.log('Sidenav toggled:', document.body.classList.contains('sidenav-toggled'));
         });
+    } else {
+        console.log('Sidebar toggle button not found');
+        // Try to find it again after a short delay
+        setTimeout(() => {
+            const retrySidebarToggle = document.body.querySelector('#sidebarToggle');
+            if (retrySidebarToggle) {
+                console.log('Sidebar toggle button found on retry:', retrySidebarToggle);
+                retrySidebarToggle.addEventListener('click', event => {
+                    event.preventDefault();
+                    console.log('Sidebar toggle clicked (retry)');
+                    document.body.classList.toggle('sidenav-toggled');
+                    localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sidenav-toggled'));
+                });
+            }
+        }, 500);
     }
 
     // Close side navigation when width < LG

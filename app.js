@@ -75,18 +75,24 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// Redis session store
-const redisUrl = process.env.REDIS_URL || `redis://localhost:6379`;
-const redisClient = createRedisClient({ url: redisUrl });
-redisClient.on('error', (err) => {
-  // eslint-disable-next-line no-console
-  console.error('Redis Client Error', err);
-});
-// Fire and forget connect; store queues ops until connected
-redisClient.connect().catch(() => {});
+// Session store - use Redis in production, memory store in development
+let sessionStore;
+if (process.env.NODE_ENV === 'production') {
+  // Redis session store for production
+  const redisUrl = process.env.REDIS_URL || `redis://localhost:6379`;
+  const redisClient = createRedisClient({ url: redisUrl });
+  redisClient.on('error', (err) => {
+    console.error('Redis Client Error', err);
+  });
+  redisClient.connect().catch(() => {});
+  sessionStore = new RedisStore({ client: redisClient, prefix: 'session:' });
+} else {
+  // Memory store for development
+  sessionStore = undefined;
+}
 
 app.use(session({
-  store: new RedisStore({ client: redisClient, prefix: 'session:' }),
+  store: sessionStore,
   secret: process.env.SESSION_SECRET || 'your_session_secret',
   resave: false,
   saveUninitialized: false,
