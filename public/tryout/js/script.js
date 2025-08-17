@@ -386,7 +386,10 @@ function updateSoal(num) {
         MathJax.typeset(); 
     } catch (error) {
         console.log("MathJax rendering error:", error.message);
-        // Continue execution even if MathJax fails
+        // Retry rendering the question
+        setTimeout(() => {
+            updateSoal(currentNumber);
+        }, 100);
     }
  
     // Update the hint after setting the question content
