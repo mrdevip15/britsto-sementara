@@ -226,8 +226,12 @@
                                                     <i data-feather="delete"></i>
                                                 </a>
                                                 <a href="/admin/user-report/<%= siswa.id %>" 
-                                                   class="icon-container icon-info me-2">
+                                                   class="icon-container icon-info me-2" title="View User Report">
                                                     <i data-feather="file-text"></i>
+                                                </a>
+                                                <a href="/admin/user-report/<%= siswa.id %>" 
+                                                   class="icon-container icon-warning me-2" title="Reset Token Exams">
+                                                    <i data-feather="refresh-cw"></i>
                                                 </a>
                                                 <a class="icon-container icon-danger" href="#" onclick="deleteUser('<%= siswa.id %>')" title="Delete User">
                                                     <i data-feather="trash-2"></i>

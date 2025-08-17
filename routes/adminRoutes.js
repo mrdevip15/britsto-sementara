@@ -31,6 +31,7 @@ const {
     exportSoal,
     importSoal,
     resetUserExams,
+    resetUserTokenExams,
     getDetailedNilai,
     exportDetailedNilai,
     resetUserSession,
@@ -164,6 +165,9 @@ router.post('/importSoal', upload.single('file'), importSoal);
 
 // Add this route with the other protected routes
 router.post('/reset-user-exams/:userId', resetUserExams);
+
+// Add this route for resetting specific token data per student
+router.post('/reset-user-token-exams/:userId/:tokenValue', resetUserTokenExams);
 
 // Add this route with the other protected routes
 router.post('/accept-member/:userId', acceptMember);

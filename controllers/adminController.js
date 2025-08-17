@@ -1723,6 +1723,65 @@ async function getTentorSessions(req, res) {
     }
 }
 
+// Add this new function for resetting specific token data per student
+async function resetUserTokenExams(req, res) {
+    try {
+        const { userId, tokenValue } = req.params;
+        const user = await User.findByPk(userId);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Get token data to find the owner
+        const tokenData = await Token.findOne({ where: { token: tokenValue } });
+        if (!tokenData) {
+            return res.status(404).json({ success: false, message: 'Token not found' });
+        }
+
+        // Get all mapel that belong to this token owner
+        const mapels = await Mapel.findAll({ 
+            where: { owner: tokenData.owner },
+            attributes: ['kodekategori']
+        });
+        const kodekategoriList = mapels.map(mapel => mapel.kodekategori);
+
+        // Get current exam data
+        let examTaken = user.examTaken || [];
+        let examCompleted = user.examCompleted || [];
+        let answers = user.answers || [];
+        let disqualifiedExams = user.disqualifiedExams || [];
+
+        // Filter out data for the specific token
+        examTaken = examTaken.filter(entry => entry.tokenValue !== tokenValue);
+        examCompleted = examCompleted.filter(entry => entry.tokenValue !== tokenValue);
+        
+        // Filter out answers for kodekategori that belong to this token
+        answers = answers.filter(answer => !kodekategoriList.includes(answer.kodekategori));
+        
+        // Filter out disqualified exams that contain any of the kodekategori
+        disqualifiedExams = disqualifiedExams.filter(exam => {
+            return !kodekategoriList.some(kode => exam.includes(kode));
+        });
+
+        // Update the user's data
+        await user.update({
+            examTaken,
+            examCompleted,
+            answers,
+            disqualifiedExams
+        });
+        
+        res.json({ 
+            success: true, 
+            message: `Exam data for token ${tokenValue} (${tokenData.owner}) has been reset successfully for user ${user.nama || user.email}` 
+        });
+    } catch (error) {
+        console.error('Error resetting user token exam data:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
 module.exports = {
     dashboard,
     deleteUser,
@@ -1747,6 +1806,7 @@ module.exports = {
     exportSoal,
     importSoal,
     resetUserExams,
+    resetUserTokenExams,
     getDetailedNilai,
     acceptMember,
     cancelMember,

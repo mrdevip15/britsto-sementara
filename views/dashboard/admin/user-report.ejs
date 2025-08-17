@@ -8,6 +8,7 @@
     <%- include('../../partials/head') %>
     <link href="<%= hostname %>dashboard/css/styles.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .table-wrapper {
             overflow-x: auto;
@@ -211,9 +212,13 @@
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-primary" 
+                                                    <button class="btn btn-sm btn-primary me-1" 
                                                             onclick="showDetails('<%= tokenValue %>')">
                                                         View Details
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" 
+                                                            onclick="resetTokenExams('<%= userData.id %>', '<%= tokenValue %>', '<%= tokenDetails ? tokenDetails.owner : 'Unknown' %>')">
+                                                        Reset
                                                     </button>
                                                 </td>
                                             </tr>
@@ -692,6 +697,55 @@
                     '<div class="alert alert-danger">Error loading chart: ' + error.message + '</div>';
             }
         });
+
+        // Add reset token exams function
+        function resetTokenExams(userId, tokenValue, tokenOwner) {
+            Swal.fire({
+                title: 'Reset Token Exams?',
+                text: `This will reset all exam data for token ${tokenValue} (${tokenOwner}). This action cannot be undone!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, reset it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/admin/reset-user-token-exams/${userId}/${tokenValue}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire(
+                                'Reset!',
+                                data.message,
+                                'success'
+                            ).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                'Failed to reset token exams: ' + data.message,
+                                'error'
+                            );
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire(
+                            'Error!',
+                            'An error occurred while resetting token exams',
+                            'error'
+                        );
+                    });
+                }
+            });
+        }
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
