@@ -51,14 +51,18 @@
         // Ensure the button is visible and clickable
         sidebarToggle.style.display = 'block';
         sidebarToggle.style.visibility = 'visible';
+        sidebarToggle.style.pointerEvents = 'auto';
         
         // Uncomment Below to persist sidebar toggle between refreshes
         if (localStorage.getItem('sb|sidebar-toggle') === 'true') {
             document.body.classList.toggle('sidenav-toggled');
         }
+        
+        // Add event listener only once
         sidebarToggle.addEventListener('click', event => {
             event.preventDefault();
-            console.log('Sidebar toggle clicked');
+            event.stopPropagation();
+            console.log('Sidebar toggle clicked (scripts.js)');
             document.body.classList.toggle('sidenav-toggled');
             localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sidenav-toggled'));
             console.log('Sidenav toggled:', document.body.classList.contains('sidenav-toggled'));
@@ -72,6 +76,7 @@
                 console.log('Sidebar toggle button found on retry:', retrySidebarToggle);
                 retrySidebarToggle.addEventListener('click', event => {
                     event.preventDefault();
+                    event.stopPropagation();
                     console.log('Sidebar toggle clicked (retry)');
                     document.body.classList.toggle('sidenav-toggled');
                     localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sidenav-toggled'));
