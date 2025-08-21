@@ -19,6 +19,61 @@
                 overflow-x:auto;
             }
             
+            /* Table responsive styling */
+            .table-responsive {
+                border: 1px solid #dee2e6;
+                border-radius: 0.375rem;
+            }
+            
+            .table-responsive::-webkit-scrollbar {
+                height: 8px;
+                width: 8px;
+            }
+            
+            .table-responsive::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 4px;
+            }
+            
+            .table-responsive::-webkit-scrollbar-thumb {
+                background: #c1c1c1;
+                border-radius: 4px;
+            }
+            
+            .table-responsive::-webkit-scrollbar-thumb:hover {
+                background: #a8a8a8;
+            }
+            
+            /* Table styling */
+            #siswaTable {
+                margin-bottom: 0;
+            }
+            
+            #siswaTable thead th {
+                position: sticky;
+                top: 0;
+                background: #f8f9fa;
+                z-index: 10;
+                border-bottom: 2px solid #dee2e6;
+                white-space: nowrap;
+            }
+            
+            #siswaTable tbody tr:hover {
+                background-color: rgba(0,0,0,.075);
+            }
+            
+            /* Search input styling */
+            #searchInput:focus {
+                border-color: #86b7fe;
+                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            }
+            
+            /* Search results counter */
+            #searchResults {
+                font-size: 0.875rem;
+                line-height: 1.5;
+            }
+            
             /* Clean icon styling */
             [data-feather] {
                 width: 20px;
@@ -150,7 +205,28 @@
                                     </button>
                                 </div>
                             </div>
-                            <table class="table">
+                            
+                            <!-- Search Bar -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i data-feather="search"></i>
+                                        </span>
+                                        <input type="text" id="searchInput" class="form-control" placeholder="Search by name, email, school, or phone..." onkeyup="filterTable()">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                            <i data-feather="x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <span id="searchResults" class="text-muted"></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Table Container with Horizontal Scroll -->
+                            <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                                <table class="table table-hover" id="siswaTable">
                                 <thead>
                                     <tr>
                                         <th>Name</th>
@@ -242,6 +318,7 @@
                                     <% }); %>
                                 </tbody>
                             </table>
+                            </div>
 
                             <% if (typeof pagination !== 'undefined' && pagination.totalPages > 1) { %>
                             <div class="d-flex justify-content-between align-items-center mt-4">
@@ -387,7 +464,69 @@
             // Initialize Feather icons
             document.addEventListener('DOMContentLoaded', function() {
                 feather.replace();
+                updateSearchResults();
             });
+
+            // Search functionality
+            function filterTable() {
+                const input = document.getElementById('searchInput');
+                const filter = input.value.toLowerCase();
+                const table = document.getElementById('siswaTable');
+                const tbody = table.getElementsByTagName('tbody')[0];
+                const rows = tbody.getElementsByTagName('tr');
+                let visibleCount = 0;
+
+                for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    const cells = row.getElementsByTagName('td');
+                    let found = false;
+
+                    // Search in name, email, school, and phone columns
+                    for (let j = 0; j < cells.length; j++) {
+                        const cell = cells[j];
+                        if (cell.textContent || cell.innerText) {
+                            if ((cell.textContent || cell.innerText).toLowerCase().indexOf(filter) > -1) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (found) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+
+                updateSearchResults(visibleCount, rows.length);
+            }
+
+            function clearSearch() {
+                document.getElementById('searchInput').value = '';
+                filterTable();
+            }
+
+            function updateSearchResults(visibleCount, totalCount) {
+                const searchResults = document.getElementById('searchResults');
+                if (visibleCount !== undefined && totalCount !== undefined) {
+                    searchResults.textContent = `Showing ${visibleCount} of ${totalCount} results`;
+                } else {
+                    const table = document.getElementById('siswaTable');
+                    const tbody = table.getElementsByTagName('tbody')[0];
+                    const rows = tbody.getElementsByTagName('tr');
+                    let visibleCount = 0;
+                    
+                    for (let i = 0; i < rows.length; i++) {
+                        if (rows[i].style.display !== 'none') {
+                            visibleCount++;
+                        }
+                    }
+                    
+                    searchResults.textContent = `Showing ${visibleCount} of ${rows.length} results`;
+                }
+            }
 
             function changePageSize(newLimit) {
                 const urlParams = new URLSearchParams(window.location.search);
