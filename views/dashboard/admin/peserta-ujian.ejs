@@ -533,8 +533,10 @@
                     clearTimeout(searchTimeout);
                 }
                 
-                // Update search status
-                updateSearchStatus('typing');
+                // Update search status if element exists
+                if (document.getElementById('searchStatus')) {
+                    updateSearchStatus('typing');
+                }
                 
                 // If search value is less than 3 characters, clear results and show all
                 if (searchValue.length < 3) {
@@ -554,7 +556,9 @@
 
             function performAjaxSearch(searchValue) {
                 currentSearch = searchValue;
-                updateSearchStatus('searching');
+                if (document.getElementById('searchStatus')) {
+                    updateSearchStatus('searching');
+                }
                 
                 const urlParams = new URLSearchParams();
                 urlParams.set('search', searchValue);
@@ -566,14 +570,20 @@
                     .then(data => {
                         if (data.success) {
                             updateTableWithResults(data.data);
-                            updateSearchStatus('success');
+                            if (document.getElementById('searchStatus')) {
+                                updateSearchStatus('success');
+                            }
                         } else {
-                            updateSearchStatus('error');
+                            if (document.getElementById('searchStatus')) {
+                                updateSearchStatus('error');
+                            }
                             console.error('Search failed:', data.message);
                         }
                     })
                     .catch(error => {
-                        updateSearchStatus('error');
+                        if (document.getElementById('searchStatus')) {
+                            updateSearchStatus('error');
+                        }
                         console.error('Search error:', error);
                     });
             }
@@ -657,7 +667,16 @@
 
             function updateSearchStatus(status) {
                 const searchStatus = document.getElementById('searchStatus');
+                if (!searchStatus) {
+                    console.warn('Search status element not found');
+                    return;
+                }
+                
                 const icon = searchStatus.querySelector('i');
+                if (!icon) {
+                    console.warn('Search status icon not found');
+                    return;
+                }
                 
                 switch(status) {
                     case 'typing':
@@ -694,8 +713,10 @@
                     clearTimeout(searchTimeout);
                 }
                 
-                // Reset search status
-                updateSearchStatus('default');
+                // Reset search status if element exists
+                if (document.getElementById('searchStatus')) {
+                    updateSearchStatus('default');
+                }
                 
                 // Reload the page to show all users
                 window.location.href = '/admin/peserta-ujian';
