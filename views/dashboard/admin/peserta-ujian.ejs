@@ -160,6 +160,45 @@
                 border-radius: 8px;
                 color: white;
             }
+            
+            /* Search status indicator */
+            #searchStatus {
+                transition: all 0.3s ease;
+            }
+            
+            #searchStatus.text-warning {
+                background-color: #fff3cd;
+                border-color: #ffeaa7;
+                color: #856404;
+            }
+            
+            #searchStatus.text-primary {
+                background-color: #d1ecf1;
+                border-color: #bee5eb;
+                color: #0c5460;
+            }
+            
+            #searchStatus.text-success {
+                background-color: #d4edda;
+                border-color: #c3e6cb;
+                color: #155724;
+            }
+            
+            #searchStatus.text-danger {
+                background-color: #f8d7da;
+                border-color: #f5c6cb;
+                color: #721c24;
+            }
+            
+            /* Loading animation */
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            #searchStatus.text-primary i {
+                animation: spin 1s linear infinite;
+            }
         </style>
     </head>
     <body class="nav-fixed">
@@ -209,25 +248,23 @@
                             <!-- Search Bar -->
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <form method="GET" action="/admin/peserta-ujian" id="searchForm">
-                                        <div class="input-group">
-                                            <span class="input-group-text">
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i data-feather="search"></i>
+                                        </span>
+                                        <input type="text" id="searchInput" class="form-control" 
+                                               placeholder="Search by name, email, school, phone, paket, program... (min 3 characters)" 
+                                               value="<%= typeof search !== 'undefined' ? search : '' %>"
+                                               onkeyup="handleSearch(event)">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                            <i data-feather="x"></i>
+                                        </button>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text" id="searchStatus">
                                                 <i data-feather="search"></i>
                                             </span>
-                                            <input type="text" id="searchInput" name="search" class="form-control" 
-                                                   placeholder="Search by name, email, school, phone, paket, program..." 
-                                                   value="<%= typeof search !== 'undefined' ? search : '' %>"
-                                                   onkeyup="handleSearch(event)">
-                                            <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
-                                                <i data-feather="x"></i>
-                                            </button>
-                                            <button class="btn btn-primary" type="submit">
-                                                <i data-feather="search"></i> Search
-                                            </button>
                                         </div>
-                                        <!-- Hidden inputs to preserve pagination parameters -->
-                                        <input type="hidden" name="limit" value="<%= typeof pagination !== 'undefined' ? pagination.limit : 50 %>">
-                                    </form>
+                                    </div>
                                 </div>
                                 <div class="col-md-6 text-end">
                                     <span id="searchResults" class="text-muted">
@@ -483,38 +520,185 @@
                 feather.replace();
             });
 
-            // Search functionality
-            function handleSearch(event) {
-                // If Enter key is pressed, submit the form
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    submitSearch();
-                }
-            }
+            // AJAX Search functionality
+            let searchTimeout;
+            let currentSearch = '';
 
-            function submitSearch() {
+            function handleSearch(event) {
                 const searchInput = document.getElementById('searchInput');
                 const searchValue = searchInput.value.trim();
                 
-                // Build URL with search parameter
-                const urlParams = new URLSearchParams(window.location.search);
-                if (searchValue) {
-                    urlParams.set('search', searchValue);
-                } else {
-                    urlParams.delete('search');
+                // Clear previous timeout
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
                 }
-                urlParams.set('page', '1'); // Reset to first page when searching
                 
-                // Navigate to the search results
-                window.location.href = window.location.pathname + '?' + urlParams.toString();
+                // Update search status
+                updateSearchStatus('typing');
+                
+                // If search value is less than 3 characters, clear results and show all
+                if (searchValue.length < 3) {
+                    if (currentSearch !== '') {
+                        clearSearch();
+                    }
+                    return;
+                }
+                
+                // Set timeout to trigger search after 500ms of no typing
+                searchTimeout = setTimeout(() => {
+                    if (searchValue !== currentSearch) {
+                        performAjaxSearch(searchValue);
+                    }
+                }, 500);
+            }
+
+            function performAjaxSearch(searchValue) {
+                currentSearch = searchValue;
+                updateSearchStatus('searching');
+                
+                const urlParams = new URLSearchParams();
+                urlParams.set('search', searchValue);
+                urlParams.set('page', '1');
+                urlParams.set('limit', '<%= typeof pagination !== "undefined" ? pagination.limit : 50 %>');
+                
+                fetch(`/admin/search-users?${urlParams.toString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            updateTableWithResults(data.data);
+                            updateSearchStatus('success');
+                        } else {
+                            updateSearchStatus('error');
+                            console.error('Search failed:', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        updateSearchStatus('error');
+                        console.error('Search error:', error);
+                    });
+            }
+
+            function updateTableWithResults(data) {
+                const tbody = document.querySelector('#siswaTable tbody');
+                const searchResults = document.getElementById('searchResults');
+                
+                // Clear current table
+                tbody.innerHTML = '';
+                
+                // Add new results
+                data.users.forEach(siswa => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar me-2">
+                                    <img class="avatar-img" style="width: 40px; height: 40px;" src="${siswa.photos || '/assets/img/default-profile.png'}" 
+                                    alt="Profile Photo" referrerpolicy="no-referrer"/>
+                                </div>
+                                ${siswa.nama || 'No Name'}
+                            </div>
+                        </td>
+                        <td>${siswa.email || 'No Email'}</td>
+                        <td>${siswa.paket || 'Unknown Role'}</td>
+                        <td>${siswa.program || 'Unknown program'}</td>
+                        <td>${siswa.asal_sekolah || 'No School Info'}</td>
+                        <td>${siswa.phone || 'No Phone'}</td>
+                        <td>${siswa.google_id || 'Not Linked'}</td>
+                        <td>
+                            ${siswa.isMember ? 
+                                `<span class="badge bg-success me-2" style="color: white;">Siswa</span>
+                                 <a class="icon-container icon-danger" href="#" onclick="cancelMember('${siswa.id}')" title="Cancel Membership">
+                                     <i data-feather="user-x"></i>
+                                 </a>` :
+                                `Acc  
+                                 <a class="icon-container icon-success" href="#" onclick="acceptAsMember('${siswa.id}')" title="Accept as Member">
+                                     <i data-feather="user-check"></i>
+                                 </a>`
+                            }
+                        </td>
+                        <td>
+                            ${siswa.activeSessionId ? 
+                                `<a class="icon-container icon-warning me-2" href="#" onclick="resetUserSession('${siswa.id}')" title="Reset User Session">
+                                     <i data-feather="refresh-cw"></i>
+                                 </a>` : ''
+                            }
+                            <a class="icon-container icon-danger me-2" href="#" onclick="resetUserExams('${siswa.id}')" title="Reset User Exams">
+                                <i data-feather="delete"></i>
+                            </a>
+                            <a href="/admin/user-report/${siswa.id}" 
+                               class="icon-container icon-info me-2" title="View User Report">
+                                <i data-feather="file-text"></i>
+                            </a>
+                            <a href="/admin/user-report/${siswa.id}" 
+                               class="icon-container icon-warning me-2" title="Reset Token Exams">
+                                <i data-feather="refresh-cw"></i>
+                            </a>
+                            <a class="icon-container icon-danger" href="#" onclick="deleteUser('${siswa.id}')" title="Delete User">
+                                <i data-feather="trash-2"></i>
+                            </a>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                // Update search results text
+                if (data.search) {
+                    searchResults.innerHTML = `Found ${data.pagination.totalUsers} result(s) for "${data.search}" 
+                        <a href="/admin/peserta-ujian" class="btn btn-sm btn-outline-secondary ms-2">
+                            <i data-feather="x"></i> Clear Search
+                        </a>`;
+                } else {
+                    searchResults.innerHTML = '';
+                }
+                
+                // Reinitialize Feather icons
+                feather.replace();
+            }
+
+            function updateSearchStatus(status) {
+                const searchStatus = document.getElementById('searchStatus');
+                const icon = searchStatus.querySelector('i');
+                
+                switch(status) {
+                    case 'typing':
+                        icon.setAttribute('data-feather', 'clock');
+                        searchStatus.className = 'input-group-text text-warning';
+                        break;
+                    case 'searching':
+                        icon.setAttribute('data-feather', 'loader');
+                        searchStatus.className = 'input-group-text text-primary';
+                        break;
+                    case 'success':
+                        icon.setAttribute('data-feather', 'check');
+                        searchStatus.className = 'input-group-text text-success';
+                        break;
+                    case 'error':
+                        icon.setAttribute('data-feather', 'x');
+                        searchStatus.className = 'input-group-text text-danger';
+                        break;
+                    default:
+                        icon.setAttribute('data-feather', 'search');
+                        searchStatus.className = 'input-group-text';
+                }
+                
+                feather.replace();
             }
 
             function clearSearch() {
-                // Remove search parameter and reload
-                const urlParams = new URLSearchParams(window.location.search);
-                urlParams.delete('search');
-                urlParams.set('page', '1');
-                window.location.href = window.location.pathname + '?' + urlParams.toString();
+                const searchInput = document.getElementById('searchInput');
+                searchInput.value = '';
+                currentSearch = '';
+                
+                // Clear timeout if exists
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                
+                // Reset search status
+                updateSearchStatus('default');
+                
+                // Reload the page to show all users
+                window.location.href = '/admin/peserta-ujian';
             }
 
             function changePageSize(newLimit) {

@@ -40,6 +40,7 @@ const {
     getNilai,
     getNilaiByOwner,
     pesertaUjian,
+    searchUsers,
     exportUsersCSV,
     exportUsersBasicCSV,
     importUsersCSV
@@ -1512,6 +1513,7 @@ router.get('/tentor/:id/sessions', getTentorSessions);
 
 // Add new route for peserta ujian
 router.get('/peserta-ujian', pesertaUjian);
+router.get('/search-users', searchUsers);
 
 // Export users to CSV
 router.get('/export-users-csv', exportUsersCSV);

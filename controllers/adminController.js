@@ -276,8 +276,7 @@ async function pesertaUjian(req, res) {
                     { asal_sekolah: { [Op.iLike]: `%${search}%` } },
                     { phone: { [Op.iLike]: `%${search}%` } },
                     { paket: { [Op.iLike]: `%${search}%` } },
-                    { program: { [Op.iLike]: `%${search}%` } },
-                    { google_id: { [Op.iLike]: `%${search}%` } }
+                    { program: { [Op.iLike]: `%${search}%` } }
                 ]
             };
         }
@@ -312,6 +311,67 @@ async function pesertaUjian(req, res) {
     } catch (error) {
         console.error('Error in peserta ujian controller:', error);
         res.status(500).send('Error fetching users');
+    }
+}
+
+// AJAX search endpoint
+async function searchUsers(req, res) {
+    try {
+        const search = req.query.search || '';
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const offset = (page - 1) * limit;
+
+        // Build where clause for search
+        let whereClause = {};
+        if (search && search.length >= 3) {
+            whereClause = {
+                [Op.or]: [
+                    { nama: { [Op.iLike]: `%${search}%` } },
+                    { email: { [Op.iLike]: `%${search}%` } },
+                    { asal_sekolah: { [Op.iLike]: `%${search}%` } },
+                    { phone: { [Op.iLike]: `%${search}%` } },
+                    { paket: { [Op.iLike]: `%${search}%` } },
+                    { program: { [Op.iLike]: `%${search}%` } }
+                ]
+            };
+        }
+
+        const totalUsers = await User.count({ where: whereClause });
+        const siswas = await User.findAll({
+            where: whereClause,
+            limit,
+            offset,
+            order: [['nama', 'ASC']]
+        });
+
+        const totalPages = Math.ceil(totalUsers / limit) || 1;
+        const hasNextPage = page < totalPages;
+        const hasPrevPage = page > 1;
+
+        res.json({
+            success: true,
+            data: {
+                users: siswas,
+                pagination: {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalUsers: totalUsers,
+                    limit: limit,
+                    hasNextPage: hasNextPage,
+                    hasPrevPage: hasPrevPage,
+                    startIndex: offset + 1,
+                    endIndex: Math.min(offset + limit, totalUsers)
+                },
+                search: search
+            }
+        });
+    } catch (error) {
+        console.error('Error in search users controller:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error searching users'
+        });
     }
 }
 
@@ -1833,6 +1893,7 @@ module.exports = {
     getNilaiByOwner,
     getTentorSessions,
     pesertaUjian,
+    searchUsers,
     exportUsersCSV,
     exportUsersBasicCSV,
     importUsersCSV,
