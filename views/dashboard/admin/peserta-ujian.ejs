@@ -209,18 +209,35 @@
                             <!-- Search Bar -->
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i data-feather="search"></i>
-                                        </span>
-                                        <input type="text" id="searchInput" class="form-control" placeholder="Search by name, email, school, or phone..." onkeyup="filterTable()">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
-                                            <i data-feather="x"></i>
-                                        </button>
-                                    </div>
+                                    <form method="GET" action="/admin/peserta-ujian" id="searchForm">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i data-feather="search"></i>
+                                            </span>
+                                            <input type="text" id="searchInput" name="search" class="form-control" 
+                                                   placeholder="Search by name, email, school, phone, paket, program..." 
+                                                   value="<%= typeof search !== 'undefined' ? search : '' %>"
+                                                   onkeyup="handleSearch(event)">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                                <i data-feather="x"></i>
+                                            </button>
+                                            <button class="btn btn-primary" type="submit">
+                                                <i data-feather="search"></i> Search
+                                            </button>
+                                        </div>
+                                        <!-- Hidden inputs to preserve pagination parameters -->
+                                        <input type="hidden" name="limit" value="<%= typeof pagination !== 'undefined' ? pagination.limit : 50 %>">
+                                    </form>
                                 </div>
                                 <div class="col-md-6 text-end">
-                                    <span id="searchResults" class="text-muted"></span>
+                                    <span id="searchResults" class="text-muted">
+                                        <% if (typeof search !== 'undefined' && search) { %>
+                                            Found <%= pagination.totalUsers %> result(s) for "<%= search %>" 
+                                            <a href="/admin/peserta-ujian" class="btn btn-sm btn-outline-secondary ms-2">
+                                                <i data-feather="x"></i> Clear Search
+                                            </a>
+                                        <% } %>
+                                    </span>
                                 </div>
                             </div>
                             
@@ -328,12 +345,12 @@
                                 <nav aria-label="Page navigation">
                                     <ul class="pagination pagination-sm mb-0">
                                         <li class="page-item <%= pagination.currentPage === 1 ? 'disabled' : '' %>">
-                                            <a class="page-link" href="?page=1&limit=<%= pagination.limit %>" aria-label="First">
+                                            <a class="page-link" href="?page=1&limit=<%= pagination.limit %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>" aria-label="First">
                                                 <span aria-hidden="true">&laquo;&laquo;</span>
                                             </a>
                                         </li>
                                         <li class="page-item <%= !pagination.hasPrevPage ? 'disabled' : '' %>">
-                                            <a class="page-link" href="?page=<%= pagination.currentPage - 1 %>&limit=<%= pagination.limit %>" aria-label="Previous">
+                                            <a class="page-link" href="?page=<%= pagination.currentPage - 1 %>&limit=<%= pagination.limit %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>" aria-label="Previous">
                                                 <span aria-hidden="true">&laquo;</span>
                                             </a>
                                         </li>
@@ -346,19 +363,19 @@
                                         <% } %>
                                         <% for(let i = startPage; i <= endPage; i++) { %>
                                             <li class="page-item <%= i === pagination.currentPage ? 'active' : '' %>">
-                                                <a class="page-link" href="?page=<%= i %>&limit=<%= pagination.limit %>"><%= i %></a>
+                                                <a class="page-link" href="?page=<%= i %>&limit=<%= pagination.limit %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>"><%= i %></a>
                                             </li>
                                         <% } %>
                                         <% if (endPage < pagination.totalPages) { %>
                                             <li class="page-item disabled"><span class="page-link">...</span></li>
                                         <% } %>
                                         <li class="page-item <%= !pagination.hasNextPage ? 'disabled' : '' %>">
-                                            <a class="page-link" href="?page=<%= pagination.currentPage + 1 %>&limit=<%= pagination.limit %>" aria-label="Next">
+                                            <a class="page-link" href="?page=<%= pagination.currentPage + 1 %>&limit=<%= pagination.limit %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>" aria-label="Next">
                                                 <span aria-hidden="true">&raquo;</span>
                                             </a>
                                         </li>
                                         <li class="page-item <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>">
-                                            <a class="page-link" href="?page=<%= pagination.totalPages %>&limit=<%= pagination.limit %>" aria-label="Last">
+                                            <a class="page-link" href="?page=<%= pagination.totalPages %>&limit=<%= pagination.limit %><%= typeof search !== 'undefined' && search ? '&search=' + encodeURIComponent(search) : '' %>" aria-label="Last">
                                                 <span aria-hidden="true">&raquo;&raquo;</span>
                                             </a>
                                         </li>
@@ -464,74 +481,50 @@
             // Initialize Feather icons
             document.addEventListener('DOMContentLoaded', function() {
                 feather.replace();
-                updateSearchResults();
             });
 
             // Search functionality
-            function filterTable() {
-                const input = document.getElementById('searchInput');
-                const filter = input.value.toLowerCase();
-                const table = document.getElementById('siswaTable');
-                const tbody = table.getElementsByTagName('tbody')[0];
-                const rows = tbody.getElementsByTagName('tr');
-                let visibleCount = 0;
-
-                for (let i = 0; i < rows.length; i++) {
-                    const row = rows[i];
-                    const cells = row.getElementsByTagName('td');
-                    let found = false;
-
-                    // Search in name, email, school, and phone columns
-                    for (let j = 0; j < cells.length; j++) {
-                        const cell = cells[j];
-                        if (cell.textContent || cell.innerText) {
-                            if ((cell.textContent || cell.innerText).toLowerCase().indexOf(filter) > -1) {
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (found) {
-                        row.style.display = '';
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
-                    }
+            function handleSearch(event) {
+                // If Enter key is pressed, submit the form
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    submitSearch();
                 }
+            }
 
-                updateSearchResults(visibleCount, rows.length);
+            function submitSearch() {
+                const searchInput = document.getElementById('searchInput');
+                const searchValue = searchInput.value.trim();
+                
+                // Build URL with search parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                if (searchValue) {
+                    urlParams.set('search', searchValue);
+                } else {
+                    urlParams.delete('search');
+                }
+                urlParams.set('page', '1'); // Reset to first page when searching
+                
+                // Navigate to the search results
+                window.location.href = window.location.pathname + '?' + urlParams.toString();
             }
 
             function clearSearch() {
-                document.getElementById('searchInput').value = '';
-                filterTable();
-            }
-
-            function updateSearchResults(visibleCount, totalCount) {
-                const searchResults = document.getElementById('searchResults');
-                if (visibleCount !== undefined && totalCount !== undefined) {
-                    searchResults.textContent = `Showing ${visibleCount} of ${totalCount} results`;
-                } else {
-                    const table = document.getElementById('siswaTable');
-                    const tbody = table.getElementsByTagName('tbody')[0];
-                    const rows = tbody.getElementsByTagName('tr');
-                    let visibleCount = 0;
-                    
-                    for (let i = 0; i < rows.length; i++) {
-                        if (rows[i].style.display !== 'none') {
-                            visibleCount++;
-                        }
-                    }
-                    
-                    searchResults.textContent = `Showing ${visibleCount} of ${rows.length} results`;
-                }
+                // Remove search parameter and reload
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.delete('search');
+                urlParams.set('page', '1');
+                window.location.href = window.location.pathname + '?' + urlParams.toString();
             }
 
             function changePageSize(newLimit) {
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.set('limit', newLimit);
                 urlParams.set('page', '1');
+                // Preserve search parameter if it exists
+                if (typeof '<%= typeof search !== "undefined" ? search : "" %>' !== 'undefined' && '<%= typeof search !== "undefined" ? search : "" %>') {
+                    urlParams.set('search', '<%= typeof search !== "undefined" ? search : "" %>');
+                }
                 window.location.href = window.location.pathname + '?' + urlParams.toString();
             }
 
@@ -542,6 +535,10 @@
                 if (page >= 1 && page <= maxPage) {
                     const urlParams = new URLSearchParams(window.location.search);
                     urlParams.set('page', page);
+                    // Preserve search parameter if it exists
+                    if (typeof '<%= typeof search !== "undefined" ? search : "" %>' !== 'undefined' && '<%= typeof search !== "undefined" ? search : "" %>') {
+                        urlParams.set('search', '<%= typeof search !== "undefined" ? search : "" %>');
+                    }
                     window.location.href = window.location.pathname + '?' + urlParams.toString();
                 } else {
                     pageInput.value = '<%= typeof pagination !== "undefined" ? pagination.currentPage : 1 %>';

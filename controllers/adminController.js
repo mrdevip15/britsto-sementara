@@ -264,9 +264,27 @@ async function pesertaUjian(req, res) {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 50;
         const offset = (page - 1) * limit;
+        const search = req.query.search || '';
 
-        const totalUsers = await User.count();
+        // Build where clause for search
+        let whereClause = {};
+        if (search) {
+            whereClause = {
+                [Op.or]: [
+                    { nama: { [Op.iLike]: `%${search}%` } },
+                    { email: { [Op.iLike]: `%${search}%` } },
+                    { asal_sekolah: { [Op.iLike]: `%${search}%` } },
+                    { phone: { [Op.iLike]: `%${search}%` } },
+                    { paket: { [Op.iLike]: `%${search}%` } },
+                    { program: { [Op.iLike]: `%${search}%` } },
+                    { google_id: { [Op.iLike]: `%${search}%` } }
+                ]
+            };
+        }
+
+        const totalUsers = await User.count({ where: whereClause });
         const siswas = await User.findAll({
+            where: whereClause,
             limit,
             offset,
             order: [['nama', 'ASC']]
@@ -279,6 +297,7 @@ async function pesertaUjian(req, res) {
         res.render('dashboard/admin/peserta-ujian', {
             user: adminData,
             siswas,
+            search: search,
             pagination: {
                 currentPage: page,
                 totalPages: totalPages,
